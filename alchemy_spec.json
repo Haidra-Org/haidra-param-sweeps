@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "generated_against": "horde-engine on a local GPU for the post-processors, the live AI Horde interrogation API for the describe family, and a local horde-image-utilities service for the control maps",
+  "entries": [
+    {
+      "form": "caption",
+      "use_case": "describe",
+      "title": "Caption",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "A short sentence describing the picture, from the BLIP captioner. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "interrogation",
+      "use_case": "describe",
+      "title": "Interrogate",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "The tags and phrases CLIP thinks fit the picture, which is a prompt read back out of an image rather than a sentence about it. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "nsfw",
+      "use_case": "describe",
+      "title": "NSFW check",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Filed under describe because its answer is a judgement about the picture rather than a change to it; it is a safety check and not a description, so the fit is approximate. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "describe",
+      "use_case": "describe",
+      "title": "Technical description",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Dimensions, dominant colour, blurhash and perceptual hashes: what the file is rather than what the picture shows. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "aesthetic",
+      "use_case": "describe",
+      "title": "Aesthetic score",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Filed under describe because it answers a question about the picture in a number; it describes taste rather than content, so the fit is approximate. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "palette",
+      "use_case": "describe",
+      "title": "Colour palette",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Filed under describe because its answer is a read of the picture returned as data; it is a colour list rather than a description, so the fit is approximate. The horde's alchemist workers serve this form, not anything local: the answer was asked for through the public API and is published as it came back."
+    },
+    {
+      "form": "annotation",
+      "control_type": "canny",
+      "use_case": "control_map",
+      "title": "canny",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Finds the hard edges and draws them as thin white lines on black."
+    },
+    {
+      "form": "annotation",
+      "control_type": "hed",
+      "use_case": "control_map",
+      "title": "hed",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws softer, hand-drawn-looking edges that follow the shapes rather than every hard boundary."
+    },
+    {
+      "form": "annotation",
+      "control_type": "pidinet",
+      "use_case": "control_map",
+      "title": "pidinet",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws soft edges too, keeping fewer of the fine ones than hed does."
+    },
+    {
+      "form": "annotation",
+      "control_type": "teed",
+      "use_case": "control_map",
+      "title": "teed",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws soft edges with thinner, cleaner strokes than the older soft-edge detectors."
+    },
+    {
+      "form": "annotation",
+      "control_type": "pyracanny",
+      "use_case": "control_map",
+      "title": "pyracanny",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Finds hard edges at several scales at once, so large shapes survive alongside small detail."
+    },
+    {
+      "form": "annotation",
+      "control_type": "binary",
+      "use_case": "control_map",
+      "title": "binary",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reduces the picture to pure black and white at a threshold, keeping mass rather than outline."
+    },
+    {
+      "form": "annotation",
+      "control_type": "scribble",
+      "use_case": "control_map",
+      "title": "scribble",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reduces the picture to a loose sketch, as though someone had traced it quickly by hand."
+    },
+    {
+      "form": "annotation",
+      "control_type": "fakescribbles",
+      "use_case": "control_map",
+      "title": "fakescribbles",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Turns detected edges into a scribble, so a photograph comes back looking hand-drawn."
+    },
+    {
+      "form": "annotation",
+      "control_type": "scribble_xdog",
+      "use_case": "control_map",
+      "title": "scribble_xdog",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Makes the scribble from a difference-of-gaussians pass, which keeps more of the fine detail."
+    },
+    {
+      "form": "annotation",
+      "control_type": "scribble_pidinet",
+      "use_case": "control_map",
+      "title": "scribble_pidinet",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Makes the scribble from the soft edges pidinet finds, which keeps the shapes and drops the texture."
+    },
+    {
+      "form": "annotation",
+      "control_type": "standard_lineart",
+      "use_case": "control_map",
+      "title": "standard_lineart",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws the picture as a plain line drawing, black lines on white."
+    },
+    {
+      "form": "annotation",
+      "control_type": "lineart",
+      "use_case": "control_map",
+      "title": "lineart",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws a line drawing with weighted strokes, closer to how an illustrator would ink it."
+    },
+    {
+      "form": "annotation",
+      "control_type": "lineart_anime",
+      "use_case": "control_map",
+      "title": "lineart_anime",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Draws the line drawing in the flat, even-weight style anime line art uses."
+    },
+    {
+      "form": "annotation",
+      "control_type": "lineart_anime_denoise",
+      "use_case": "control_map",
+      "title": "lineart_anime_denoise",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "The same anime line drawing with the speckle cleaned out of it."
+    },
+    {
+      "form": "annotation",
+      "control_type": "mlsd",
+      "use_case": "control_map",
+      "title": "mlsd",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Finds the straight segments only, which is the architecture and none of the organic shapes."
+    },
+    {
+      "form": "annotation",
+      "control_type": "depth",
+      "use_case": "control_map",
+      "title": "depth",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads how far each part of the picture is from the camera, drawn as light near and dark far."
+    },
+    {
+      "form": "annotation",
+      "control_type": "midas_depth",
+      "use_case": "control_map",
+      "title": "midas_depth",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads the same distances with the MiDaS model, which is softer about fine detail."
+    },
+    {
+      "form": "annotation",
+      "control_type": "zoe_depth",
+      "use_case": "control_map",
+      "title": "zoe_depth",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads the distances with ZoeDepth, which keeps the relative scale of a scene more consistent."
+    },
+    {
+      "form": "annotation",
+      "control_type": "depth_anything",
+      "use_case": "control_map",
+      "title": "depth_anything",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads the distances with Depth Anything, which holds edges more crisply than the older models."
+    },
+    {
+      "form": "annotation",
+      "control_type": "depth_anything_v2",
+      "use_case": "control_map",
+      "title": "depth_anything_v2",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads the distances with the second Depth Anything, the sharpest of the depth readers."
+    },
+    {
+      "form": "annotation",
+      "control_type": "normal",
+      "use_case": "control_map",
+      "title": "normal",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads which way each surface faces, drawn as the colours that stand for the three directions."
+    },
+    {
+      "form": "annotation",
+      "control_type": "normal_bae",
+      "use_case": "control_map",
+      "title": "normal_bae",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reads the same surface directions with the BAE model, which is steadier on smooth surfaces."
+    },
+    {
+      "form": "annotation",
+      "control_type": "openpose",
+      "use_case": "control_map",
+      "title": "openpose",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Finds the people and draws their skeletons: limbs, joints and the line of the head."
+    },
+    {
+      "form": "annotation",
+      "control_type": "seg",
+      "use_case": "control_map",
+      "title": "seg",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Divides the picture into regions and colours each one by what kind of thing it is."
+    },
+    {
+      "form": "annotation",
+      "control_type": "oneformer_ade20k",
+      "use_case": "control_map",
+      "title": "oneformer_ade20k",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Divides the picture into regions using the ADE20K vocabulary, which names indoor and outdoor scenery."
+    },
+    {
+      "form": "annotation",
+      "control_type": "oneformer_coco",
+      "use_case": "control_map",
+      "title": "oneformer_coco",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Divides the picture into regions using the COCO vocabulary, which names everyday objects and people."
+    },
+    {
+      "form": "annotation",
+      "control_type": "color",
+      "use_case": "control_map",
+      "title": "color",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reduces the picture to blocks of its colours, keeping the palette and losing the drawing."
+    },
+    {
+      "form": "annotation",
+      "control_type": "shuffle",
+      "use_case": "control_map",
+      "title": "shuffle",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Shuffles the picture's content around, keeping its colours and textures and losing where they were."
+    },
+    {
+      "form": "annotation",
+      "control_type": "recolor_luminance",
+      "use_case": "control_map",
+      "title": "recolor_luminance",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reduces the picture to its brightness, read the way the eye weighs the colour channels."
+    },
+    {
+      "form": "annotation",
+      "control_type": "recolor_intensity",
+      "use_case": "control_map",
+      "title": "recolor_intensity",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Reduces the picture to its intensity, read as the strongest channel rather than as perceived brightness."
+    },
+    {
+      "form": "annotation",
+      "control_type": "tile",
+      "use_case": "control_map",
+      "title": "tile",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "Keeps the local detail of the picture as a guide for redrawing it a tile at a time."
+    },
+    {
+      "form": "annotation",
+      "control_type": "tile_ttplanet_guided",
+      "use_case": "control_map",
+      "title": "tile_ttplanet_guided",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "The TTPlanet take on tiling, guided so the redraw follows the original more closely."
+    },
+    {
+      "form": "annotation",
+      "control_type": "tile_ttplanet_simple",
+      "use_case": "control_map",
+      "title": "tile_ttplanet_simple",
+      "source": "inputs/tutorial-anchor-1024.webp",
+      "notes": "The simpler TTPlanet tiling, which blurs more of the source and leaves the redraw freer."
+    },
+    {
+      "form": "RealESRGAN_x4plus",
+      "use_case": "enlarge",
+      "title": "RealESRGAN x4plus",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "The horde's general-purpose four-times upscaler, and the one to reach for without a reason to reach for another."
+    },
+    {
+      "form": "RealESRGAN_x2plus",
+      "use_case": "enlarge",
+      "title": "RealESRGAN x2plus",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "The same family at two times rather than four, for when four is more picture than you want to pay for."
+    },
+    {
+      "form": "RealESRGAN_x4plus_anime_6B",
+      "use_case": "enlarge",
+      "title": "RealESRGAN x4plus anime",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "Trained on flat colour and line rather than photography. On a photographic source it is the wrong tool, which is exactly what a shared source makes visible."
+    },
+    {
+      "form": "NMKD_Siax",
+      "use_case": "enlarge",
+      "title": "NMKD Siax",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "A photographic four-times upscaler with a different idea of texture than the RealESRGAN pair."
+    },
+    {
+      "form": "4x_AnimeSharp",
+      "use_case": "enlarge",
+      "title": "4x AnimeSharp",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "Sharpens hard edges aggressively, which suits line art and overstates itself on skin."
+    },
+    {
+      "form": "4xNomos8kSC",
+      "use_case": "enlarge",
+      "title": "4x Nomos8kSC",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "4xLSDIRplus",
+      "use_case": "enlarge",
+      "title": "4x LSDIRplus",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "4xNomosWebPhoto_RealPLKSR",
+      "use_case": "enlarge",
+      "title": "4x NomosWebPhoto RealPLKSR",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "4xNomos2_realplksr_dysample",
+      "use_case": "enlarge",
+      "title": "4x Nomos2 RealPLKSR dysample",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "4xNomos2_hq_dat2",
+      "use_case": "enlarge",
+      "title": "4x Nomos2 HQ DAT2",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "2xModernSpanimationV1",
+      "use_case": "enlarge",
+      "title": "2x ModernSpanimation",
+      "source": "inputs/tutorial-anchor-512.webp"
+    },
+    {
+      "form": "vectorize",
+      "use_case": "enlarge",
+      "title": "Vectorize",
+      "source": "inputs/tutorial-anchor-512.webp",
+      "notes": "Filed under enlarge because it is the other answer to the same question: an SVG has no resolution to run out of. It redraws the picture in shapes rather than making the pixels bigger, so the fit is approximate."
+    },
+    {
+      "form": "GFPGAN",
+      "use_case": "fix_faces",
+      "title": "GFPGAN",
+      "source": "inputs/alchemy-facefix-source.webp",
+      "notes": "The source is the degraded portrait hordelib's face fix tests run on, the kind of blurred, compressed photograph the blind face restoration line the GFPGAN and CodeFormer weights come from was built to answer, because a face that is already sharp shows nothing."
+    },
+    {
+      "form": "CodeFormers",
+      "use_case": "fix_faces",
+      "title": "CodeFormer",
+      "source": "inputs/alchemy-facefix-source.webp",
+      "notes": "The same degraded portrait as the GFPGAN entry. CodeFormer trades identity for fidelity differently, which is the comparison the shared source is here to make."
+    },
+    {
+      "form": "GFPGANv1.3",
+      "use_case": "fix_faces",
+      "title": "GFPGAN v1.3",
+      "source": "inputs/alchemy-facefix-source.webp",
+      "notes": "The predecessor GFPGAN weight, more faithful to the face it was given than the default."
+    },
+    {
+      "form": "RestoreFormer",
+      "use_case": "fix_faces",
+      "title": "RestoreFormer",
+      "source": "inputs/alchemy-facefix-source.webp",
+      "notes": "A transformer-based restorer that leans towards realism rather than towards smoothing."
+    },
+    {
+      "form": "strip_background",
+      "use_case": "cut_out",
+      "title": "Remove background",
+      "source": "inputs/tutorial-anchor-w3-1024.webp",
+      "notes": "The robot gardener, whose silhouette is clean enough that a reader can see where the cut fell. The result is RGBA: what was behind the subject is transparent rather than white. The plants growing out of the robot's head are cut away with the background, which is the honest thing to show: the matte is decided by what the model reads as subject, not by what a reader would have chosen. The render published here came from hordelib's rembg path, and the horde's production background removal is moving to horde-image-utilities, so this example is regenerated when that lands."
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+# SPDX-FileCopyrightText: 2026 Tazlin
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Decode the QR codes this tool renders, and check that every published one still scans.
+
+A QR render is the one image in the library whose correctness is not a matter of taste: either a
+scanner reads the payload back out of it or the picture is decoration. So the check is a real
+decode through ``zbar`` rather than a contrast heuristic, run against the image exactly as it is
+published: the same pixels a reader points a phone at, with no upscaling, sharpening or repeated
+attempts at different scales. A gate that preprocesses until something reads is measuring the
+preprocessing.
+
+The gate is applied in two places. A single-image render is decoded as it comes off the runner and
+the job fails if it does not scan, so a code that cannot be read is never written into the library.
+A curation batch is not failed that way, because the point of rendering candidates is that a human
+picks one afterwards; every candidate's decode is reported instead, and
+[`check_library`][param_sweeps.qr_decode.check_library] is the gate over what was actually
+published, run from ``param-sweeps qr-check`` once the picks are in.
+
+Critical public members:
+
+- [`decode_qr`][param_sweeps.qr_decode.decode_qr]: the decode itself, text or None.
+- [`payload_in`][param_sweeps.qr_decode.payload_in]: the payload an ``extra_texts`` list encodes.
+- [`decode_candidates`][param_sweeps.qr_decode.decode_candidates]: what a job's renders decoded to.
+- [`check_library`][param_sweeps.qr_decode.check_library]: decode every published QR image.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from collections.abc import Iterable, Sequence
+from pathlib import Path
+from typing import Any
+
+from PIL import Image
+from pydantic import BaseModel, ConfigDict
+from pyzbar.pyzbar import ZBarSymbol
+from pyzbar.pyzbar import decode as zbar_decode
+
+from param_sweeps.flows import TUTORIALS_DIRECTORY_NAME
+from param_sweeps.outputs import INDEX_FILENAME, ImageSidecar, SweepIndex
+from param_sweeps.spec import QR_TEXT_REFERENCES, ExtraText, RenderJob, WorkflowName
+
+logger = logging.getLogger(__name__)
+
+FLOW_REQUEST_FILENAME = "request.json"
+FLOW_RESULT_FILENAME = "result.webp"
+
+FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=())
+
+
+class QrCheck(BaseModel):
+    """Represents one published image put to a scanner, and what came back."""
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    path: str
+    """The image, relative to the output root."""
+
+    expected: str
+    """The payload the request asked to encode."""
+
+    decoded: str | None
+    """What the scanner read, or None when it read nothing at all."""
+
+    @property
+    def scans(self) -> bool:
+        """Return whether this image decodes to exactly the payload it was asked to carry."""
+        return self.decoded == self.expected
+
+
+class QrReport(BaseModel):
+    """Represents every published QR image that was checked, and how it did."""
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    checks: list[QrCheck]
+
+    @property
+    def failures(self) -> list[QrCheck]:
+        """Return the images that did not decode to their payload."""
+        return [check for check in self.checks if not check.scans]
+
+    @property
+    def is_intact(self) -> bool:
+        """Return whether every checked image scanned."""
+        return not self.failures
+
+
+def decode_qr(image: Image.Image) -> str | None:
+    """Return the text a scanner reads out of this image, or None when it reads nothing.
+
+    Args:
+        image: The image to scan, at its published size.
+
+    Returns:
+        The decoded text, or None when no QR symbol was found. A symbol carrying bytes that are
+        not UTF-8 is reported as unreadable, because a payload this tool can write is text.
+    """
+    symbols = zbar_decode(image.convert("L"), symbols=[ZBarSymbol.QRCODE])
+    if not symbols:
+        return None
+
+    try:
+        return str(symbols[0].data.decode("utf-8"))
+    except UnicodeDecodeError:
+        logger.warning("A QR symbol decoded to bytes that are not UTF-8, which no payload here is")
+        return None
+
+
+def decode_image_file(image_path: Path) -> str | None:
+    """Return what a scanner reads out of the image at this path, or None."""
+    with Image.open(image_path) as opened:
+        return decode_qr(opened)
+
+
+def payload_in(extra_texts: Iterable[ExtraText]) -> str | None:
+    """Return the payload these extra texts ask the QR workflow to encode, or None when none do."""
+    for extra_text in extra_texts:
+        if extra_text.reference in QR_TEXT_REFERENCES:
+            return extra_text.text
+    return None
+
+
+def decode_candidates(*, job: RenderJob, images: Sequence[Image.Image]) -> list[str | None]:
+    """Return what each of a job's rendered candidates decodes to, in render order.
+
+    Args:
+        job: The job that produced them.
+        images: Its candidates, in the order the backend produced them.
+
+    Returns:
+        One entry per candidate: the decoded text, or None. An empty list when the job is not a
+        QR render at all, so a caller can treat "nothing to check" and "nothing passed" apart.
+    """
+    if job.workflow is not WorkflowName.QR_CODE:
+        return []
+
+    return [decode_qr(image) for image in images]
+
+
+def failed_gate_reason(*, job: RenderJob, images: Sequence[Image.Image]) -> str | None:
+    """Return why this render must not be published, or None when it may be.
+
+    A single-image QR render is gated: it is published as it is, so a code that does not scan is
+    a failed render rather than a picture worth keeping. A curation batch is never gated here,
+    because which of its candidates is published is a decision a human has not made yet; its
+    decodes are logged so that decision can be an informed one.
+
+    Args:
+        job: The job that was rendered.
+        images: What the runner returned for it.
+
+    Returns:
+        A one-line reason the campaign can report, or None when the render passes.
+    """
+    decoded = decode_candidates(job=job, images=images)
+    if not decoded:
+        return None
+
+    expected = payload_in(job.extra_texts)
+    scanned = [number for number, text in enumerate(decoded, start=1) if text == expected]
+    logger.info(
+        "QR decode: job=%s scanned=%s of %s candidate(s)",
+        job.relative_image_path,
+        len(scanned),
+        len(decoded),
+    )
+
+    if job.batch_size > 1:
+        logger.info("QR candidates that scanned: job=%s candidates=%s", job.relative_image_path, scanned)
+        return None
+
+    if scanned:
+        return None
+
+    return f"the QR code does not scan: expected {expected!r}, a scanner read {decoded[0]!r}"
+
+
+def check_library(*, output_root: Path) -> QrReport:
+    """Decode every published QR image under this output root, and report what each read.
+
+    Both trees are covered, because both publish QR images a reader will point a phone at: the
+    sweep library, whose sidecars state the request each image came from, and the tutorial flows,
+    whose ``request.json`` does the same. The index and the manifest are what "published" means
+    here, so a candidate a human passed over is not checked and a stop that is not in the index
+    is not either.
+
+    Args:
+        output_root: The root of the output tree.
+
+    Returns:
+        One check per published QR image, in the order they were found.
+    """
+    return QrReport(checks=[*_library_checks(output_root), *_tutorial_checks(output_root)])
+
+
+def _library_checks(output_root: Path) -> list[QrCheck]:
+    """Return a check for every QR image the sweep index publishes."""
+    index_path = output_root / INDEX_FILENAME
+    if not index_path.is_file():
+        logger.info("No index to check QR images against: %s", index_path)
+        return []
+
+    index = SweepIndex.model_validate_json(index_path.read_text(encoding="utf-8"))
+    checks: list[QrCheck] = []
+
+    for strip in index.strips:
+        for stop in strip.stops:
+            sidecar_path = output_root / stop.sidecar
+            if not sidecar_path.is_file():
+                continue
+
+            sidecar = ImageSidecar.model_validate_json(sidecar_path.read_text(encoding="utf-8"))
+            if sidecar.features.workflow is not WorkflowName.QR_CODE:
+                continue
+
+            expected = payload_in(sidecar.features.extra_texts)
+            if expected is None:
+                continue
+
+            checks.append(_checked(output_root=output_root, relative_path=stop.file, expected=expected))
+
+    return checks
+
+
+def _tutorial_checks(output_root: Path) -> list[QrCheck]:
+    """Return a check for every QR image a tutorial flow published."""
+    tutorials_root = output_root / TUTORIALS_DIRECTORY_NAME
+    if not tutorials_root.is_dir():
+        return []
+
+    checks: list[QrCheck] = []
+    for request_path in sorted(tutorials_root.glob(f"*/{FLOW_REQUEST_FILENAME}")):
+        request: dict[str, Any] = json.loads(request_path.read_text(encoding="utf-8"))
+        parameters = request.get("params", {})
+        if parameters.get("workflow") != str(WorkflowName.QR_CODE):
+            continue
+
+        expected = payload_in(ExtraText.model_validate(entry) for entry in parameters.get("extra_texts", []))
+        result_path = request_path.parent / FLOW_RESULT_FILENAME
+        if expected is None or not result_path.is_file():
+            continue
+
+        checks.append(
+            _checked(
+                output_root=output_root,
+                relative_path=result_path.relative_to(output_root).as_posix(),
+                expected=expected,
+            ),
+        )
+
+    return checks
+
+
+def _checked(*, output_root: Path, relative_path: str, expected: str) -> QrCheck:
+    """Return one image decoded and compared against the payload it was asked to carry."""
+    return QrCheck(
+        path=relative_path,
+        expected=expected,
+        decoded=decode_image_file(output_root / relative_path),
+    )

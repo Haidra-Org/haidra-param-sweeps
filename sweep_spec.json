@@ -1,0 +1,2872 @@
+{
+  "schema_version": 1,
+  "seed": 1234567890,
+  "anchor": {
+    "sampler_name": "k_euler_a",
+    "cfg_scale": 7.5,
+    "steps": 30,
+    "karras": true,
+    "denoising_strength": 1.0,
+    "hires_fix": false,
+    "tiling": false
+  },
+  "models": [
+    {
+      "slug": "icbinp",
+      "horde_name": "ICBINP - I Can't Believe It's Not Photography",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 2.1,
+      "note": "The photoreal SD1.5 model the tag-salad dialect is written for."
+    },
+    {
+      "slug": "albedobase-xl",
+      "horde_name": "AlbedoBase XL (SDXL)",
+      "baseline": "stable_diffusion_xl",
+      "native_width": 1024,
+      "native_height": 1024,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 6.8,
+      "note": "The SDXL generalist the tutorials already use, and the batch's workhorse."
+    },
+    {
+      "slug": "nova-anime-xl",
+      "horde_name": "Nova Anime XL",
+      "baseline": "stable_diffusion_xl",
+      "native_width": 1024,
+      "native_height": 1024,
+      "anchor_clip_skip": 2,
+      "approximate_download_size_gb": 6.9,
+      "note": "The booru dialect, at the clip skip its model reference requires."
+    },
+    {
+      "slug": "stable-diffusion",
+      "horde_name": "stable_diffusion",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 4.3,
+      "note": "The default model a reader lands on. Fragile enough above native size to show what asking for too many pixels does, which the sturdier photoreal model hides."
+    },
+    {
+      "slug": "flux-schnell",
+      "horde_name": "Flux.1-Schnell fp8 (Compact)",
+      "baseline": "flux_1",
+      "native_width": 1024,
+      "native_height": 1024,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 17.2,
+      "note": "Prose prompts, no negative, and a four-step schedule its model reference requires."
+    },
+    {
+      "slug": "deliberate",
+      "horde_name": "Deliberate",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 2.1,
+      "note": "The SD1.5 model the QR and ControlNet recipes are known good on."
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "person",
+      "label": "A person",
+      "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, standing at the wooden railing of a zeppelin airship's open gondola deck at sunset, the vast canvas envelope of the airship curving overhead, brass fittings and taut rigging, wind pulling at her coat, a sea of clouds below, photograph, 35mm, natural light, sharp focus, highly detailed",
+      "derived_from": "World 1, the skyharbor courier: the signed-off deck prompt, verbatim, carrying the world's descriptor block"
+    },
+    {
+      "scene_id": "place",
+      "label": "A place",
+      "prompt": "a skyharbor at morning, built on platforms high above the clouds: zeppelin airships with vast canvas envelopes moored to tall timber gantry towers, hanging walkways and mooring lines, dawn haze, the cloud deck stretching below the platforms, photograph, 35mm, natural light, sharp focus, highly detailed",
+      "derived_from": "World 1's panorama, verbatim from the signed-off batch: the same world without a face to judge"
+    },
+    {
+      "scene_id": "thing",
+      "label": "A thing",
+      "prompt": "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop at golden hour, city haze beyond, cinematic lighting, rich detail, high dynamic range",
+      "derived_from": "World 3's robot gardener, verbatim from the signed-off batch: one centred non-human subject, which is what the tiling counter-example and the hires strips need"
+    },
+    {
+      "scene_id": "vivid",
+      "label": "A colourful scene",
+      "prompt": "a lantern festival on a skyharbor platform at dusk, hundreds of paper lanterns in red and orange strung between the timber gantry towers, market stalls under coloured bunting, deep blue twilight sky, warm reflections across the wet decking, vivid saturated colour, cinematic lighting, highly detailed",
+      "derived_from": "World 1 at festival dusk, written for saturated colour so that guidance burning the image out is unmistakable"
+    },
+    {
+      "scene_id": "portrait",
+      "label": "A close portrait",
+      "prompt": "a close portrait of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, holding that brass compass open in both bare hands, bare fingers wrapped around its case and clearly visible, rolled shirtsleeves under the open coat, the zeppelin's canvas envelope blurred behind her, sunset light, photograph, 35mm, sharp focus, highly detailed",
+      "derived_from": "World 1's courier brought close and given something to hold, so that hands and anatomy are on show where a negative prompt acts first"
+    },
+    {
+      "scene_id": "anime",
+      "label": "An anime scene",
+      "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, torii path, falling autumn leaves, maple, stone steps, afternoon light",
+      "derived_from": "World 2, the fox shrine in autumn, verbatim from the signed-off batch: the booru idiom an anime model was trained on"
+    },
+    {
+      "scene_id": "harbour",
+      "label": "A skyharbor with things in it",
+      "prompt": "a wide view of a skyharbor at golden hour, a flock of white gulls flying above the cloud deck, two small zeppelin airships moored against a tall timber gantry tower, hanging walkways and mooring lines, the cloud deck stretching below the platforms, photograph, 35mm, natural light, sharp focus, highly detailed",
+      "derived_from": "World 1's panorama written so that its removable parts are named and countable, which is what a negative prompt can be judged against"
+    },
+    {
+      "scene_id": "texture",
+      "label": "A surface texture",
+      "prompt": "seamless wood texture, extreme close-up macro of the weathered grey planks of a skyharbor gantry walkway, flat top-down view of the surface only, wind-bleached grain and peeling white paint, tarred rope fibres and grit caught in the gaps between boards, filling the entire frame, no sky, no horizon, no buildings, even overcast light, highly detailed",
+      "derived_from": "World 1 reduced to a surface: a flat, subject-free fill-the-frame texture, which is the kind of image seamless tiling is actually used for"
+    },
+    {
+      "scene_id": "snowstorm",
+      "label": "The courier, restyled",
+      "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, standing at the wooden railing of a zeppelin airship's open gondola deck in a snowstorm at dusk, warm lantern light along the rigging, drifting snow, moody blue hour, highly detailed",
+      "derived_from": "World 1's deck scene rewritten for weather and hour, which is what the image-to-image strip restyles its source render into"
+    },
+    {
+      "scene_id": "garden",
+      "label": "A rooftop garden, from a sketch",
+      "prompt": "a rooftop garden: raised beds, a glass cold-frame, tomato planters, the city skyline beyond, cinematic lighting, rich detail, high dynamic range",
+      "derived_from": "World 3's rooftop, verbatim from the signed-off batch: the prompt the checked-in flat-colour sketch is rendered up into"
+    },
+    {
+      "scene_id": "courier",
+      "label": "The courier, as the tutorial renders her",
+      "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, standing at the wooden railing of a zeppelin airship's open gondola deck at sunset, the vast canvas envelope of the airship curving overhead, brass fittings and taut rigging, wind pulling at her coat, a sea of clouds below, cinematic lighting, rich detail, professional photography, high dynamic range",
+      "derived_from": "World 1's deck scene exactly as the txt2img tutorial requests it, prompt and negative prompt verbatim, so a reader watching a render arrive is watching the render the tutorial already showed them finished"
+    },
+    {
+      "scene_id": "cloud-sea",
+      "label": "The cloud sea below the skyharbor",
+      "prompt": "a slow sea of cloud tops at dawn far below a skyharbor, wispy vapour curling in long ribbons, rose and gold light bleeding through drifting mist, ethereal, dreamlike, soft billowing volumes, flowing, painterly, luminous, incredible detail",
+      "derived_from": "World 1 with nothing built in it: the cloud deck alone, written in soft flowing volumes so the QR ControlNet has to make the code out of vapour rather than being handed a grid to trace"
+    },
+    {
+      "scene_id": "qr-artwork",
+      "label": "An artful QR code",
+      "prompt": "ethereal dreamlike artwork, flowing organic forms, luminous, painterly, incredible detail",
+      "derived_from": "The treatment the QR gallery holds constant, one line of it, so that each stop's own fragment carries the world and the subject and nothing else moves"
+    },
+    {
+      "scene_id": "deck-prose",
+      "label": "A person, in prose",
+      "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck stands at the wooden railing of a zeppelin airship's open gondola deck at sunset, the vast canvas envelope of the airship curving above her, brass fittings and taut rigging around her. The wind pulls at her coat and a sea of clouds stretches out below her, lit warmly from the west.",
+      "derived_from": "World 1, the skyharbor courier: the deck prompt as the batch signed it off for Flux, which reads prose rather than tags"
+    }
+  ],
+  "sweeps": [
+    {
+      "kind": "strip",
+      "parameter": "steps",
+      "rationale": "SD1.5 and SDXL settle at different step counts, so both baselines are shown; the anime model behaves like SDXL here and would only repeat it.",
+      "caption": "How many denoising steps the sampler takes. More steps cost more time, and stop helping well before they stop costing. With an ancestral sampler like this one, changing the count also reshuffles the scene a little.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person",
+        "place"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 2,
+          "steps": 2,
+          "caption": "Two steps is barely a start: coloured mush with a hint of where things will go."
+        },
+        {
+          "value": 4,
+          "steps": 4,
+          "caption": "Too few steps to resolve the scene: shapes are blocky and colour smears."
+        },
+        {
+          "value": 6,
+          "steps": 6,
+          "caption": "Shapes are arriving, but nothing has an edge yet."
+        },
+        {
+          "value": 8,
+          "steps": 8,
+          "caption": "The composition arrives, but edges and faces are still soft."
+        },
+        {
+          "value": 10,
+          "steps": 10,
+          "caption": "Most of the scene is legible. Fine detail is not."
+        },
+        {
+          "value": 12,
+          "steps": 12,
+          "caption": "Detail starts to settle and small features become readable."
+        },
+        {
+          "value": 16,
+          "steps": 16,
+          "caption": "Nearly settled, with the sampler still moving things about between counts."
+        },
+        {
+          "value": 20,
+          "steps": 20,
+          "caption": "Close to this model's best for the scene; most of what you will get is here."
+        },
+        {
+          "value": 24,
+          "steps": 24,
+          "caption": "Little is being added now beyond what this sampler reshuffles."
+        },
+        {
+          "value": 30,
+          "steps": 30,
+          "caption": "The common default. Quality has levelled off even as the scene shifts."
+        },
+        {
+          "value": 40,
+          "steps": 40,
+          "caption": "No better than 30, and the scene has drifted again on the way."
+        },
+        {
+          "value": 50,
+          "steps": 50,
+          "caption": "Different, not better, for well over twice the time and kudos."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "steps_converging",
+      "rationale": "The same step counts held on a converging sampler, so the ancestral strip's drift can be seen against a scene that settles and stays put. It matches the ancestral strip's coverage model for model and scene for scene, because the step lesson should never be one a reader can only see through a sampler that re-rolls the image underneath it.",
+      "caption": "The same step counts on a converging sampler. Once the scene settles, extra steps stop moving it.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person",
+        "place"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "k_dpmpp_2m"
+      },
+      "stops": [
+        {
+          "value": 2,
+          "steps": 2,
+          "caption": "Two steps: the scene has not begun to form."
+        },
+        {
+          "value": 4,
+          "steps": 4,
+          "caption": "Too few steps for any sampler: the scene has not resolved at all."
+        },
+        {
+          "value": 6,
+          "steps": 6,
+          "caption": "A shape is emerging, still without detail."
+        },
+        {
+          "value": 8,
+          "steps": 8,
+          "caption": "A usable image appears, though the layout is still finding itself."
+        },
+        {
+          "value": 10,
+          "steps": 10,
+          "caption": "The composition is nearly decided, and from here it stays put."
+        },
+        {
+          "value": 12,
+          "steps": 12,
+          "caption": "The final composition is in place."
+        },
+        {
+          "value": 16,
+          "steps": 16,
+          "caption": "Detail firms up where it already is, without the scene moving."
+        },
+        {
+          "value": 20,
+          "steps": 20,
+          "caption": "Locked in. From here the scene stops moving."
+        },
+        {
+          "value": 24,
+          "steps": 24,
+          "caption": "Indistinguishable from 20 at a glance."
+        },
+        {
+          "value": 30,
+          "steps": 30,
+          "caption": "Compare with the ancestral strip at 30: nothing has reshuffled since 20."
+        },
+        {
+          "value": 40,
+          "steps": 40,
+          "caption": "No visible change, for a third more time and kudos."
+        },
+        {
+          "value": 50,
+          "steps": 50,
+          "caption": "All but identical to 30, for well over twice the time and kudos."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "cfg_scale",
+      "rationale": "SDXL burns out at a lower guidance than SD1.5, so the two baselines diverge; the anime model tracks SDXL closely enough that a third strip teaches nothing new.",
+      "caption": "How hard the model is pushed to follow your prompt. Too low and it ignores you; too high and it overcooks the image.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person",
+        "place"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 1,
+          "cfg_scale": 1.0,
+          "caption": "Guidance as good as off, and the lowest the horde accepts. The model paints what it likes and your prompt barely reaches it."
+        },
+        {
+          "value": 2,
+          "cfg_scale": 2.0,
+          "caption": "Barely steered. The prompt is a suggestion the model may take."
+        },
+        {
+          "value": 3,
+          "cfg_scale": 3.0,
+          "caption": "Loose adherence and soft colour, with room for the model's own ideas."
+        },
+        {
+          "value": 4,
+          "cfg_scale": 4.0,
+          "caption": "Gentle steering, and the subject you asked for is reliably there."
+        },
+        {
+          "value": 5,
+          "cfg_scale": 5.0,
+          "caption": "A gentle balance, good when your prompt is already detailed."
+        },
+        {
+          "value": 6,
+          "cfg_scale": 6.0,
+          "caption": "Comfortable adherence with colour still behaving."
+        },
+        {
+          "value": 7,
+          "cfg_scale": 7.0,
+          "caption": "The usual home base for most models."
+        },
+        {
+          "value": 9,
+          "cfg_scale": 9.0,
+          "caption": "Firmer adherence, with contrast beginning to climb."
+        },
+        {
+          "value": 11,
+          "cfg_scale": 11.0,
+          "caption": "Firmer still, and saturation is now visibly rising."
+        },
+        {
+          "value": 13,
+          "cfg_scale": 13.0,
+          "caption": "Hardening: edges crisp up past the point of looking natural."
+        },
+        {
+          "value": 15,
+          "cfg_scale": 15.0,
+          "caption": "Overcooked: harsh contrast, burnt colour and crunchy edges."
+        },
+        {
+          "value": 20,
+          "cfg_scale": 20.0,
+          "caption": "Far past useful. The image is being forced, and no part of that is better prompt-following."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler",
+      "rationale": "Ancestral and converging samplers separate differently on each baseline, so one photoreal SD1.5 model and one SDXL model cover the contrast at fixed steps.",
+      "caption": "Which algorithm walks the image out of noise. At the same steps and seed, each one lands somewhere slightly different.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": "k_euler",
+          "sampler_name": "k_euler",
+          "steps": 20,
+          "caption": "Fast and predictable, and a good baseline to compare the others against."
+        },
+        {
+          "value": "k_euler_a",
+          "sampler_name": "k_euler_a",
+          "steps": 20,
+          "caption": "Ancestral: it adds fresh noise each step, so the image keeps changing as you add steps."
+        },
+        {
+          "value": "k_dpmpp_2m",
+          "sampler_name": "k_dpmpp_2m",
+          "steps": 20,
+          "caption": "Converges quickly and is often the cleanest result at 20 to 30 steps."
+        },
+        {
+          "value": "k_dpmpp_sde",
+          "sampler_name": "k_dpmpp_sde",
+          "steps": 20,
+          "caption": "Stochastic, so it lands somewhere of its own, often with richer texture."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "clip_skip",
+      "rationale": "Two mainstream models, where 2 and 3 visibly loosen the prompt. The anime model renders this scene as a photograph and taught nothing here, so it has its own strip on the anime scene instead.",
+      "caption": "How many layers to cut from the end of the text encoder. Anime-lineage models were trained expecting one to be cut.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 1,
+          "clip_skip": 1,
+          "caption": "The full text encoder. What most non-anime models expect."
+        },
+        {
+          "value": 2,
+          "clip_skip": 2,
+          "caption": "Skips the last layer. On an anime-lineage model this is the intended setting; elsewhere it just loosens the prompt."
+        },
+        {
+          "value": 3,
+          "clip_skip": 3,
+          "caption": "Skipping further loses prompt detail, and your wording starts to be ignored."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "hires_fix",
+      "rationale": "The failure hires-fix repairs only appears above a model's native size, so the strip must render above it; at native size the flag does nothing at all. It runs on a figure rather than on the compact object it used to, because what goes wrong at oversize is that the model repeats what it knows, and on a person that reads as a second head or a third arm rather than as a general softness a reader has to be told to see. The frame is tall for the same reason: an SD1.5 model stacks a subject up a long frame rather than enlarging it. It runs on the default SD1.5 model rather than the photoreal one, which holds together at oversize well enough to hide the lesson.",
+      "caption": "Above a model's native size, one pass repeats what it knows. Hires-fix generates small first, then enlarges and refines.",
+      "model_slugs": [
+        "stable-diffusion"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "width": 768,
+        "height": 1536
+      },
+      "stops": [
+        {
+          "value": false,
+          "hires_fix": false,
+          "caption": "One pass at the full size. Above what the model knows you get duplicated details and stretched shapes."
+        },
+        {
+          "value": true,
+          "hires_fix": true,
+          "caption": "Generated small, then enlarged and re-diffused, so the composition stays coherent."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "hires_fix",
+      "rationale": "The same reading on a model trained at 1024, and it breaks on a different shape of ask. SD1.5 stacks a subject up a long frame, so its pair renders tall; SDXL does not. At 1152x2048 and again at 1536x3072, three times its training height, one pass still composed a single clean figure and the pair had nothing to teach. What breaks SDXL is square area: at 2048x2048 it puts two heads on one body, and the pair runs at 2304x2304 so it is clearly past that edge rather than sitting on it. That the two baselines fail on different shapes is why both carry a pair.",
+      "caption": "Above a model's native size, one pass repeats what it knows. Hires-fix generates small first, then enlarges and refines.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": false,
+          "hires_fix": false,
+          "caption": "One pass at the full size. Above what the model knows you get duplicated details and stretched shapes."
+        },
+        {
+          "value": true,
+          "hires_fix": true,
+          "caption": "Generated small, then enlarged and re-diffused, so the composition stays coherent."
+        }
+      ],
+      "holds": {
+        "width": 2304,
+        "height": 2304
+      }
+    },
+    {
+      "kind": "strip",
+      "parameter": "tiling",
+      "rationale": "The texture strip is the one that teaches: seams are invisible on a single object and unmistakable on a repeating surface, which is what anyone actually tiles. Seam behaviour is a sampler-level effect that reads the same on every baseline, so one model is enough.",
+      "caption": "Whether the edges are made to wrap. Shown as a three-by-three plate beside the single tile, because a seam only exists where one copy meets the next.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "texture"
+      ],
+      "presentation": "tile_repeat_3x3",
+      "stops": [
+        {
+          "value": false,
+          "tiling": false,
+          "caption": "The edges end wherever the image happened to stop, so every join is a hard line."
+        },
+        {
+          "value": true,
+          "tiling": true,
+          "caption": "The edges are made to wrap, so the grain and the gaps run on across each join."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "tiling",
+      "rationale": "The counter-example, kept deliberately: tiling is a property of the edges, not a way to make a picture repeatable. A centred object tiles into a grid of that object however the flag is set, which is the mistake the texture strip is there to correct.",
+      "caption": "The same flag on a scene with a subject in the middle. The edges do wrap, but a picture of one thing repeats as a grid of that thing either way: tiling makes edges meet, it does not make an image into a texture.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "thing"
+      ],
+      "presentation": "tile_repeat_3x3",
+      "stops": [
+        {
+          "value": false,
+          "tiling": false,
+          "caption": "Repeated as-is: hard seams, and a robot in every square."
+        },
+        {
+          "value": true,
+          "tiling": true,
+          "caption": "The seams are gone and the robot is still in every square. This is not what tiling is for."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "resolution",
+      "rationale": "SDXL only, because the degradation being taught is SDXL-specific: it is what happens when you ask an SDXL model for the sizes an SD1.5 model was built for.",
+      "caption": "Every model has a size it was trained at. Ask an SDXL model for much less and it does not simply get smaller, it gets worse.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": "128x128",
+          "width": 128,
+          "height": 128,
+          "caption": "Far below anything SDXL saw in training: the image collapses into mush."
+        },
+        {
+          "value": "256x256",
+          "width": 256,
+          "height": 256,
+          "caption": "The scene survives but the subject does not: the courier is gone."
+        },
+        {
+          "value": "512x512",
+          "width": 512,
+          "height": 512,
+          "caption": "Anatomy holds, but the framing collapses to a cramped close-up of whatever fits."
+        },
+        {
+          "value": "768x768",
+          "width": 768,
+          "height": 768,
+          "caption": "Most of the scene is back. The last of the crowding clears in the next stop."
+        },
+        {
+          "value": "1024x1024",
+          "width": 1024,
+          "height": 1024,
+          "caption": "SDXL's native size. This is what the model was trained to make."
+        }
+      ]
+    },
+    {
+      "kind": "grid",
+      "parameter": "steps_cfg_grid",
+      "rationale": "One grid per baseline, because steps and guidance interact differently for SD1.5 and for SDXL.",
+      "caption": "Steps and guidance are not independent. Read across for guidance and down for steps: both have to be in range before an image looks right. The scene also drifts down each column: this sampler re-rolls details as steps change.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "rows": {
+        "parameter": "steps",
+        "values": [
+          4,
+          8,
+          12,
+          20,
+          30,
+          50
+        ],
+        "caption": "Steps, top to bottom."
+      },
+      "columns": {
+        "parameter": "cfg_scale",
+        "values": [
+          1.0,
+          3.0,
+          5.0,
+          7.0,
+          11.0,
+          15.0
+        ],
+        "caption": "Guidance, left to right."
+      },
+      "cell_caption": "{row} steps at guidance {column}."
+    },
+    {
+      "kind": "grid",
+      "parameter": "steps_cfg_grid",
+      "rationale": "The third baseline of the same grid, on the anime model and therefore on the anime scene: the tag idiom that lineage was trained on is part of what its guidance range means, so reading it against a photoreal prompt would measure the prompt rather than the model.",
+      "caption": "Steps and guidance are not independent. Read across for guidance and down for steps: both have to be in range before an image looks right. The scene also drifts down each column: this sampler re-rolls details as steps change.",
+      "model_slugs": [
+        "nova-anime-xl"
+      ],
+      "scene_ids": [
+        "anime"
+      ],
+      "rows": {
+        "parameter": "steps",
+        "values": [
+          4,
+          8,
+          12,
+          20,
+          30,
+          50
+        ],
+        "caption": "Steps, top to bottom."
+      },
+      "columns": {
+        "parameter": "cfg_scale",
+        "values": [
+          1.0,
+          3.0,
+          5.0,
+          7.0,
+          11.0,
+          15.0
+        ],
+        "caption": "Guidance, left to right."
+      },
+      "cell_caption": "{row} steps at guidance {column}."
+    },
+    {
+      "kind": "grid",
+      "parameter": "sampler_steps_grid",
+      "rationale": "Which sampler to choose is really a question about how it behaves as the step count changes, and no single strip can show that. Both baselines run it because SDXL settles at different step counts than SD1.5.",
+      "caption": "Read across a row to see what more steps buy that sampler. The ancestral and SDE rows never settle: they re-roll the detail at every step count, so the image keeps changing rather than improving. The other two rows stop moving once the scene has converged. That contrast is the whole point.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "rows": {
+        "parameter": "sampler",
+        "values": [
+          "k_euler",
+          "k_euler_a",
+          "k_dpmpp_2m",
+          "k_dpmpp_sde"
+        ],
+        "caption": "Sampler, top to bottom."
+      },
+      "columns": {
+        "parameter": "steps",
+        "values": [
+          4,
+          8,
+          12,
+          20,
+          30
+        ],
+        "caption": "Steps, left to right."
+      },
+      "cell_caption": "{row} at {column} steps."
+    },
+    {
+      "kind": "grid",
+      "parameter": "hires_grid",
+      "rationale": "The failure this repairs is a property of the size you ask for, so it has to be read down a column of sizes rather than from a single pair. The off column doubles as the oversize anti-example: it is what asking an SD1.5 model for a large image actually looks like, duplicated subjects and all. The bottom row is four times the model's training size, past where the repair rescues anything, so the grid answers how far this carries as well as what it does. It runs on the default SD1.5 model, which breaks at oversize where the photoreal one holds together and hides the lesson.",
+      "caption": "Read down the off column to see what asking for more pixels than the model was trained on does: the scene stops being one scene and starts repeating, which on a person means a second head or a third arm. The on column generates small first, then enlarges and re-diffuses, so the composition survives the size. Read to the bottom row to see the repair run out.",
+      "model_slugs": [
+        "stable-diffusion"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "rows": {
+        "parameter": "resolution",
+        "values": [
+          768,
+          1024,
+          1536,
+          2048
+        ],
+        "caption": "Requested size, top to bottom. This model was trained at 512."
+      },
+      "columns": {
+        "parameter": "hires_fix",
+        "values": [
+          false,
+          true
+        ],
+        "caption": "Hires-fix off, then on."
+      },
+      "cell_caption": "{row} px, hires-fix {column}."
+    },
+    {
+      "kind": "grid",
+      "parameter": "hires_grid",
+      "rationale": "The same grid an octave up. SDXL degrades more gently and later, so the sizes that show it are its own, and the bottom row is well past what any of these models were trained for.",
+      "caption": "The same lesson on a model trained at 1024. It takes a larger ask to break it, and it breaks the same way: repeated features rather than a bigger picture. The bottom row is where the second pass stops being able to compose what the first one asked for.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "rows": {
+        "parameter": "resolution",
+        "values": [
+          1280,
+          1536,
+          2048,
+          2560
+        ],
+        "caption": "Requested size, top to bottom. This model was trained at 1024."
+      },
+      "columns": {
+        "parameter": "hires_fix",
+        "values": [
+          false,
+          true
+        ],
+        "caption": "Hires-fix off, then on."
+      },
+      "cell_caption": "{row} px, hires-fix {column}."
+    },
+    {
+      "kind": "grid",
+      "parameter": "karras_grid",
+      "rationale": "The pair strip shows that the schedule matters at 10 steps; only a grid shows the part that matters more, which is that the advantage shrinks as the step count rises. Held on a converging sampler for the same reason the pair is.",
+      "caption": "Read down the rows: the gap between the two columns is wide where steps are scarce and closes as they are not. Karras is a way of spending few steps well, not a setting that is better in general.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "holds": {
+        "sampler_name": "k_dpmpp_2m"
+      },
+      "rows": {
+        "parameter": "steps",
+        "values": [
+          6,
+          10,
+          16,
+          30
+        ],
+        "caption": "Steps, top to bottom."
+      },
+      "columns": {
+        "parameter": "karras",
+        "values": [
+          false,
+          true
+        ],
+        "caption": "The plain schedule, then the Karras one."
+      },
+      "cell_caption": "{row} steps, karras {column}."
+    },
+    {
+      "kind": "strip",
+      "parameter": "denoising_strength",
+      "rationale": "Denoising strength only means anything when there is a source image, so this is the one sweep that renders image-to-image. Both baselines run it because the usable bands sit slightly differently on SD1.5 and on SDXL. The source is the signed-off render of this world's deck scene, and the prompt is the same scene in different weather, so a reader is watching one picture they have already met being restyled rather than meeting two strangers at once.",
+      "caption": "Image-to-image starts from a picture instead of from noise. Denoising strength is how much of that picture is redrawn: near 0 the source is left almost untouched, and at 1 it is ignored entirely.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "snowstorm"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "stops": [
+        {
+          "value": 0.15,
+          "denoising_strength": 0.15,
+          "caption": "Barely touched. Only the finest texture is redrawn."
+        },
+        {
+          "value": 0.3,
+          "denoising_strength": 0.3,
+          "caption": "A cleanup pass: the source is intact, tidied and lightly repainted."
+        },
+        {
+          "value": 0.45,
+          "denoising_strength": 0.45,
+          "caption": "The restyling band starts here: the prompt reaches the light and the colour."
+        },
+        {
+          "value": 0.6,
+          "denoising_strength": 0.6,
+          "caption": "Still recognisably the same picture, but the prompt now decides most of it."
+        },
+        {
+          "value": 0.65,
+          "denoising_strength": 0.65,
+          "caption": "The top of the restyling band, and about as far as the source's subject reliably survives."
+        },
+        {
+          "value": 0.75,
+          "denoising_strength": 0.75,
+          "caption": "A major redraw. The arrangement survives and little else does."
+        },
+        {
+          "value": 0.8,
+          "denoising_strength": 0.8,
+          "caption": "The source is down to a rough composition the prompt is free to build on."
+        },
+        {
+          "value": 0.85,
+          "denoising_strength": 0.85,
+          "caption": "Only the broadest shapes and the placement of light still come from the source."
+        },
+        {
+          "value": 0.9,
+          "denoising_strength": 0.9,
+          "caption": "Almost nothing of the source is left beyond a rough layout."
+        },
+        {
+          "value": 0.95,
+          "denoising_strength": 0.95,
+          "caption": "A faint pull towards the source's arrangement, and nothing more than that."
+        },
+        {
+          "value": 1.0,
+          "denoising_strength": 1.0,
+          "caption": "The source is ignored entirely. This is text-to-image with a picture attached that does nothing."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "denoising_strength",
+      "rationale": "The other half of what image-to-image is for: turning a sketch into a render, where the source is the composition rather than the picture. The sketch is checked in under inputs/ and is deliberately crude, flat blocks of colour with no shading at all, so that nothing in it can be mistaken for detail the model kept. Both baselines run it because the strength at which a flat sketch stops reading as a sketch differs between them.",
+      "caption": "The same control, starting from a drawing instead of a photograph. Low strengths leave you with a tidied drawing, because there is nothing in the source to refine into a render; the drawing only becomes a picture once enough of it is redrawn.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "garden"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/rooftop-garden-sketch.webp",
+      "stops": [
+        {
+          "value": 0.15,
+          "denoising_strength": 0.15,
+          "caption": "Still the drawing: flat blocks of colour, very slightly roughened at the edges."
+        },
+        {
+          "value": 0.3,
+          "denoising_strength": 0.3,
+          "caption": "A textured drawing. The blocks are still blocks and the sky is still one colour."
+        },
+        {
+          "value": 0.45,
+          "denoising_strength": 0.45,
+          "caption": "Shading and grain arrive, but the result reads as a painted diagram rather than a scene."
+        },
+        {
+          "value": 0.6,
+          "denoising_strength": 0.6,
+          "caption": "Material starts to fill the shapes the sketch laid down: soil in the beds, glass in the frame."
+        },
+        {
+          "value": 0.65,
+          "denoising_strength": 0.65,
+          "caption": "The turn: enough is being redrawn for the scene to read as a picture, on the sketch's own composition."
+        },
+        {
+          "value": 0.75,
+          "denoising_strength": 0.75,
+          "caption": "A rendered scene that still follows the sketch's layout closely."
+        },
+        {
+          "value": 0.8,
+          "denoising_strength": 0.8,
+          "caption": "The sketch is now a guide rather than a subject, and it is usually what you want here."
+        },
+        {
+          "value": 0.85,
+          "denoising_strength": 0.85,
+          "caption": "The composition is held loosely; details are the model's own."
+        },
+        {
+          "value": 0.9,
+          "denoising_strength": 0.9,
+          "caption": "Only the broadest placement survives from the drawing."
+        },
+        {
+          "value": 0.95,
+          "denoising_strength": 0.95,
+          "caption": "A faint pull towards the drawing's arrangement, and nothing more than that."
+        },
+        {
+          "value": 1.0,
+          "denoising_strength": 1.0,
+          "caption": "The drawing is ignored entirely. Whatever you sketched has no say at all."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "denoising_strength_converging",
+      "rationale": "The same denoising strip on a sampler that settles (k_dpmpp_2m) instead of the ancestral anchor. An ancestral sampler re-rolls detail as the strength rises, so part of what a reader sees change along the ancestral strip is the sampler rather than the strength; this pair lets them tell the two apart, which is the same lesson the converging steps strips teach for step count. Denoising strength only means anything when there is a source image, so this is the one sweep that renders image-to-image. Both baselines run it because the usable bands sit slightly differently on SD1.5 and on SDXL. The source is the signed-off render of this world's deck scene, and the prompt is the same scene in different weather, so a reader is watching one picture they have already met being restyled rather than meeting two strangers at once.",
+      "caption": "Image-to-image starts from a picture instead of from noise. Denoising strength is how much of that picture is redrawn: near 0 the source is left almost untouched, and at 1 it is ignored entirely. This strip uses a sampler that settles, so what changes from stop to stop is the strength alone.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "snowstorm"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "stops": [
+        {
+          "value": 0.15,
+          "denoising_strength": 0.15,
+          "caption": "Barely touched. Only the finest texture is redrawn."
+        },
+        {
+          "value": 0.3,
+          "denoising_strength": 0.3,
+          "caption": "A cleanup pass: the source is intact, tidied and lightly repainted."
+        },
+        {
+          "value": 0.45,
+          "denoising_strength": 0.45,
+          "caption": "The restyling band starts here: the prompt reaches the light and the colour."
+        },
+        {
+          "value": 0.6,
+          "denoising_strength": 0.6,
+          "caption": "Still recognisably the same picture, but the prompt now decides most of it."
+        },
+        {
+          "value": 0.65,
+          "denoising_strength": 0.65,
+          "caption": "The top of the restyling band, and about as far as the source's subject reliably survives."
+        },
+        {
+          "value": 0.75,
+          "denoising_strength": 0.75,
+          "caption": "A major redraw. The arrangement survives and little else does."
+        },
+        {
+          "value": 0.8,
+          "denoising_strength": 0.8,
+          "caption": "The source is down to a rough composition the prompt is free to build on."
+        },
+        {
+          "value": 0.85,
+          "denoising_strength": 0.85,
+          "caption": "Only the broadest shapes and the placement of light still come from the source."
+        },
+        {
+          "value": 0.9,
+          "denoising_strength": 0.9,
+          "caption": "Almost nothing of the source is left beyond a rough layout."
+        },
+        {
+          "value": 0.95,
+          "denoising_strength": 0.95,
+          "caption": "A faint pull towards the source's arrangement, and nothing more than that."
+        },
+        {
+          "value": 1.0,
+          "denoising_strength": 1.0,
+          "caption": "The source is ignored entirely. This is text-to-image with a picture attached that does nothing."
+        }
+      ],
+      "holds": {
+        "sampler_name": "k_dpmpp_2m"
+      }
+    },
+    {
+      "kind": "strip",
+      "parameter": "denoising_strength_converging",
+      "rationale": "The same denoising strip on a sampler that settles (k_dpmpp_2m) instead of the ancestral anchor. An ancestral sampler re-rolls detail as the strength rises, so part of what a reader sees change along the ancestral strip is the sampler rather than the strength; this pair lets them tell the two apart, which is the same lesson the converging steps strips teach for step count. The other half of what image-to-image is for: turning a sketch into a render, where the source is the composition rather than the picture. The sketch is checked in under inputs/ and is deliberately crude, flat blocks of colour with no shading at all, so that nothing in it can be mistaken for detail the model kept. Both baselines run it because the strength at which a flat sketch stops reading as a sketch differs between them.",
+      "caption": "The same control, starting from a drawing instead of a photograph. Low strengths leave you with a tidied drawing, because there is nothing in the source to refine into a render; the drawing only becomes a picture once enough of it is redrawn. This strip uses a sampler that settles, so what changes from stop to stop is the strength alone.",
+      "model_slugs": [
+        "icbinp",
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "garden"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/rooftop-garden-sketch.webp",
+      "stops": [
+        {
+          "value": 0.15,
+          "denoising_strength": 0.15,
+          "caption": "Still the drawing: flat blocks of colour, very slightly roughened at the edges."
+        },
+        {
+          "value": 0.3,
+          "denoising_strength": 0.3,
+          "caption": "A textured drawing. The blocks are still blocks and the sky is still one colour."
+        },
+        {
+          "value": 0.45,
+          "denoising_strength": 0.45,
+          "caption": "Shading and grain arrive, but the result reads as a painted diagram rather than a scene."
+        },
+        {
+          "value": 0.6,
+          "denoising_strength": 0.6,
+          "caption": "Material starts to fill the shapes the sketch laid down: soil in the beds, glass in the frame."
+        },
+        {
+          "value": 0.65,
+          "denoising_strength": 0.65,
+          "caption": "The turn: enough is being redrawn for the scene to read as a picture, on the sketch's own composition."
+        },
+        {
+          "value": 0.75,
+          "denoising_strength": 0.75,
+          "caption": "A rendered scene that still follows the sketch's layout closely."
+        },
+        {
+          "value": 0.8,
+          "denoising_strength": 0.8,
+          "caption": "The sketch is now a guide rather than a subject, and it is usually what you want here."
+        },
+        {
+          "value": 0.85,
+          "denoising_strength": 0.85,
+          "caption": "The composition is held loosely; details are the model's own."
+        },
+        {
+          "value": 0.9,
+          "denoising_strength": 0.9,
+          "caption": "Only the broadest placement survives from the drawing."
+        },
+        {
+          "value": 0.95,
+          "denoising_strength": 0.95,
+          "caption": "A faint pull towards the drawing's arrangement, and nothing more than that."
+        },
+        {
+          "value": 1.0,
+          "denoising_strength": 1.0,
+          "caption": "The drawing is ignored entirely. Whatever you sketched has no say at all."
+        }
+      ],
+      "holds": {
+        "sampler_name": "k_dpmpp_2m"
+      }
+    },
+    {
+      "kind": "strip",
+      "parameter": "negative_prompt",
+      "rationale": "Rendered on the close portrait because hands and anatomy are where a negative prompt does visible work, and the scene asks for bare fingers on purpose: gloves hide the very thing the strip is about. SDXL only, having tried the SD1.5 model: at 512 the hands are too small in frame for the repair to read, and a strip whose lesson needs pointing at is not worth the render.",
+      "caption": "A second prompt naming what to steer away from. It is not a quality switch: it conditions the other half of the guidance the model is already doing, and what it changes first is usually anatomy, hands most of all.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "portrait"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "extra fingers, fused fingers, missing fingers, deformed hands, mutated hands, extra limbs, bad anatomy",
+      "stops": [
+        {
+          "value": false,
+          "use_negative_prompt": false,
+          "caption": "No negative prompt: whatever the model does with the hands is what you get."
+        },
+        {
+          "value": true,
+          "use_negative_prompt": true,
+          "caption": "The same image with hand and anatomy terms steered away from."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "negative_prompt",
+      "rationale": "The other thing a negative prompt does, and the one that is easiest to check: naming a thing that is in the picture and having it leave. The scene names its removable parts on purpose, so a reader can count them in the first stop and count them again in the second.",
+      "caption": "The same control used to take something out rather than to fix something. What you name is steered away from, which is why a negative prompt is worth reading as a list of things you do not want in frame rather than as a quality setting.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "harbour"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "gulls, birds, airships, zeppelins, balloons",
+      "stops": [
+        {
+          "value": false,
+          "use_negative_prompt": false,
+          "caption": "The skyharbor as asked for, with two airships moored against the gantry tower and gulls over the cloud deck."
+        },
+        {
+          "value": true,
+          "use_negative_prompt": true,
+          "caption": "Airships and birds named as unwanted. The airships are gone and the skyharbor they were moored in is still there."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "prompt_emphasis",
+      "rationale": "Attention weights are the one piece of prompt syntax worth teaching early, and a style token is the clearest place to see one: the whole image changes together, so there is nothing else to mistake the effect for. Rendered on the SD1.5 model, which responds to style tokens strongly enough for the low end of the range to still read.",
+      "caption": "Putting (a phrase:weight) in a prompt changes how hard that phrase pulls. Below 1 it is a hint, above 1 it starts to dominate, and past about 1.5 it stops adding style and starts taking the picture apart.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "place"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 0.5,
+          "label": "0_5",
+          "prompt_fragment": "(watercolor painting:0.5)",
+          "caption": "Half weight: a hint of the style over an otherwise ordinary render."
+        },
+        {
+          "value": 0.7,
+          "label": "0_7",
+          "prompt_fragment": "(watercolor painting:0.7)",
+          "caption": "Present but restrained, which is where you want a style you are blending."
+        },
+        {
+          "value": 0.9,
+          "label": "0_9",
+          "prompt_fragment": "(watercolor painting:0.9)",
+          "caption": "Just under plain weight, and already clearly the style you asked for."
+        },
+        {
+          "value": 1.0,
+          "label": "1_0",
+          "prompt_fragment": "(watercolor painting:1.0)",
+          "caption": "Weight 1 is what the phrase would do with no parentheses at all."
+        },
+        {
+          "value": 1.1,
+          "label": "1_1",
+          "prompt_fragment": "(watercolor painting:1.1)",
+          "caption": "A nudge up, which is usually all a style token needs."
+        },
+        {
+          "value": 1.3,
+          "label": "1_3",
+          "prompt_fragment": "(watercolor painting:1.3)",
+          "caption": "The style now leads and the scene follows it."
+        },
+        {
+          "value": 1.5,
+          "label": "1_5",
+          "prompt_fragment": "(watercolor painting:1.5)",
+          "caption": "The top of the usable range: washes are winning and structure is starting to go."
+        },
+        {
+          "value": 2.0,
+          "label": "2_0",
+          "prompt_fragment": "(watercolor painting:2.0)",
+          "caption": "The anti-example. At double weight the phrase overwhelms everything else you asked for."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "prompt_emphasis",
+      "rationale": "The half of weighting that a single rising token cannot teach: two phrases pulling against each other, where what matters is the ratio and not either number. Written so the two weights always sum to 2, which makes the strip a crossfade rather than a volume knob.",
+      "caption": "Weights are a balance between the things you asked for, not a volume control on each. Here two seasons are held in one prompt and traded off across the strip: neither is ever removed, and the picture lands wherever the ratio puts it.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": "winter 1.5 : summer 0.5",
+          "label": "w1_5",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:1.5), (high summer, hot clear sky, sun-bleached canvas, warm haze:0.5)",
+          "caption": "Winter at triple the pull of summer: snow decides the scene."
+        },
+        {
+          "value": "winter 1.3 : summer 0.7",
+          "label": "w1_3",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:1.3), (high summer, hot clear sky, sun-bleached canvas, warm haze:0.7)",
+          "caption": "Still a winter picture, with the light beginning to warm."
+        },
+        {
+          "value": "winter 1.15 : summer 0.85",
+          "label": "w1_15",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:1.15), (high summer, hot clear sky, sun-bleached canvas, warm haze:0.85)",
+          "caption": "Winter leads by a little: cold decking under a kinder sky."
+        },
+        {
+          "value": "winter 1.0 : summer 1.0",
+          "label": "w1_0",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:1.0), (high summer, hot clear sky, sun-bleached canvas, warm haze:1.0)",
+          "caption": "Even weights. The model does not average two seasons so much as pick its way between them."
+        },
+        {
+          "value": "winter 0.85 : summer 1.15",
+          "label": "w0_85",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:0.85), (high summer, hot clear sky, sun-bleached canvas, warm haze:1.15)",
+          "caption": "Summer takes the lead, with the cold left in the shadows."
+        },
+        {
+          "value": "winter 0.7 : summer 1.3",
+          "label": "w0_7",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:0.7), (high summer, hot clear sky, sun-bleached canvas, warm haze:1.3)",
+          "caption": "A summer picture that remembers it was winter."
+        },
+        {
+          "value": "winter 0.5 : summer 1.5",
+          "label": "w0_5",
+          "prompt_fragment": "(deep winter, snow on the deck, frost on the rigging, freezing haze:0.5), (high summer, hot clear sky, sun-bleached canvas, warm haze:1.5)",
+          "caption": "Summer at triple the pull of winter. The same prompt, read the other way round."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "seed",
+      "rationale": "One model is enough: the seed does the same thing everywhere, and six draws say it better than the same two draws on three models. Two scenes, because the spread between draws is itself scene-dependent: a portrait varies far less than an open landscape does. The labels are letters because a raw seed number tells a newcomer nothing.",
+      "caption": "The seed picks which image you get, not how good it is. The same seed with the same settings gives you the same picture again, which is what makes a result worth writing down; change it and you get another draw of the same prompt.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person",
+        "place"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": "Seed A",
+          "seed": 1234567890,
+          "caption": "One draw of this prompt. Every other strip in this library holds this seed."
+        },
+        {
+          "value": "Seed B",
+          "seed": 42,
+          "caption": "Another draw. Nothing but the seed changed."
+        },
+        {
+          "value": "Seed C",
+          "seed": 8675309,
+          "caption": "Another draw, with the scene arranged differently again."
+        },
+        {
+          "value": "Seed D",
+          "seed": 271828183,
+          "caption": "Another draw. No seed here is better than the others."
+        },
+        {
+          "value": "Seed E",
+          "seed": 999999999,
+          "caption": "Another draw of the same prompt and settings."
+        },
+        {
+          "value": "Seed F",
+          "seed": 76543210,
+          "caption": "Another draw. Pick the one you like and keep its number."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "karras",
+      "rationale": "The schedule difference is only legible where steps are scarce, so this strip forces 10 rather than taking the anchor's 30, where the two schedules have long since met. It also forces a converging sampler: on the anchor's ancestral one the two stops re-roll into different scenes, and a reader cannot tell a schedule apart from a reshuffle. One SD1.5 model is enough, the effect being sampler-level.",
+      "caption": "Karras reshapes the noise schedule so that the last steps are smaller than the first. It buys the most where there are fewest steps to spend, which is why this pair is rendered at 10 rather than at the 30 the rest of the library holds.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": false,
+          "karras": false,
+          "steps": 10,
+          "sampler_name": "k_dpmpp_2m",
+          "caption": "The plain schedule at 10 steps, with little room left to settle the detail."
+        },
+        {
+          "value": true,
+          "karras": true,
+          "steps": 10,
+          "sampler_name": "k_dpmpp_2m",
+          "caption": "The same 10 steps, redistributed so that more of them land near the end."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "cfg_scale",
+      "rationale": "A second guidance strip on a deliberately saturated scene, where the top of the range clips colour instead of merely hardening contrast. The photoreal scene shows the burn late and politely; this one shows it early and plainly.",
+      "caption": "The same guidance range on a scene built out of strong colour. Pushed high, the model does not follow your prompt any better, it just clips the colour and hardens every edge.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "vivid"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 1,
+          "cfg_scale": 1.0,
+          "caption": "The prompt is barely being followed: flat, washed out and unlit."
+        },
+        {
+          "value": 2,
+          "cfg_scale": 2.0,
+          "caption": "Colour arrives, but the festival is only hinted at."
+        },
+        {
+          "value": 3,
+          "cfg_scale": 3.0,
+          "caption": "Soft colour and loose adherence, with the lanterns only suggested."
+        },
+        {
+          "value": 4,
+          "cfg_scale": 4.0,
+          "caption": "The lanterns are reliably there and the colour is still gentle."
+        },
+        {
+          "value": 5,
+          "cfg_scale": 5.0,
+          "caption": "A gentle balance, already colourful without being pushed."
+        },
+        {
+          "value": 6,
+          "cfg_scale": 6.0,
+          "caption": "Rich colour that the scene can still hold."
+        },
+        {
+          "value": 7,
+          "cfg_scale": 7.0,
+          "caption": "The usual home base, and about as much colour as the scene carries cleanly."
+        },
+        {
+          "value": 9,
+          "cfg_scale": 9.0,
+          "caption": "The first highlights begin to clip where the lanterns are brightest."
+        },
+        {
+          "value": 11,
+          "cfg_scale": 11.0,
+          "caption": "Saturation climbs past what the lanterns can carry and the clipping spreads."
+        },
+        {
+          "value": 13,
+          "cfg_scale": 13.0,
+          "caption": "Colour separates into flat bands and the shadows crush."
+        },
+        {
+          "value": 15,
+          "cfg_scale": 15.0,
+          "caption": "Burnt out: flat blocks of colour, crushed shadows and crunchy edges."
+        },
+        {
+          "value": 20,
+          "cfg_scale": 20.0,
+          "caption": "The anti-example. Nothing here is a better rendering of the prompt than stop 7 was."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "clip_skip",
+      "rationale": "The anime model finally has an anime scene to render, so the setting its lineage was trained for has somewhere to show. The mainstream models keep their own strip on the shared scene.",
+      "caption": "How many layers to cut from the end of the text encoder. Anime-lineage models were trained with the last one cut, which is the one family where 2 is the setting rather than a preference.",
+      "model_slugs": [
+        "nova-anime-xl"
+      ],
+      "scene_ids": [
+        "anime"
+      ],
+      "presentation": "strip",
+      "stops": [
+        {
+          "value": 1,
+          "clip_skip": 1,
+          "caption": "The full text encoder, which is not what this model was trained against."
+        },
+        {
+          "value": 2,
+          "clip_skip": 2,
+          "caption": "The setting this model expects, and what its prompt idiom was tuned around."
+        },
+        {
+          "value": 3,
+          "clip_skip": 3,
+          "caption": "Cutting further throws prompt detail away, and your wording starts to be ignored."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "scheduler",
+      "rationale": "The schedule was reachable only through the karras flag until the backend began accepting it by name, so nothing in the library shows what the other nine do. Rendered at 20 steps on a converging sampler: an ancestral sampler re-rolls the image between stops, and a schedule cannot be told apart from a reshuffle.",
+      "caption": "The schedule decides how the noise level falls from the first step to the last. The sampler is the same in every image here, and so is the seed; only the spacing of the steps changes. Align Your Steps and GITS are published, measured tables rather than formulas, which is why the backend carries their numbers rather than computing them.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "k_dpmpp_2m",
+        "steps": 20
+      },
+      "stops": [
+        {
+          "value": "normal",
+          "scheduler": "normal",
+          "caption": "The plain schedule: the noise level falls evenly across the steps."
+        },
+        {
+          "value": "karras",
+          "scheduler": "karras",
+          "caption": "Karras spacing: larger steps early, smaller ones late."
+        },
+        {
+          "value": "simple",
+          "scheduler": "simple",
+          "caption": "A shorter, blunter version of the plain schedule."
+        },
+        {
+          "value": "ddim_uniform",
+          "scheduler": "ddim_uniform",
+          "caption": "The spacing DDIM was written against."
+        },
+        {
+          "value": "sgm_uniform",
+          "scheduler": "sgm_uniform",
+          "caption": "Uniform spacing as the SGM reference code lays it out."
+        },
+        {
+          "value": "exponential",
+          "scheduler": "exponential",
+          "caption": "The noise level falling on an exponential curve."
+        },
+        {
+          "value": "beta",
+          "scheduler": "beta",
+          "caption": "Spacing drawn from a beta distribution over the step range."
+        },
+        {
+          "value": "linear_quadratic",
+          "scheduler": "linear_quadratic",
+          "caption": "Linear early, quadratic late."
+        },
+        {
+          "value": "kl_optimal",
+          "scheduler": "kl_optimal",
+          "caption": "Spacing chosen to minimise a divergence measure rather than by a fixed curve."
+        },
+        {
+          "value": "align_your_steps",
+          "scheduler": "align_your_steps",
+          "caption": "NVIDIA's Align Your Steps levels, which were measured per model family; this is the SD1.5 table."
+        },
+        {
+          "value": "gits",
+          "scheduler": "gits",
+          "caption": "The GITS table, which stores a separate schedule for every step count."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler_eta",
+      "rationale": "eta is the first solver knob the horde exposes and the only one with a code-level claim attached: at zero an SDE sampler has no noise left to inject, so it should land where its deterministic twin does. The ladder exists so that can be seen rather than asserted.",
+      "caption": "Stochastic samplers add fresh noise back on every step, and eta scales how much. At zero none is added and the sampler follows the same deterministic path its non-SDE twin does. Above one it puts back more than the step removed, and the image moves further from that path as the run goes on.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "dpmpp_2m_sde",
+        "steps": 25
+      },
+      "stops": [
+        {
+          "value": 0.0,
+          "sampler_eta": 0.0,
+          "label": "eta0_0",
+          "caption": "eta 0: nothing injected. The SDE sampler is running as its deterministic twin."
+        },
+        {
+          "value": 0.25,
+          "sampler_eta": 0.25,
+          "label": "eta0_25",
+          "caption": "A quarter of the default injection."
+        },
+        {
+          "value": 0.5,
+          "sampler_eta": 0.5,
+          "label": "eta0_5",
+          "caption": "Half."
+        },
+        {
+          "value": 1.0,
+          "sampler_eta": 1.0,
+          "label": "eta1_0",
+          "caption": "The backend's default, which every earlier SDE render in this library used."
+        },
+        {
+          "value": 2.5,
+          "sampler_eta": 2.5,
+          "label": "eta2_5",
+          "caption": "Far above the default, where the path leaves the deterministic one entirely."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler_s_churn",
+      "rationale": "Churn is the other direction: it adds noise to a sampler that has none of its own. Rendered on euler, which is deterministic at every other setting in this library, so whatever moves is the churn.",
+      "caption": "Churn adds noise back into a deterministic sampler between steps and removes it again, which lets the solver revisit detail it had already settled. At zero the sampler behaves exactly as it always has.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "k_euler",
+        "steps": 25
+      },
+      "stops": [
+        {
+          "value": 0.0,
+          "sampler_s_churn": 0.0,
+          "label": "churn0_0",
+          "caption": "No churn: the sampler as the rest of the library runs it."
+        },
+        {
+          "value": 0.25,
+          "sampler_s_churn": 0.25,
+          "label": "churn0_25",
+          "caption": "A little noise reintroduced across the run."
+        },
+        {
+          "value": 0.5,
+          "sampler_s_churn": 0.5,
+          "label": "churn0_5",
+          "caption": "More."
+        },
+        {
+          "value": 1.0,
+          "sampler_s_churn": 1.0,
+          "label": "churn1_0",
+          "caption": "Enough that the solver is re-deciding detail rather than refining it."
+        },
+        {
+          "value": 2.0,
+          "sampler_s_churn": 2.0,
+          "label": "churn2_0",
+          "caption": "Well past what the remaining steps can take out again."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler_solver_type",
+      "rationale": "solver_type is a two-value choice on one sampler family, and neither value has a written-down difference anywhere. A pair at one seed is the smallest thing that can show whether there is one.",
+      "caption": "The dpmpp_2m_sde family can apply either of two second-order corrections between steps. The choice is internal to the solver: nothing about the request changes, only how the sampler estimates the step it is about to take.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "dpmpp_2m_sde",
+        "steps": 25
+      },
+      "stops": [
+        {
+          "value": "midpoint",
+          "sampler_solver_type": "midpoint",
+          "caption": "The midpoint correction, which is this sampler's default."
+        },
+        {
+          "value": "heun",
+          "sampler_solver_type": "heun",
+          "caption": "The Heun correction, which the sampler's _heun sibling uses by default."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "cfg_scale",
+      "rationale": "The CFG++ samplers rescale the guidance step, so the cfg_scale that suits them is not the one the rest of the library holds. Community guidance puts their useful range near 1 to 2; this ladder runs from there up to the library anchor so the difference is visible rather than taken on trust.",
+      "caption": "This is the same guidance scale the cfg_scale strip sweeps, on a CFG++ sampler instead. These samplers rescale the guidance step internally, and community guidance suggests they want a much lower number than the usual one. The top of this ladder is the value the rest of this library holds.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "portrait"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "euler_cfg_pp",
+        "steps": 25
+      },
+      "stops": [
+        {
+          "value": 1.0,
+          "cfg_scale": 1.0,
+          "label": "cfg1_0",
+          "caption": "cfg 1.0, the bottom of the range community guidance names for these samplers."
+        },
+        {
+          "value": 1.5,
+          "cfg_scale": 1.5,
+          "label": "cfg1_5",
+          "caption": "cfg 1.5."
+        },
+        {
+          "value": 2.0,
+          "cfg_scale": 2.0,
+          "label": "cfg2_0",
+          "caption": "cfg 2.0, the top of that range."
+        },
+        {
+          "value": 3.0,
+          "cfg_scale": 3.0,
+          "label": "cfg3_0",
+          "caption": "cfg 3.0, above it."
+        },
+        {
+          "value": 5.0,
+          "cfg_scale": 5.0,
+          "label": "cfg5_0",
+          "caption": "cfg 5.0."
+        },
+        {
+          "value": 7.5,
+          "cfg_scale": 7.5,
+          "label": "cfg7_5",
+          "caption": "cfg 7.5, which is what this library holds for ordinary samplers."
+        }
+      ]
+    },
+    {
+      "kind": "grid",
+      "parameter": "scheduler_steps_grid",
+      "rationale": "The schedules that carry measured tables were published as ways to spend a small step budget better. Whether they do is a claim about low step counts specifically, so the grid crosses four schedules with three budgets rather than sweeping either alone.",
+      "caption": "Four schedules down the rows, three step budgets across. Align Your Steps and GITS were published as ways to spend few steps better; the karras and plain rows are what the horde has been running all along. The question this grid asks is what the difference amounts to where steps are scarce.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "holds": {
+        "sampler_name": "k_dpmpp_2m"
+      },
+      "rows": {
+        "parameter": "scheduler",
+        "values": [
+          "normal",
+          "karras",
+          "align_your_steps",
+          "gits"
+        ],
+        "caption": "The schedule the sampler runs on."
+      },
+      "columns": {
+        "parameter": "steps",
+        "values": [
+          6,
+          10,
+          16
+        ],
+        "caption": "How many steps the schedule has to spend."
+      },
+      "cell_caption": "The {row} schedule with {column} steps to spend."
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "rationale": "The QR workflow's one real dial, on a scene with no straight lines in it: the code has to be made out of vapour rather than traced over decking, which is the only way the strength is what the reader is looking at. Every stop was decoded with zbar before it was published. The floor was found by rendering this scene at ten strengths against four seeds: 1.2 and below never scanned, on any of them; 1.25 scans on this strip's seed and is the first stop; from 1.3 up almost every draw scans. One seed for the whole strip, so nothing but the strength moves. Local runner only: the public API's payload has no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "How hard the QR ControlNet holds the render to the code it was given. Low, and the picture wins: the modules soften into the scene until no scanner can find them. High, and the code wins: it sits on the picture like printed ink. Every stop here still decodes to https://aihorde.net, and the usable range is narrower than it looks.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "cloud-sea"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "worst quality, bad lighting, deformed, ugly, low contrast",
+      "holds": {
+        "sampler_name": "k_euler",
+        "cfg_scale": 7.5,
+        "steps": 25,
+        "karras": false,
+        "clip_skip": 1,
+        "seed": 1234567892,
+        "workflow": "qr_code",
+        "extra_texts": [
+          {
+            "text": "https://aihorde.net",
+            "reference": "qr_code"
+          }
+        ]
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The lowest strength this scene scans at. The code is ridge lines and mist and almost nothing else; a phone finds it, but only just."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "A notch of insurance. The modules gather into cloud shapes that hold their edges without becoming blocks."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The picture is still doing the work, and the darker modules have started to close up."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "Where a code you actually need people to scan belongs: readable across a room, still made of weather."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "The cloud is thinning into contrast. Look at the light modules: they are flattening out."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "Half the frame is now serving the code rather than the scene."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The modules are shapes in their own right, with the weather painted around them."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The code wins: ink blots laid over a picture rather than shapes the picture happens to make."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "qr_style",
+      "rationale": "Not a sweep: three finished codes that show what the workflow is for once the strength is settled, one per world so the treatment rather than the subject is what carries. Every stop holds strength at 1.3 and varies its prompt fragment and its extra_texts, which is where the layout knobs live. Six candidates were rendered per stop and one was picked, and every candidate was decoded with zbar first: a picked frame that does not scan is not a picture worth showing.",
+      "caption": "The same workflow used as a finishing tool rather than a demonstration. The prompt decides the world, and the extra_texts entries beside the payload decide how the code is drawn and where it sits in the frame.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "qr-artwork"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "worst quality, bad lighting, deformed, ugly, low contrast",
+      "holds": {
+        "sampler_name": "k_euler",
+        "cfg_scale": 7.5,
+        "steps": 25,
+        "karras": false,
+        "clip_skip": 1,
+        "seed": 1234567890,
+        "workflow": "qr_code",
+        "control_strength": 1.3,
+        "n": 6,
+        "extra_texts": [
+          {
+            "text": "https://aihorde.net",
+            "reference": "qr_code"
+          }
+        ]
+      },
+      "stops": [
+        {
+          "value": "mist-towers",
+          "label": "mist-towers",
+          "prompt_fragment": "a slow river of mist pouring between skyharbor gantry towers at dusk, lantern light diffusing through the vapour, long soft ribbons of cloud",
+          "caption": "World 1, with nothing set but the payload: lantern light and vapour, and the code is whatever the lanterns are standing in.",
+          "chosen": 2
+        },
+        {
+          "value": "shrine-leaves",
+          "label": "shrine-leaves",
+          "prompt_fragment": "drifting maple leaves over a mossy shrine path in autumn, red and amber leaves suspended in still air, dappled afternoon light through the canopy",
+          "caption": "World 2, with module_drawer set to Circle: the control image is drawn as dots rather than squares, and the moss and stone that grow over it keep rounder edges.",
+          "chosen": 2,
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            },
+            {
+              "text": "Circle",
+              "reference": "module_drawer"
+            }
+          ]
+        },
+        {
+          "value": "ivy-garden",
+          "label": "ivy-garden",
+          "prompt_fragment": "young ivy and tomato vines curling over a rooftop trellis at golden hour, layered leaves and tendrils, warm haze",
+          "caption": "World 3, with x_offset and y_offset at 48: the code is pushed into a corner instead of sitting centred, which leaves most of the frame to the picture.",
+          "chosen": 5,
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            },
+            {
+              "text": "48",
+              "reference": "x_offset"
+            },
+            {
+              "text": "48",
+              "reference": "y_offset"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "step_preview",
+      "rationale": "One render rather than thirty. A strip of thirty renders stopped at thirty step counts is thirty different pictures; these frames are one 30-step render captured step by step as it sampled, which is the only way to show a reader a single picture arriving.",
+      "caption": "What is actually on the canvas at each step of one render. The sampler starts from pure noise and takes a little of it away at a time, so what you are watching is static burning off rather than detail being painted on.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "courier"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "lowres, blurry, deformed, extra limbs, watermark, text, jpeg artifacts, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+      "holds": {
+        "sampler_name": "k_euler"
+      },
+      "stops": [
+        {
+          "value": 1,
+          "label": "step_01",
+          "caption": "One step in. Almost nothing has been taken away yet: this is the noise the render starts from, nudged once."
+        },
+        {
+          "value": 2,
+          "label": "step_02",
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "label": "step_03",
+          "caption": ""
+        },
+        {
+          "value": 4,
+          "label": "step_04",
+          "caption": ""
+        },
+        {
+          "value": 5,
+          "label": "step_05",
+          "caption": ""
+        },
+        {
+          "value": 6,
+          "label": "step_06",
+          "caption": ""
+        },
+        {
+          "value": 7,
+          "label": "step_07",
+          "caption": ""
+        },
+        {
+          "value": 8,
+          "label": "step_08",
+          "caption": ""
+        },
+        {
+          "value": 9,
+          "label": "step_09",
+          "caption": ""
+        },
+        {
+          "value": 10,
+          "label": "step_10",
+          "caption": "A third of the way through, and the canvas is still almost entirely static. Nothing is going wrong; the early steps take very little of the noise away."
+        },
+        {
+          "value": 11,
+          "label": "step_11",
+          "caption": ""
+        },
+        {
+          "value": 12,
+          "label": "step_12",
+          "caption": ""
+        },
+        {
+          "value": 13,
+          "label": "step_13",
+          "caption": ""
+        },
+        {
+          "value": 14,
+          "label": "step_14",
+          "caption": ""
+        },
+        {
+          "value": 15,
+          "label": "step_15",
+          "caption": ""
+        },
+        {
+          "value": 16,
+          "label": "step_16",
+          "caption": ""
+        },
+        {
+          "value": 17,
+          "label": "step_17",
+          "caption": ""
+        },
+        {
+          "value": 18,
+          "label": "step_18",
+          "caption": ""
+        },
+        {
+          "value": 19,
+          "label": "step_19",
+          "caption": ""
+        },
+        {
+          "value": 20,
+          "label": "step_20",
+          "caption": "Two thirds through. The scene is now legible through the static, with the courier, the railing and the sunset already where they will end up."
+        },
+        {
+          "value": 21,
+          "label": "step_21",
+          "caption": ""
+        },
+        {
+          "value": 22,
+          "label": "step_22",
+          "caption": ""
+        },
+        {
+          "value": 23,
+          "label": "step_23",
+          "caption": ""
+        },
+        {
+          "value": 24,
+          "label": "step_24",
+          "caption": ""
+        },
+        {
+          "value": 25,
+          "label": "step_25",
+          "caption": ""
+        },
+        {
+          "value": 26,
+          "label": "step_26",
+          "caption": ""
+        },
+        {
+          "value": 27,
+          "label": "step_27",
+          "caption": ""
+        },
+        {
+          "value": 28,
+          "label": "step_28",
+          "caption": ""
+        },
+        {
+          "value": 29,
+          "label": "step_29",
+          "caption": ""
+        },
+        {
+          "value": 30,
+          "label": "step_30",
+          "caption": "The last step. The noise is gone, and this is the image the render delivers."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "step_preview_guess",
+      "rationale": "The same render as the step-preview strip, captured at the same steps. The sampler carries two things at once and they answer different questions: the canvas is what is there, and this is what the model is aiming at, which is why a render can look finished long before it is.",
+      "caption": "The model's guess at the finished picture at each step of the same render. This is what it would hand over if it had to stop right now, which is why it looks like a picture from the first step and like the final one well before the last.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "courier"
+      ],
+      "presentation": "strip",
+      "negative_prompt": "lowres, blurry, deformed, extra limbs, watermark, text, jpeg artifacts, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+      "holds": {
+        "sampler_name": "k_euler"
+      },
+      "stops": [
+        {
+          "value": 1,
+          "label": "step_01",
+          "caption": "After a single step the model already has an opinion about the whole picture: a dark, smeared version of it, with the figure, the horizon and the sunset in their final places."
+        },
+        {
+          "value": 2,
+          "label": "step_02",
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "label": "step_03",
+          "caption": ""
+        },
+        {
+          "value": 4,
+          "label": "step_04",
+          "caption": ""
+        },
+        {
+          "value": 5,
+          "label": "step_05",
+          "caption": ""
+        },
+        {
+          "value": 6,
+          "label": "step_06",
+          "caption": ""
+        },
+        {
+          "value": 7,
+          "label": "step_07",
+          "caption": ""
+        },
+        {
+          "value": 8,
+          "label": "step_08",
+          "caption": ""
+        },
+        {
+          "value": 9,
+          "label": "step_09",
+          "caption": ""
+        },
+        {
+          "value": 10,
+          "label": "step_10",
+          "caption": "A third of the way through the composition is settled and the guess has moved on to detail. The face and the airship's fittings are still coming apart."
+        },
+        {
+          "value": 11,
+          "label": "step_11",
+          "caption": ""
+        },
+        {
+          "value": 12,
+          "label": "step_12",
+          "caption": ""
+        },
+        {
+          "value": 13,
+          "label": "step_13",
+          "caption": ""
+        },
+        {
+          "value": 14,
+          "label": "step_14",
+          "caption": ""
+        },
+        {
+          "value": 15,
+          "label": "step_15",
+          "caption": ""
+        },
+        {
+          "value": 16,
+          "label": "step_16",
+          "caption": ""
+        },
+        {
+          "value": 17,
+          "label": "step_17",
+          "caption": ""
+        },
+        {
+          "value": 18,
+          "label": "step_18",
+          "caption": ""
+        },
+        {
+          "value": 19,
+          "label": "step_19",
+          "caption": ""
+        },
+        {
+          "value": 20,
+          "label": "step_20",
+          "caption": "Two thirds through, and this is nearly the delivered picture. What the last third changes is small, and most of it is in the face and the fabric."
+        },
+        {
+          "value": 21,
+          "label": "step_21",
+          "caption": ""
+        },
+        {
+          "value": 22,
+          "label": "step_22",
+          "caption": ""
+        },
+        {
+          "value": 23,
+          "label": "step_23",
+          "caption": ""
+        },
+        {
+          "value": 24,
+          "label": "step_24",
+          "caption": ""
+        },
+        {
+          "value": 25,
+          "label": "step_25",
+          "caption": ""
+        },
+        {
+          "value": 26,
+          "label": "step_26",
+          "caption": ""
+        },
+        {
+          "value": 27,
+          "label": "step_27",
+          "caption": ""
+        },
+        {
+          "value": 28,
+          "label": "step_28",
+          "caption": ""
+        },
+        {
+          "value": 29,
+          "label": "step_29",
+          "caption": ""
+        },
+        {
+          "value": 30,
+          "label": "step_30",
+          "caption": "The final guess, which is the image the render delivers."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "upscaler_form",
+      "rationale": "One image, put through every upscaler whose weights the horde's model reference carries. Nothing here is generated: these stops are alchemy applied to a render that already exists, which is the only way the difference between two upscalers is the upscaler rather than the seed. The vocabulary names six more that no weights back yet; those are disclosed in the alchemy manifest rather than left as gaps in a scrubber.",
+      "caption": "The same 512-pixel render, enlarged by each upscaler the horde has weights for. They do not recover detail that was never there; they each invent it differently, and the difference between them is what they invent.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "courier"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "stops": [
+        {
+          "value": "RealESRGAN_x4plus",
+          "label": "realesrgan_x4plus",
+          "caption": "The general-purpose choice, four times the size. Detail that was never rendered is invented plausibly rather than recovered, which is what every upscaler on this strip is doing."
+        },
+        {
+          "value": "RealESRGAN_x2plus",
+          "label": "realesrgan_x2plus",
+          "caption": "The same family at two times. Half the pixels of its sibling, and a gentler hand with texture."
+        },
+        {
+          "value": "RealESRGAN_x4plus_anime_6B",
+          "label": "realesrgan_x4plus_anime_6b",
+          "caption": "Trained on flat colour and line. On a photographic face it flattens skin into something closer to cel shading."
+        },
+        {
+          "value": "NMKD_Siax",
+          "label": "nmkd_siax",
+          "caption": "A photographic upscaler with its own idea of texture: grain and fabric survive where the RealESRGAN pair smooth them."
+        },
+        {
+          "value": "4x_AnimeSharp",
+          "label": "4x_animesharp",
+          "caption": "Sharpens hard edges hard. Line art gains from it; skin gains an edge it did not have."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler_gallery",
+      "rationale": "The sampler strip shows the four samplers a reader meets first. The horde publishes forty-one, and a reader choosing from the advanced tier deserves to see each one on the same seed and scene rather than take a name on faith. One stop per published sampler, in the order the contract presents them: the recommended tier first, then the rest.",
+      "caption": "Every sampler the horde accepts, on one seed, one prompt and twenty steps. Most land on a near-identical picture: the differences that matter are how quickly each settles, how much fresh noise it adds along the way, and how many model passes each step costs. The captions carry the tier and the cost the horde publishes for each.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "steps": 20
+      },
+      "stops": [
+        {
+          "value": "DDIM",
+          "sampler_name": "DDIM",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "dpmpp_2m_sde",
+          "sampler_name": "dpmpp_2m_sde",
+          "caption": "Recommended. One model pass per step. Offers a choice of solver correction (midpoint, heun)."
+        },
+        {
+          "value": "k_dpmpp_2m",
+          "sampler_name": "k_dpmpp_2m",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "k_dpmpp_sde",
+          "sampler_name": "k_dpmpp_sde",
+          "caption": "Recommended. 2 model passes per step, so it costs about 2x per step."
+        },
+        {
+          "value": "k_euler",
+          "sampler_name": "k_euler",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "k_euler_a",
+          "sampler_name": "k_euler_a",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "lcm",
+          "sampler_name": "lcm",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "uni_pc",
+          "sampler_name": "uni_pc",
+          "caption": "Recommended. One model pass per step."
+        },
+        {
+          "value": "k_lms",
+          "sampler_name": "k_lms",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "k_heun",
+          "sampler_name": "k_heun",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step."
+        },
+        {
+          "value": "k_dpm_2",
+          "sampler_name": "k_dpm_2",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step."
+        },
+        {
+          "value": "k_dpm_2_a",
+          "sampler_name": "k_dpm_2_a",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step."
+        },
+        {
+          "value": "k_dpm_fast",
+          "sampler_name": "k_dpm_fast",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "k_dpm_adaptive",
+          "sampler_name": "k_dpm_adaptive",
+          "caption": "Advanced. Chooses its own number of steps, so the step count is a guide rather than a budget."
+        },
+        {
+          "value": "k_dpmpp_2s_a",
+          "sampler_name": "k_dpmpp_2s_a",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step."
+        },
+        {
+          "value": "dpmsolver",
+          "sampler_name": "dpmsolver",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "uni_pc_bh2",
+          "sampler_name": "uni_pc_bh2",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "dpmpp_3m_sde",
+          "sampler_name": "dpmpp_3m_sde",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "ddpm",
+          "sampler_name": "ddpm",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "deis",
+          "sampler_name": "deis",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "ipndm",
+          "sampler_name": "ipndm",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "res_multistep",
+          "sampler_name": "res_multistep",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "gradient_estimation",
+          "sampler_name": "gradient_estimation",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "heunpp2",
+          "sampler_name": "heunpp2",
+          "caption": "Advanced. 3 model passes per step, so it costs about 3x per step."
+        },
+        {
+          "value": "er_sde",
+          "sampler_name": "er_sde",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "sa_solver",
+          "sampler_name": "sa_solver",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "euler_cfg_pp",
+          "sampler_name": "euler_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "euler_ancestral_cfg_pp",
+          "sampler_name": "euler_ancestral_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "exp_heun_2_x0",
+          "sampler_name": "exp_heun_2_x0",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step. Offers a choice of solver correction (phi_1, phi_2)."
+        },
+        {
+          "value": "exp_heun_2_x0_sde",
+          "sampler_name": "exp_heun_2_x0_sde",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step. Offers a choice of solver correction (phi_1, phi_2)."
+        },
+        {
+          "value": "dpmpp_2s_ancestral_cfg_pp",
+          "sampler_name": "dpmpp_2s_ancestral_cfg_pp",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "dpmpp_2m_cfg_pp",
+          "sampler_name": "dpmpp_2m_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "dpmpp_2m_sde_heun",
+          "sampler_name": "dpmpp_2m_sde_heun",
+          "caption": "Advanced. One model pass per step. Offers a choice of solver correction (midpoint, heun)."
+        },
+        {
+          "value": "ipndm_v",
+          "sampler_name": "ipndm_v",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "res_multistep_cfg_pp",
+          "sampler_name": "res_multistep_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "res_multistep_ancestral",
+          "sampler_name": "res_multistep_ancestral",
+          "caption": "Advanced. One model pass per step."
+        },
+        {
+          "value": "res_multistep_ancestral_cfg_pp",
+          "sampler_name": "res_multistep_ancestral_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "gradient_estimation_cfg_pp",
+          "sampler_name": "gradient_estimation_cfg_pp",
+          "caption": "Advanced. One model pass per step. Applies the guidance itself (CFG++), and wants a low CFG scale."
+        },
+        {
+          "value": "seeds_2",
+          "sampler_name": "seeds_2",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step. Offers a choice of solver correction (phi_1, phi_2)."
+        },
+        {
+          "value": "seeds_3",
+          "sampler_name": "seeds_3",
+          "caption": "Advanced. 3 model passes per step, so it costs about 3x per step."
+        },
+        {
+          "value": "sa_solver_pece",
+          "sampler_name": "sa_solver_pece",
+          "caption": "Advanced. 2 model passes per step, so it costs about 2x per step."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "sampler_s_noise",
+      "rationale": "s_noise scales the fresh noise an ancestral or SDE sampler adds back on each step; eta decides whether noise is added, s_noise how loud it is. The ladder is on the ancestral Euler so the effect is not confounded with a solver correction.",
+      "caption": "Ancestral and SDE samplers put some noise back after every step, and noise scale multiplies how much. The sampler's steps are sized on the assumption that the default amount comes back: with less, the run over-settles and the picture comes out dim and flat; with more than the steps can absorb, it breaks up into grain. One is the backend's default, and the useful room around it is narrow.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "k_euler_a",
+        "steps": 25
+      },
+      "stops": [
+        {
+          "value": 0.0,
+          "sampler_s_noise": 0.0,
+          "label": "snoise0_0",
+          "caption": "Noise scale 0: nothing is put back. The picture comes out dark and flat, because each step settled more than the sampler expected."
+        },
+        {
+          "value": 0.5,
+          "sampler_s_noise": 0.5,
+          "label": "snoise0_5",
+          "caption": "Half the default: still dim, with less detail than the default lands on."
+        },
+        {
+          "value": 1.0,
+          "sampler_s_noise": 1.0,
+          "label": "snoise1_0",
+          "caption": "The backend's default, which every other ancestral render in this library used."
+        },
+        {
+          "value": 1.25,
+          "sampler_s_noise": 1.25,
+          "label": "snoise1_25",
+          "caption": "A quarter more: the picture is still there, but the grain the steps could not settle is showing through."
+        },
+        {
+          "value": 1.5,
+          "sampler_s_noise": 1.5,
+          "label": "snoise1_5",
+          "caption": "Half again as much: more noise comes back each step than the run can settle, and the picture is lost to it."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "flow_shift",
+      "rationale": "flow shift only exists for flow-matching models, so the strip runs on Flux Schnell rather than the SD1.5 anchor, on the four-step schedule its model reference requires and the prose prompt the world signed off for Flux. The horde only accepts the field when every model in the request is a Flux or Qwen baseline.",
+      "caption": "Flow-matching models such as Flux time their steps along a shifted curve, and flow shift moves where along the curve the steps are spent. Low values keep the steps near the fine-detail end; high values push them toward the broad layout, and the composition itself starts to move. Leave it unset to use the worker's default for the model.",
+      "model_slugs": [
+        "flux-schnell"
+      ],
+      "scene_ids": [
+        "deck-prose"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "sampler_name": "k_euler",
+        "steps": 4,
+        "cfg_scale": 1,
+        "karras": false
+      },
+      "stops": [
+        {
+          "value": 0.5,
+          "flow_shift": 0.5,
+          "label": "shift0_5",
+          "caption": "Below one: the steps crowd toward the fine-detail end of the run, and the picture stays close to the unshifted result."
+        },
+        {
+          "value": 1.15,
+          "flow_shift": 1.15,
+          "label": "shift1_15",
+          "caption": "Near the shift Schnell is distilled with."
+        },
+        {
+          "value": 2.0,
+          "flow_shift": 2.0,
+          "label": "shift2_0",
+          "caption": "A moderate shift toward the layout end."
+        },
+        {
+          "value": 3.15,
+          "flow_shift": 3.15,
+          "label": "shift3_15",
+          "caption": "The shift Flux Dev is usually run at, applied to Schnell."
+        },
+        {
+          "value": 6.0,
+          "flow_shift": 6.0,
+          "label": "shift6_0",
+          "caption": "A large shift: most of the four steps go on the broad layout, and the composition changes more than the detail does."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "hires_fix_denoising_strength",
+      "rationale": "Hires-fix is two passes, and this is the strength of the second one: how much of the enlarged frame is redrawn rather than left as the upscale produced it. It is the one hires control with a range and it had no evidence at all. It is read on a close portrait at a modest overshoot rather than on the pair strip recipe, because what this number buys is detail, and detail needs a subject close enough to carry it: the pair strip renders a distant figure that the default SD1.5 model draws almost monochrome, where the whole range moved nothing a reader could name. It runs on the photoreal SD1.5 model for the same reason. It is not a single-variable strip and the caption must not pretend otherwise: the backends derive the second pass step count from this number, so a low stop is a lighter pass and a shorter one at once.",
+      "caption": "How much of the enlarged picture the second pass redraws. Low, and you keep exactly what the first pass composed with little new detail in it; high, and the second pass starts deciding the picture again at the full size, which is the thing hires-fix was avoiding.",
+      "model_slugs": [
+        "icbinp"
+      ],
+      "scene_ids": [
+        "portrait"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "hires_fix": true,
+        "width": 768,
+        "height": 768
+      },
+      "stops": [
+        {
+          "value": 0.1,
+          "hires_fix_denoising_strength": 0.1,
+          "caption": "Barely a pass. This is the small picture enlarged, and the edges belong to the upscaler rather than to the model."
+        },
+        {
+          "value": 0.3,
+          "hires_fix_denoising_strength": 0.3,
+          "caption": "The pass starts turning enlarged pixels into texture, without adding anything that was not already there."
+        },
+        {
+          "value": 0.45,
+          "hires_fix_denoising_strength": 0.45,
+          "caption": "Real detail arrives: hair, skin and fabric are drawn rather than stretched."
+        },
+        {
+          "value": 0.55,
+          "hires_fix_denoising_strength": 0.55,
+          "caption": "The useful band. This is the picture the first pass composed, drawn properly at the full size."
+        },
+        {
+          "value": 0.65,
+          "hires_fix_denoising_strength": 0.65,
+          "caption": "The value you get without touching anything, and a fair one: most of the detail for least argument with the composition."
+        },
+        {
+          "value": 0.75,
+          "hires_fix_denoising_strength": 0.75,
+          "caption": "Detail is now being invented as well as recovered, and small things begin to change."
+        },
+        {
+          "value": 0.9,
+          "hires_fix_denoising_strength": 0.9,
+          "caption": "The second pass is rearranging as much as refining."
+        },
+        {
+          "value": 1.0,
+          "hires_fix_denoising_strength": 1.0,
+          "caption": "The enlargement is treated as a rough layout and the second pass composes its own picture at the full size. The subject survives; the scene you were refining does not."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "hires_fix_denoising_strength",
+      "rationale": "Hires-fix is two passes, and this is the strength of the second one: how much of the enlarged frame is redrawn rather than left as the upscale produced it. It is the one hires control with a range and it had no evidence at all. It is read on a close portrait at a modest overshoot rather than on the pair strip recipe, because what this number buys is detail, and detail needs a subject close enough to carry it: the pair strip renders a distant figure that the default SD1.5 model draws almost monochrome, where the whole range moved nothing a reader could name. It runs on the photoreal SD1.5 model for the same reason. It is not a single-variable strip and the caption must not pretend otherwise: the backends derive the second pass step count from this number, so a low stop is a lighter pass and a shorter one at once.",
+      "caption": "How much of the enlarged picture the second pass redraws. Low, and you keep exactly what the first pass composed with little new detail in it; high, and the second pass starts deciding the picture again at the full size, which is the thing hires-fix was avoiding.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "portrait"
+      ],
+      "presentation": "strip",
+      "holds": {
+        "hires_fix": true,
+        "width": 1280,
+        "height": 1280
+      },
+      "stops": [
+        {
+          "value": 0.1,
+          "hires_fix_denoising_strength": 0.1,
+          "caption": "Barely a pass. This is the small picture enlarged, and the edges belong to the upscaler rather than to the model."
+        },
+        {
+          "value": 0.3,
+          "hires_fix_denoising_strength": 0.3,
+          "caption": "The pass starts turning enlarged pixels into texture, without adding anything that was not already there."
+        },
+        {
+          "value": 0.45,
+          "hires_fix_denoising_strength": 0.45,
+          "caption": "Real detail arrives: hair, skin and fabric are drawn rather than stretched."
+        },
+        {
+          "value": 0.55,
+          "hires_fix_denoising_strength": 0.55,
+          "caption": "The useful band. This is the picture the first pass composed, drawn properly at the full size."
+        },
+        {
+          "value": 0.65,
+          "hires_fix_denoising_strength": 0.65,
+          "caption": "The value you get without touching anything, and a fair one: most of the detail for least argument with the composition."
+        },
+        {
+          "value": 0.75,
+          "hires_fix_denoising_strength": 0.75,
+          "caption": "Detail is now being invented as well as recovered, and small things begin to change."
+        },
+        {
+          "value": 0.9,
+          "hires_fix_denoising_strength": 0.9,
+          "caption": "The second pass is rearranging as much as refining."
+        },
+        {
+          "value": 1.0,
+          "hires_fix_denoising_strength": 1.0,
+          "caption": "The enlargement is treated as a rough layout and the second pass composes its own picture at the full size. The subject survives; the scene you were refining does not."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "masked_denoising_strength",
+      "rationale": "Denoising strength inside a mask, which is the control the masked mode adds and the one inpainting does not really have. The backend encodes the whole picture and then restricts where noise is applied, so what was under the mask is still there to be redrawn by this much; inpainting erases the masked pixels before encoding and has nothing left to vary. It runs on the deck render a reader has already met on the image-to-image page, with the coat masked and the scene's own prompt, so the only question on screen is how much of that coat survives.",
+      "caption": "The same strength control as image-to-image, acting only where the mask is. Low, and the masked part is the one that was already there; high, and it is redrawn from nothing. Everything outside the mask stays exactly as it came in at every stop.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "holds": {
+        "source_processing": "img2img",
+        "source_mask": "inputs/deck-coat-mask.png"
+      },
+      "stops": [
+        {
+          "value": 0.15,
+          "denoising_strength": 0.15,
+          "caption": "Barely touched. The coat under the mask is the one that was already there."
+        },
+        {
+          "value": 0.3,
+          "denoising_strength": 0.3,
+          "caption": "A cleanup pass inside the mask: the same coat, tidied and lightly repainted."
+        },
+        {
+          "value": 0.45,
+          "denoising_strength": 0.45,
+          "caption": "The restyling band starts here, and it starts from the coat rather than from nothing."
+        },
+        {
+          "value": 0.6,
+          "denoising_strength": 0.6,
+          "caption": "Still recognisably the same garment, with the prompt now deciding most of its surface."
+        },
+        {
+          "value": 0.7,
+          "denoising_strength": 0.7,
+          "caption": "About as far as the original coat reliably survives being redrawn."
+        },
+        {
+          "value": 0.8,
+          "denoising_strength": 0.8,
+          "caption": "A major redraw. The cut of what was masked survives and little else does."
+        },
+        {
+          "value": 0.9,
+          "denoising_strength": 0.9,
+          "caption": "Almost nothing of the original coat is left beyond its silhouette."
+        },
+        {
+          "value": 1.0,
+          "denoising_strength": 1.0,
+          "caption": "Nothing under the mask is kept. Everywhere outside it is still untouched, which is the whole point of masking rather than lowering the strength."
+        }
+      ]
+    },
+    {
+      "kind": "grid",
+      "parameter": "masking_grid",
+      "rationale": "The horde has two ways to redraw part of a picture and they are different pipelines, not two names for one. Masked image-to-image encodes the whole source and restricts where noise lands, so the masked pixels are still the starting point; inpainting erases them first and grows the mask before encoding. Everything here is held apart from those two facts: one model, one source, one mask, one prompt, and one ordinary checkpoint rather than an inpainting one, because the horde runs whichever model was asked for and only requires the worker to keep an inpainting model on hand. Read across for the difference and down for where it stops mattering.",
+      "caption": "The same mask over the same picture, put through both of the horde's masked modes. The left column keeps what was under the mask and redraws it by the strength on that row, so the strength is a real dial. The right column throws it away before it starts, which is why the top right cell is a flat patch: at that strength there is not enough of the pass left to put anything back. Below the row where it can finish, inpainting does not give you a gentler edit; it gives you an unfinished one.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "holds": {
+        "source_mask": "inputs/deck-coat-mask.png"
+      },
+      "rows": {
+        "parameter": "denoising_strength",
+        "values": [
+          0.4,
+          0.7,
+          1.0
+        ],
+        "caption": "The strength asked for, top to bottom. Only the left column can act on it."
+      },
+      "columns": {
+        "parameter": "source_processing",
+        "values": [
+          "img2img",
+          "inpainting"
+        ],
+        "caption": "Masked image-to-image, then inpainting."
+      },
+      "cell_caption": "{column}, redrawing by {row}."
+    },
+    {
+      "kind": "strip",
+      "parameter": "outpaint_extent",
+      "rationale": "Outpainting is the one mode with nothing of its own in the payload. The backends select the same pipeline for it as for inpainting, byte for byte, and nothing anywhere pads a canvas: the caller pads the picture and masks what it added. So these stops vary the input rather than a parameter, each one a canvas padded beforehand and checked in beside its mask, and each stating the size of its own canvas because the backend resizes a source to the requested dimensions and would otherwise squeeze the padding straight back out. What a reader is choosing is how much they are asking the model to invent, which is the only real dial here.",
+      "caption": "Pushing the edges of a picture outwards. The middle is the render the strip starts from and every stop keeps it untouched; what changes is how much new canvas the model is asked to fill on either side.",
+      "model_slugs": [
+        "albedobase-xl"
+      ],
+      "scene_ids": [
+        "person"
+      ],
+      "presentation": "strip",
+      "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "holds": {
+        "source_processing": "outpainting"
+      },
+      "stops": [
+        {
+          "value": 256,
+          "caption": "A narrow border each side. There is enough of the deck in view for the model to carry the railing, the canopy and the sky straight out.",
+          "source_image": "inputs/deck-outpaint-1280.webp",
+          "source_mask": "inputs/deck-outpaint-1280-mask.png",
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "value": 512,
+          "caption": "Half the picture again. The scene still holds together, and the new edges are inventing rather than repeating what is beside them.",
+          "source_image": "inputs/deck-outpaint-1536.webp",
+          "source_mask": "inputs/deck-outpaint-1536-mask.png",
+          "width": 1536,
+          "height": 1024
+        },
+        {
+          "value": 1024,
+          "caption": "The canvas is twice what it was and half of what you are looking at was never in the original. It still reads as one place, and you can find the joins: a faint vertical seam where the picture that was sent meets the canvas around it.",
+          "source_image": "inputs/deck-outpaint-2048.webp",
+          "source_mask": "inputs/deck-outpaint-2048-mask.png",
+          "width": 2048,
+          "height": 1024
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+[project]
+name = "haidra-param-sweeps"
+version = "1.0.0"
+description = "Render the AI Horde parameter-sweep illustration library from a declarative specification."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "AGPL-3.0-or-later" }
+dependencies = [
+    "pillow>=10.0",
+    "horde_sdk>=0.27",
+    "pydantic>=2.7",
+    "requests>=2.31",
+    "strenum>=0.4.15",
+    "pyzbar>=0.1.9",
+]
+
+[project.optional-dependencies]
+# Publishing is this tool's own concern and nothing else's. The object-storage SDK is kept out of
+# the base dependencies so a rendering environment, which shares its interpreter with a GPU stack,
+# never acquires one; `param_sweeps.publish` imports it where a client is built, not on import.
+publish = ["boto3>=1.34", "botocore>=1.34"]
+# horde-engine pulls in torch. Install the right torch build for your GPU BEFORE this extra;
+# see README.md.
+# The layerdiffuse extra is required in practice: hordelib's txt2img pipeline template declares
+# the LayeredDiffusion nodes unconditionally, and ComfyUI validation rejects every job when the
+# comfyui_layerdiffuse custom node fails to import without diffusers.
+local = ["horde-engine[layerdiffuse]>=6.4.1"]
+cu126 = ["torch==2.12.1", "torchvision"]
+cu130 = ["torch==2.12.1", "torchvision"]
+cu132 = ["torch==2.12.1", "torchvision"]
+cpu = ["torch==2.12.1", "torchvision"]
+
+[project.scripts]
+param-sweeps = "param_sweeps.cli:main"
+
+[dependency-groups]
+dev = [
+    "black>=24.4",
+    "boto3-stubs[s3]>=1.34",
+    "mypy>=1.10",
+    "pytest>=8.2",
+    "qrcode>=7.4.2",
+    "ruff>=0.5",
+    "types-qrcode>=8.2.0.20260518",
+    "types-requests>=2.31",
+]
+
+[tool.uv]
+python-preference = "managed"
+conflicts = [
+    [
+        {extra = "cu126"},
+        {extra = "cu130"},
+        {extra = "cu132"},
+        {extra = "cpu"},
+    ],
+]
+
+[tool.uv.sources]
+torch = [
+    {index = "pytorch-cu126", extra = "cu126"},
+    {index = "pytorch-cu130", extra = "cu130"},
+    {index = "pytorch-cu132", extra = "cu132"},
+    {index = "pytorch-cpu", extra = "cpu"},
+]
+# torchvision is routed alongside torch so the pair always shares one CUDA build (a torchvision left to
+# resolve from generic PyPI would pull a different CUDA build and break the install).
+torchvision = [
+    {index = "pytorch-cu126", extra = "cu126"},
+    {index = "pytorch-cu130", extra = "cu130"},
+    {index = "pytorch-cu132", extra = "cu132"},
+    {index = "pytorch-cpu", extra = "cpu"},
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["param_sweeps"]
+
+[tool.black]
+line-length = 119
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 119
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["A", "ANN", "B", "C4", "D", "E", "F", "I", "N", "RET", "RUF", "SIM", "UP", "W"]
+ignore = [
+    "D203",   # incompatible with D211, which is the convention used here
+    "D213",   # incompatible with D212, which is the convention used here
+    "ANN401", # a backend whose types this tool does not own is reached through Any
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D103", "D100"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+strict = true
+disallow_untyped_defs = true
+warn_unreachable = true
+files = ["param_sweeps", "tests"]
+
+[[tool.mypy.overrides]]
+# pyzbar is a thin ctypes wrapper around the zbar library and carries no py.typed marker, and no
+# stub package for it exists. Its whole surface here is one call returning a list of decoded
+# symbols, which param_sweeps.qr_decode narrows to a str immediately.
+module = ["pyzbar.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# horde-engine ships no stubs this tool can rely on, and is an optional dependency besides. The two
+# bare module names are the vendored ComfyUI's own: they are only importable once horde-engine has
+# initialised and put its ComfyUI directory on the path, which no type checker can be expected to do.
+module = ["hordelib.*", "latent_preview", "nodes"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,731 @@
+{
+  "schema_version": 1,
+  "generated_against": "https://aihorde.net/api/v2",
+  "flows": [
+    {
+      "flow_id": "txt2img",
+      "title": "Text to image",
+      "summary": "A prompt, a model and a seed: the smallest complete request the Horde accepts.",
+      "notes": "Anchor example, in world 1: the skyharbor courier. Its output image is the source the img2img, controlnet and inpainting flows start from, and the before-image for facefix. Those flows read it from inputs/, so regenerating this one means re-staging inputs/tutorial-anchor-1024.webp and inputs/tutorial-anchor-512.webp before they are regenerated. The subject descriptor block is byte-identical to the batch's w1 block wherever the courier appears.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, standing at the wooden railing of a zeppelin airship's open gondola deck at sunset, the vast canvas envelope of the airship curving overhead, brass fittings and taut rigging, wind pulling at her coat, a sea of clouds below, cinematic lighting, rich detail, professional photography, high dynamic range",
+          "negative_prompt": "lowres, blurry, deformed, extra limbs, watermark, text, jpeg artifacts, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        }
+      }
+    },
+    {
+      "flow_id": "txt2img--w2",
+      "title": "Text to image, fox shrine",
+      "summary": "A prompt, a model and a seed: the smallest complete request the Horde accepts. The fox shrine rendition, on an anime model in booru tags.",
+      "notes": "World 2: the fox shrine, on the anime model, in the booru tag dialect its model reference is written for. The quality header, rating_safe and clip skip 2 are what that dialect is; they are not decoration. Its output image is staged as inputs/tutorial-anchor-w2-1024.webp for the world 2 img2img flow.",
+      "request": {
+        "model": "Nova Anime XL",
+        "params": {
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, torii path, falling autumn leaves, maple, stone steps, afternoon light",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 2,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        }
+      }
+    },
+    {
+      "flow_id": "txt2img--w3",
+      "title": "Text to image, robot gardener",
+      "summary": "A prompt, a model and a seed: the smallest complete request the Horde accepts. The robot gardener rendition, whose subject is not a person.",
+      "notes": "World 3: the robot gardener, whose subject is not a person, on the SDXL generalist. Its output image is staged as inputs/tutorial-anchor-w3-1024.webp for the world 3 img2img flow.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "prompt": "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop at golden hour, city haze beyond, cinematic lighting, rich detail, high dynamic range",
+          "negative_prompt": "lowres, blurry, deformed, watermark, text, jpeg artifacts",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        }
+      }
+    },
+    {
+      "flow_id": "img2img",
+      "title": "Image to image",
+      "summary": "Re-render an existing image and control how far it may drift with one slider.",
+      "source_note": "txt2img/result.webp at its native 1024x1024",
+      "notes": "The only difference from a text-to-image request is the source image and the denoising strength that says how far the render may travel from it. The world 1 courier's descriptor block is unchanged between the two renders, so what moves is the weather and nothing else. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "source_image": "inputs/tutorial-anchor-1024.webp",
+        "params": {
+          "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, standing at the wooden railing of a zeppelin airship's open gondola deck in a night storm, lantern light on wet brass fittings, rain streaking past the taut rigging, the dark canvas envelope of the airship overhead, a lit thunderhead below the deck, cinematic lighting, rich detail, professional photography, high dynamic range",
+          "negative_prompt": "lowres, blurry, deformed, extra limbs, watermark, text, jpeg artifacts, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 0.7,
+          "seed": 1234567890
+        },
+        "features": {
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "img2img--w2",
+      "title": "Image to image, fox shrine",
+      "summary": "Re-render an existing image and control how far it may drift with one slider. The fox shrine rendition, where the drift is a change of season.",
+      "source_note": "txt2img--w2/result.webp at its native 1024x1024",
+      "notes": "World 2, where the season is the only thing the prompt changes: autumn in, winter out. Everything before the season tags, the descriptor block included, is byte-identical to the flow's source image, so the drift a reader sees is the denoising strength and not a different subject. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "request": {
+        "model": "Nova Anime XL",
+        "source_image": "inputs/tutorial-anchor-w2-1024.webp",
+        "params": {
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, torii path, snow falling, bare maple branches, winter, overcast",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 2,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 0.7,
+          "seed": 1234567890
+        },
+        "features": {
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "img2img--w3",
+      "title": "Image to image, robot gardener",
+      "summary": "Re-render an existing image and control how far it may drift with one slider. The robot gardener rendition, where the drift is golden hour into a wet night.",
+      "source_note": "txt2img--w3/result.webp at its native 1024x1024",
+      "notes": "World 3, golden hour out and a wet night in, with the robot's descriptor block unchanged across both renders. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "source_image": "inputs/tutorial-anchor-w3-1024.webp",
+        "params": {
+          "prompt": "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop after dark in the rain, work lamps strung above the raised beds, wet ivy and puddled decking, the city glowing through the haze beyond the parapet, cinematic lighting, rich detail, high dynamic range",
+          "negative_prompt": "lowres, blurry, deformed, watermark, text, jpeg artifacts",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 0.7,
+          "seed": 1234567890
+        },
+        "features": {
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "controlnet",
+      "title": "ControlNet (canny)",
+      "summary": "Hold a composition with a canny edge map while the prompt changes the style entirely.",
+      "source_note": "txt2img/result.webp, downscaled to 512x512",
+      "notes": "ControlNet is selected by params.control_type; source_processing stays \"img2img\". The canny edge map keeps the anchor composition while the prompt re-themes the render. World 1, on Deliberate, the SD1.5 model this recipe is known good on. ControlNet is served on SD1.5 alone, so every world renders at 512 on an SD1.5 model.",
+      "request": {
+        "model": "Deliberate",
+        "source_image": "inputs/tutorial-anchor-512.webp",
+        "params": {
+          "prompt": "ink and watercolour illustration of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, at the wooden railing of a zeppelin airship's open gondola deck, the canvas envelope curving overhead, a sea of clouds below, loose brush strokes, soft washes of colour, visible paper texture",
+          "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+          "width": 512,
+          "height": 512,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 0.75,
+          "seed": 1234567890
+        },
+        "features": {
+          "control_type": "canny",
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "controlnet--w2",
+      "title": "ControlNet (canny), fox shrine",
+      "summary": "Hold a composition with a canny edge map while the prompt changes the style entirely. The fox shrine rendition, on an SD1.5 anime model.",
+      "source_note": "txt2img--w2/result.webp, downscaled to 512x512",
+      "notes": "World 2. ControlNet is SD1.5-only, so the anime world moves to Anything Diffusion, the SD1.5 anime checkpoint, in its booru dialect with clip skip 2. The edge map holds the shrine keeper and the torii; the prompt asks for ink and watercolour.",
+      "request": {
+        "model": "Anything Diffusion",
+        "source_image": "inputs/tutorial-anchor-w2-512.webp",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, ink and watercolor illustration, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, torii path, maple, stone steps, loose brush strokes, soft washes of colour, visible paper texture, traditional media",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, photorealistic, 3d, cg",
+          "width": 512,
+          "height": 512,
+          "clip_skip": 2,
+          "denoising_strength": 0.75
+        },
+        "features": {
+          "control_type": "canny",
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "controlnet--w3",
+      "title": "ControlNet (canny), robot gardener",
+      "summary": "Hold a composition with a canny edge map while the prompt changes the style entirely. The robot gardener rendition.",
+      "source_note": "txt2img--w3/result.webp, downscaled to 512x512",
+      "notes": "World 3, on Deliberate like world 1. The edge map holds the robot and the planters; the prompt asks for ink and watercolour.",
+      "request": {
+        "model": "Deliberate",
+        "source_image": "inputs/tutorial-anchor-w3-512.webp",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "ink and watercolour illustration of a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop, city haze beyond, loose brush strokes, soft washes of colour, visible paper texture, traditional media",
+          "negative_prompt": "photograph, 3d render, lowres, blurry, deformed, watermark, text",
+          "width": 512,
+          "height": 512,
+          "clip_skip": 1,
+          "denoising_strength": 0.75
+        },
+        "features": {
+          "control_type": "canny",
+          "source_processing": "img2img"
+        }
+      }
+    },
+    {
+      "flow_id": "inpainting",
+      "title": "Inpainting",
+      "summary": "Repaint only the masked region of an image, leaving the rest untouched: here, an airship pushed into the sky.",
+      "source_note": "txt2img/result.webp, downscaled to 512x512; the mask is a rectangle from 0,0 to 285,200 in that frame, the whole sky left of the figure",
+      "notes": "source_processing must be \"inpainting\", the model must be an inpainting model, and the mask must match the source dimensions. White is the region that gets repainted. The mask is sent as the lossless PNG beside the result so its binary edge is not softened in transit. Denoise is 1.0 because the studio's inpainting mode has no strength control and submits 1.0: the masked region is replaced outright, so the example must be made of the same request. An inpainting model fills a hole with what its surroundings suggest, so a masked sky comes back as sky unless the prompt is pushed: the subject is written as (a phrase:1.4), which is what makes the airship appear at the same guidance every other example uses. Every inpainting checkpoint the horde serves is SD1.5, so all three worlds render at 512 on an inpainting model: the photoreal and robot worlds on Deliberate Inpainting, the anime world on Anything Diffusion Inpainting.",
+      "request": {
+        "model": "Deliberate Inpainting",
+        "source_image": "inputs/tutorial-anchor-512.webp",
+        "source_mask": "inputs/tutorial-inpaint-mask.png",
+        "params": {
+          "prompt": "(a colossal steampunk zeppelin airship:1.4) seen from below, filling the sky, red and gold painted hull, brass gondola with rows of glowing round windows, spinning propellers, mooring ropes, dramatically close overhead",
+          "negative_prompt": "lowres, blurry, watermark, text, empty sky, plain sky, clouds only, ocean, sea, water surface, sailing ship, boat, cruise ship",
+          "width": 512,
+          "height": 512,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "source_processing": "inpainting"
+        }
+      }
+    },
+    {
+      "flow_id": "inpainting--w2",
+      "title": "Inpainting, fox shrine",
+      "summary": "Repaint only the masked region of an image, leaving the rest untouched. The fox shrine rendition, on the anime inpainting model.",
+      "source_note": "txt2img--w2/result.webp, downscaled to 512x512; the mask is a rectangle from 0,0 to 236,160 in that frame, the maple canopy at the top left, clear of the figure and her ears",
+      "notes": "World 2 is skipped for the reason stated; the world 1 example stands in. The request is kept so a better anime inpainting checkpoint can be tried without rewriting the flow.",
+      "request": {
+        "model": "Anything Diffusion Inpainting",
+        "source_image": "inputs/tutorial-anchor-w2-512.webp",
+        "source_mask": "inputs/tutorial-inpaint-mask-w2.png",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, no humans, (huge steampunk zeppelin airship:1.4), from below, filling the sky, red and gold hull, brass gondola, glowing round windows, propellers, mooring ropes, dramatically close overhead",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, empty sky, plain sky, clouds only",
+          "width": 512,
+          "height": 512,
+          "clip_skip": 2,
+          "denoising_strength": 1.0
+        },
+        "features": {
+          "source_processing": "inpainting"
+        }
+      },
+      "status": "skipped",
+      "skipped_reason": "The horde's only anime inpainting checkpoint, Anything Diffusion Inpainting, repaints the whole frame washed out rather than the masked region alone, and the photoreal inpainting checkpoint paints the anime scene weakly, so there is no fox-shrine example that teaches what the others teach.",
+      "needs_attention": "Tried: Anything Diffusion Inpainting at clip skip 2 and 1 (whole frame repainted washed out, hole barely changed), Deliberate Inpainting on the anime scene (frame kept, hull weak, a stray artefact on the hair). Also tried: DreamShaper Inpainting with an anime-illustration prompt (frame kept, a dark canopy shape top-left rather than a readable airship). To vary next: another anime-capable SD1.5 inpainting checkpoint if the horde serves one, or the world 1 recipe on a photoreal-to-anime hybrid; the weighted subject and denoise 1.0 are settled."
+    },
+    {
+      "flow_id": "inpainting--w3",
+      "title": "Inpainting, robot gardener",
+      "summary": "Repaint only the masked region of an image, leaving the rest untouched. The robot gardener rendition.",
+      "source_note": "txt2img--w3/result.webp, downscaled to 512x512; the mask is a rectangle from 180,0 to 512,115 in that frame, the sunset sky over the skyline, clear of the planters and the robot",
+      "notes": "World 3. The masked skyline sky becomes an airship on the SD1.5 inpainting model the photoreal world uses, weighted in the prompt as in world 1. Denoise 1.0, as the studio submits.",
+      "request": {
+        "model": "Deliberate Inpainting",
+        "source_image": "inputs/tutorial-anchor-w3-512.webp",
+        "source_mask": "inputs/tutorial-inpaint-mask-w3.png",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "(a colossal steampunk zeppelin airship:1.4) seen from below, filling the sky above a city skyline, red and gold painted hull, brass gondola with rows of glowing round windows, spinning propellers, mooring ropes, dramatically close overhead",
+          "negative_prompt": "lowres, blurry, watermark, text, empty sky, plain sky, clouds only",
+          "width": 512,
+          "height": 512,
+          "clip_skip": 1,
+          "denoising_strength": 1.0
+        },
+        "features": {
+          "source_processing": "inpainting"
+        }
+      }
+    },
+    {
+      "flow_id": "remix",
+      "title": "Remix",
+      "summary": "Blend a source image with extra reference images on Stable Cascade.",
+      "notes": "World 1. Worker-dependent: Stable Cascade rarely has horde workers, so a run should confirm availability first. The reference sketch inputs/skyharbor-sketch.webp is a flat-shape illustration of the same scene, so the blend reads as photo pulled toward its own sketch.",
+      "request": {
+        "model": "Stable Cascade 1.0",
+        "source_image": "inputs/tutorial-anchor-1024.webp",
+        "params": {
+          "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, at the railing of a zeppelin airship's gondola deck, in the style of the reference images",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "source_processing": "remix",
+          "extra_source_images": [
+            {
+              "image": "inputs/skyharbor-sketch.webp",
+              "strength": 1.0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "flow_id": "remix--w2",
+      "title": "Remix, fox shrine",
+      "summary": "Blend a source image with extra reference images on Stable Cascade. The fox shrine rendition.",
+      "notes": "World 2. Worker-dependent, as world 1 is. The reference inputs/fox-shrine-sketch.webp is a deliberately crude flat-colour reduction of the same scene, so the blend reads as the picture pulled toward its own drawing. Cascade takes plain English, so the prompt is the shrine keeper described in prose rather than tags.",
+      "request": {
+        "model": "Stable Cascade 1.0",
+        "source_image": "inputs/tutorial-anchor-w2-1024.webp",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "a shrine keeper in a white haori and red hakama with long black hair and a silver fox at her side, sitting on stone steps under a torii path, in the style of the reference images",
+          "width": 1024,
+          "height": 1024,
+          "clip_skip": 1,
+          "denoising_strength": 1.0
+        },
+        "features": {
+          "source_processing": "remix",
+          "extra_source_images": [
+            {
+              "image": "inputs/fox-shrine-sketch.webp",
+              "strength": 1.0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "flow_id": "remix--w3",
+      "title": "Remix, robot gardener",
+      "summary": "Blend a source image with extra reference images on Stable Cascade. The robot gardener rendition.",
+      "notes": "World 3. Worker-dependent, as world 1 is. The reference inputs/rooftop-garden-sketch.webp is the flat-colour rooftop garden drawing the sweep library already uses, a sketch of the same setting.",
+      "request": {
+        "model": "Stable Cascade 1.0",
+        "source_image": "inputs/tutorial-anchor-w3-1024.webp",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop garden, in the style of the reference images",
+          "width": 1024,
+          "height": 1024,
+          "clip_skip": 1,
+          "denoising_strength": 1.0
+        },
+        "features": {
+          "source_processing": "remix",
+          "extra_source_images": [
+            {
+              "image": "inputs/rooftop-garden-sketch.webp",
+              "strength": 1.0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "flow_id": "qr_code",
+      "title": "Scannable QR code",
+      "summary": "Hide a scannable QR code inside a piece of artwork.",
+      "notes": "The QR payload travels in params.extra_texts with reference \"qr_code\"; params.workflow selects the QR ControlNet workflow. The prompt asks for weather and nothing geometric on purpose: the ControlNet already carries the code, so a prompt that describes blocks and hard shadows competes with it and what comes out is a barcode with a sky behind it rather than a picture with a code inside it. What the prompt has to supply instead is tone: a torn storm front is light against dark in the same places the code needs to be, which is why this scene scans where a flat haze does not. control_strength is the dial between picture and code, but the public API's payload carries no field for it, so a request through the horde renders at the workflow's own baseline whatever it asks for; that is the 1.0 stated here, and the sweep library's control-strength strip is the same lesson rendered locally, where the dial does move. The published image was decoded with zbar before it shipped: a code that does not scan is not a worked example of anything.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "prompt": "ragged dark storm cloud tearing across a bright dawn sky far below a skyharbor, torn vapour and shafts of light, ethereal, dreamlike, flowing, painterly, luminous, incredible detail",
+          "negative_prompt": "worst quality, bad lighting, deformed, ugly, low contrast",
+          "width": 1024,
+          "height": 1024,
+          "steps": 25,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": false,
+          "denoising_strength": 1.0,
+          "seed": 1234567896
+        },
+        "features": {
+          "workflow": "qr_code",
+          "control_strength": 1.0,
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "flow_id": "qr_code--w2",
+      "title": "Scannable QR code, fox shrine",
+      "summary": "Hide a scannable QR code inside a piece of artwork. The fox shrine rendition, on the SD1.5 anime model.",
+      "notes": "World 2. The SDXL anime checkpoint drew the three finder squares and flattened the code's modules away on every seed tried, so this world moves to Anything Diffusion, the SD1.5 anime checkpoint, at its native 512 with the SD1.5 QR ControlNet: three of four seeds decoded, and the published one is the seed whose storm read best. Weather-only booru tags, as the other worlds are tone-only. Decoded before shipping, as every QR example is.",
+      "request": {
+        "model": "Anything Diffusion",
+        "params": {
+          "steps": 25,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": false,
+          "denoising_strength": 1.0,
+          "width": 512,
+          "height": 512,
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, no humans, sky, ragged dark storm clouds tearing across a bright dawn sky, torn vapour, shafts of light, ethereal, luminous, painterly, flowing, high contrast",
+          "negative_prompt": "worst quality, bad lighting, deformed, ugly, low contrast, watermark, signature",
+          "clip_skip": 2,
+          "seed": 1234567891
+        },
+        "features": {
+          "workflow": "qr_code",
+          "control_strength": 1.0,
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            }
+          ]
+        }
+      },
+      "status": "available"
+    },
+    {
+      "flow_id": "qr_code--w3",
+      "title": "Scannable QR code, robot gardener",
+      "summary": "Hide a scannable QR code inside a piece of artwork. The robot gardener rendition.",
+      "notes": "World 3. Tone only, with the rooftop garden named as somewhere far below and nothing geometric in the prompt: an earlier prompt that named the skyline and the garden did not decode on any of eight seeds, and this one decoded on the first seed tried. Decoded before shipping, as every QR example is.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "steps": 25,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": false,
+          "denoising_strength": 1.0,
+          "width": 1024,
+          "height": 1024,
+          "prompt": "ragged dark storm cloud tearing across a bright dawn sky far above a rooftop garden, torn vapour and shafts of light, ethereal, dreamlike, flowing, painterly, luminous, incredible detail",
+          "negative_prompt": "worst quality, bad lighting, deformed, ugly, low contrast",
+          "clip_skip": 1,
+          "seed": 1234567896
+        },
+        "features": {
+          "workflow": "qr_code",
+          "control_strength": 1.0,
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "flow_id": "transparent",
+      "title": "Transparent background",
+      "summary": "Cut a subject out onto a real alpha channel with Layer Diffuse.",
+      "notes": "params.transparent asks for a real alpha channel rather than a flat backdrop the viewer has to key out. Prompts that isolate a single subject cut out far more cleanly than scenes, so world 1 offers the courier's compass rather than the courier.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "prompt": "a small brass pocket compass on a braided leather cord, engraved bezel, scratched glass, studio product photography, sharp focus, even lighting, isolated subject, plain background",
+          "negative_prompt": "background, scenery, lowres, blurry, watermark, text",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "transparent": true
+        }
+      }
+    },
+    {
+      "flow_id": "transparent--w2",
+      "title": "Transparent background, fox shrine",
+      "summary": "Cut a subject out onto a real alpha channel with Layer Diffuse. The fox shrine rendition, cutting out its companion animal.",
+      "notes": "World 2's companion animal, alone, in the booru dialect at clip skip 2. \"no humans\" is doing the isolating work a booru-trained model responds to.",
+      "request": {
+        "model": "Nova Anime XL",
+        "params": {
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, no humans, a silver fox with amber eyes mid-leap, flying fur, isolated subject, plain background, full body",
+          "negative_prompt": "background, scenery, lowres, worst quality, watermark, signature",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 2,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "transparent": true
+        }
+      }
+    },
+    {
+      "flow_id": "transparent--w3",
+      "title": "Transparent background, robot gardener",
+      "summary": "Cut a subject out onto a real alpha channel with Layer Diffuse. The robot gardener rendition, cutting out the world's own subject.",
+      "notes": "World 3's subject is already a single object, so it is cut out whole rather than by proxy.",
+      "request": {
+        "model": "AlbedoBase XL (SDXL)",
+        "params": {
+          "prompt": "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, standing upright holding a watering can, full body, isolated subject, plain background, studio product photography, sharp focus, even lighting",
+          "negative_prompt": "background, scenery, lowres, blurry, watermark, text",
+          "width": 1024,
+          "height": 1024,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "transparent": true
+        }
+      }
+    },
+    {
+      "flow_id": "facefix",
+      "title": "Face fixing with GFPGAN",
+      "summary": "The same seed with and without the GFPGAN post-processor, side by side.",
+      "notes": "The two requests are identical apart from params.post_processing and params.facefixer_strength, so the pair isolates what the face fixer does. Face fixing is a post-processor, not a sampler setting: it runs on the finished image, so the composition is unchanged and only facial detail is redrawn. World 1 on the photoreal SD1.5 model, where GFPGAN, trained on photographic faces, has the most to give. World 2 shows the same pair on the anime model, where the correction is gentler and the reader can see that it is. World 3 has no variant: the robot has no face to fix, so the first world's pair stands in.",
+      "request": {
+        "model": "ICBINP - I Can't Believe It's Not Photography",
+        "params": {
+          "prompt": "full body shot of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, her whole body visible from her boots to her head, standing on the wooden planks of a high timber skyharbor walkway, a vast zeppelin airship envelope filling the daylit sky behind her, morning haze, (her long coat is teal canvas:1.25), her hair is silver-grey, wide angle 28mm photograph, deep focus, natural light, highly detailed",
+          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, blazer, suit, indoors, forest, trees, woodland, teal hair, blue hair, dyed hair, grey coat, gray coat, empty scene, sailboat, yacht, marina, harbour, mast, water, reflection, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "width": 512,
+          "height": 768,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        },
+        "features": {
+          "post_processing": [
+            "GFPGAN"
+          ],
+          "facefixer_strength": 0.75
+        }
+      },
+      "before_request": {
+        "model": "ICBINP - I Can't Believe It's Not Photography",
+        "params": {
+          "prompt": "full body shot of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, her whole body visible from her boots to her head, standing on the wooden planks of a high timber skyharbor walkway, a vast zeppelin airship envelope filling the daylit sky behind her, morning haze, (her long coat is teal canvas:1.25), her hair is silver-grey, wide angle 28mm photograph, deep focus, natural light, highly detailed",
+          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, blazer, suit, indoors, forest, trees, woodland, teal hair, blue hair, dyed hair, grey coat, gray coat, empty scene, sailboat, yacht, marina, harbour, mast, water, reflection, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "width": 512,
+          "height": 768,
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "clip_skip": 1,
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "denoising_strength": 1.0,
+          "seed": 1234567890
+        }
+      },
+      "needs_attention": "Worlds 2 and 3 have no variant: the anime face is left as it was by GFPGAN (see facefix--w2), and the robot has no face. The first world's pair stands in for both."
+    },
+    {
+      "flow_id": "facefix--w2",
+      "title": "Face fixing with GFPGAN, fox shrine",
+      "summary": "The same seed with and without the GFPGAN post-processor, side by side. The fox shrine rendition, on the anime model.",
+      "notes": "World 2 is skipped for the reason stated; the world 1 pair stands in. The request is kept for the next attempt.",
+      "request": {
+        "model": "Nova Anime XL",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, full body, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, standing on stone steps under a torii path, maple, whole body visible from head to feet, wide shot, from a distance, small figure in frame",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, close-up, portrait, upper body, cropped, face focus",
+          "width": 832,
+          "height": 1216,
+          "clip_skip": 2,
+          "denoising_strength": 1.0
+        },
+        "features": {
+          "post_processing": [
+            "GFPGAN"
+          ],
+          "facefixer_strength": 0.75
+        }
+      },
+      "before_request": {
+        "model": "Nova Anime XL",
+        "params": {
+          "steps": 30,
+          "cfg_scale": 7.5,
+          "sampler_name": "k_euler_a",
+          "hires_fix": false,
+          "tiling": false,
+          "karras": true,
+          "seed": 1234567890,
+          "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, full body, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, standing on stone steps under a torii path, maple, whole body visible from head to feet, wide shot, from a distance, small figure in frame",
+          "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, close-up, portrait, upper body, cropped, face focus",
+          "width": 832,
+          "height": 1216,
+          "clip_skip": 2,
+          "denoising_strength": 1.0
+        }
+      },
+      "status": "skipped",
+      "skipped_reason": "GFPGAN, trained on photographs of faces, leaves a clean drawn face as it was: the pair rendered on the anime model is visually identical, so there is nothing for a reader to see.",
+      "needs_attention": "Tried: Nova Anime XL at 832x1216, GFPGAN 0.75, a full-body framing so the face is small. Before and after are indistinguishable. Also tried: CodeFormers at 0.75 on the same framing (before and after still indistinguishable). To vary next: CodeFormers instead of GFPGAN, or a framing that leaves the drawn face genuinely broken (much smaller in frame, or a lower step count) so a fixer has something to repair; or accept that face fixing is a photoreal lesson and leave the world 1 pair standing in."
+    }
+  ]
+}
