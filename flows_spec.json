@@ -674,7 +674,7 @@
           "seed": 1234567890
         }
       },
-      "needs_attention": "Worlds 2 and 3 have no variant: the anime face is left as it was by GFPGAN (see facefix--w2), and the robot has no face. The first world's pair stands in for both."
+      "needs_attention": "The published pair does not isolate the face fixer and should not be trusted as evidence until it is re-rendered locally. Through the horde runner the before and the after are two independent jobs that land on different workers, so the base renders are not the same image: differencing the published pair puts the change across the whole frame (planks, railing, sky) at roughly the same magnitude as the face, and at 8 steps the coat drape and lighting diverge outright. Only the local runner, which renders both back to back on one GPU, can publish a pair whose sole difference is the post-processor. Also unresolved: ICBINP draws a small face competently, so GFPGAN has little to repair at any framing. Tried through the horde runner, all at seed 1234567890: the published full-body recipe at 30 steps; the same at 12 steps with the close-up/portrait negatives dropped; a three-quarter framing at 30 and at 8 steps; a distant-figure framing at 30 steps with facefixer_strength raised to 1.0; and a 768x512 landscape frame. Every one of them repaired invisibly. To vary next: render locally so the comparison is controlled, then reach for a plainer SD1.5 checkpoint than this face-tuned merge, or a framing that leaves the face genuinely broken. Worlds 2 and 3 have no variant: the anime face is left as it was by GFPGAN (see facefix--w2), and the robot has no face. The first world's pair stands in for both."
     },
     {
       "flow_id": "facefix--w2",
