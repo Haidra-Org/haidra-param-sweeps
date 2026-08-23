@@ -44,6 +44,14 @@ COMPVIS_MODEL_MANAGER = "compvis"
 MISCELLANEOUS_MODEL_MANAGER = "miscellaneous"
 """The only model manager these sweeps need: plain checkpoint image models."""
 
+POST_PROCESSOR_MODEL_MANAGERS = ("gfpgan", "codeformer", "esrgan")
+"""The managers a post-processor is resolved against: face fixers and upscalers.
+
+Post-processing looks its model up across these three and fails outright when none of them is
+loaded, so they are loaded up front. They carry only their references until a job actually names
+one of their models, at which point the weights (tens of megabytes) are fetched on demand.
+"""
+
 IMG2IMG_SOURCE_PROCESSING = "img2img"
 """What ``hordelib`` calls starting from a source image rather than from noise."""
 
@@ -291,7 +299,9 @@ class LocalRunner(SweepRunner):
         # The miscellaneous manager owns the layer-diffusion weights the
         # `transparent` pipeline loads; without it the LayeredDiffusionApply
         # node resolves no model folder and every transparent job dies.
-        SharedModelManager.load_model_managers([COMPVIS_MODEL_MANAGER, MISCELLANEOUS_MODEL_MANAGER])
+        SharedModelManager.load_model_managers(
+            [COMPVIS_MODEL_MANAGER, MISCELLANEOUS_MODEL_MANAGER, *POST_PROCESSOR_MODEL_MANAGERS],
+        )
         self._model_managers_loaded = True
         for image_model in models:
             self._ensure_model_present(image_model)
@@ -314,6 +324,9 @@ class LocalRunner(SweepRunner):
         if job.batch_size > 1:
             return self._render_candidates(job, mapping)
 
+        if mapping.get("post_processing"):
+            return self._render_post_processed(job, mapping)
+
         result = self._horde.basic_inference_single_image(mapping)
         rendered_image: Image.Image | None = result.image
         if rendered_image is None:
@@ -321,6 +334,31 @@ class LocalRunner(SweepRunner):
 
         fault_note = "; ".join(str(fault) for fault in result.faults) if result.faults else None
         return RenderOutcome(images=[rendered_image], model_name_used=job.horde_model_name, note=fault_note)
+
+    def _render_post_processed(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
+        """Render one image through the entry point that also applies the requested post-processors.
+
+        The single-image entry point runs the sampler and nothing else: only the multi-image call
+        reads ``post_processing``. A face fixer or upscaler asked for through the single-image call
+        is dropped without a word, and the render comes back byte-identical to one that never asked
+        for it, which is exactly the silence a post-processing comparison cannot afford.
+
+        Raises:
+            RuntimeError: If the backend did not return exactly one image.
+        """
+        if self._horde is None:
+            raise RuntimeError("prepare() must be called before render()")
+
+        results = self._horde.basic_inference(mapping)
+        rendered_images = [result.image for result in results if result.image is not None]
+        if len(rendered_images) != 1:
+            raise RuntimeError(
+                f"hordelib returned {len(rendered_images)} images for {job.relative_image_path}, expected one",
+            )
+
+        faults = [str(fault) for result in results for fault in result.faults]
+        fault_note = "; ".join(faults) if faults else None
+        return RenderOutcome(images=rendered_images, model_name_used=job.horde_model_name, note=fault_note)
 
     def _render_candidates(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render a curation batch through the multi-image entry point.

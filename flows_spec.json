@@ -631,12 +631,12 @@
       "flow_id": "facefix",
       "title": "Face fixing with GFPGAN",
       "summary": "The same seed with and without the GFPGAN post-processor, side by side.",
-      "notes": "The two requests are identical apart from params.post_processing and params.facefixer_strength, so the pair isolates what the face fixer does. Face fixing is a post-processor, not a sampler setting: it runs on the finished image, so the composition is unchanged and only facial detail is redrawn. World 1 on the photoreal SD1.5 model, where GFPGAN, trained on photographic faces, has the most to give. World 2 shows the same pair on the anime model, where the correction is gentler and the reader can see that it is. World 3 has no variant: the robot has no face to fix, so the first world's pair stands in.",
+      "notes": "The two requests are identical apart from params.post_processing and params.facefixer_strength, so the pair isolates what the face fixer does. Face fixing is a post-processor, not a sampler setting: it runs on the finished image, so the composition is unchanged and only facial detail is redrawn. Both halves were rendered back to back on one GPU by the local runner at the same seed, which is what makes the pair a controlled comparison: away from the face the two images differ by no more than the rounding of a re-encode. The framing puts the figure far down the walkway, which leaves the face too few pixels to hold together and gives the pass something to repair. World 1 on the photoreal SD1.5 model, where GFPGAN, trained on photographic faces, has the most to give. Worlds 2 and 3 have no variant of their own: GFPGAN leaves a clean drawn face as it was (see facefix--w2) and the robot has no face, so this pair stands in for both. facefixer_strength is recorded at 1.0, and the worker software never forwards it to GFPGAN, so the same pair comes back whatever the strength is set to.",
       "request": {
         "model": "ICBINP - I Can't Believe It's Not Photography",
         "params": {
-          "prompt": "full body shot of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, her whole body visible from her boots to her head, standing on the wooden planks of a high timber skyharbor walkway, a vast zeppelin airship envelope filling the daylit sky behind her, morning haze, (her long coat is teal canvas:1.25), her hair is silver-grey, wide angle 28mm photograph, deep focus, natural light, highly detailed",
-          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, blazer, suit, indoors, forest, trees, woodland, teal hair, blue hair, dyed hair, grey coat, gray coat, empty scene, sailboat, yacht, marina, harbour, mast, water, reflection, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "prompt": "a wide timber skyharbor walkway in bright morning daylight, a huge zeppelin airship envelope in the sky beyond it, a woman in a patched teal canvas coat standing at the railing far down the walkway, facing the camera, her face lit by the sun, (small distant figure:1.45), (wide establishing shot:1.3), the walkway stretching away, whole body visible from her boots to her head, wide angle 24mm photograph, deep focus, natural light, highly detailed",
+          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, large face, person near the camera, silhouette, backlit, dark, night, dusk, sunset, facing away, back turned, blazer, suit, indoors, forest, trees, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text",
           "width": 512,
           "height": 768,
           "steps": 30,
@@ -653,14 +653,14 @@
           "post_processing": [
             "GFPGAN"
           ],
-          "facefixer_strength": 0.75
+          "facefixer_strength": 1.0
         }
       },
       "before_request": {
         "model": "ICBINP - I Can't Believe It's Not Photography",
         "params": {
-          "prompt": "full body shot of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, her whole body visible from her boots to her head, standing on the wooden planks of a high timber skyharbor walkway, a vast zeppelin airship envelope filling the daylit sky behind her, morning haze, (her long coat is teal canvas:1.25), her hair is silver-grey, wide angle 28mm photograph, deep focus, natural light, highly detailed",
-          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, blazer, suit, indoors, forest, trees, woodland, teal hair, blue hair, dyed hair, grey coat, gray coat, empty scene, sailboat, yacht, marina, harbour, mast, water, reflection, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text, ocean, sea, water surface, sailing ship, boat, cruise ship, sunglasses",
+          "prompt": "a wide timber skyharbor walkway in bright morning daylight, a huge zeppelin airship envelope in the sky beyond it, a woman in a patched teal canvas coat standing at the railing far down the walkway, facing the camera, her face lit by the sun, (small distant figure:1.45), (wide establishing shot:1.3), the walkway stretching away, whole body visible from her boots to her head, wide angle 24mm photograph, deep focus, natural light, highly detailed",
+          "negative_prompt": "close-up, portrait, headshot, bust, upper body, cropped, face filling the frame, large face, person near the camera, silhouette, backlit, dark, night, dusk, sunset, facing away, back turned, blazer, suit, indoors, forest, trees, cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers, watermark, text",
           "width": 512,
           "height": 768,
           "steps": 30,
@@ -673,8 +673,7 @@
           "denoising_strength": 1.0,
           "seed": 1234567890
         }
-      },
-      "needs_attention": "The published pair does not isolate the face fixer and should not be trusted as evidence until it is re-rendered locally. Through the horde runner the before and the after are two independent jobs that land on different workers, so the base renders are not the same image: differencing the published pair puts the change across the whole frame (planks, railing, sky) at roughly the same magnitude as the face, and at 8 steps the coat drape and lighting diverge outright. Only the local runner, which renders both back to back on one GPU, can publish a pair whose sole difference is the post-processor. Also unresolved: ICBINP draws a small face competently, so GFPGAN has little to repair at any framing. Tried through the horde runner, all at seed 1234567890: the published full-body recipe at 30 steps; the same at 12 steps with the close-up/portrait negatives dropped; a three-quarter framing at 30 and at 8 steps; a distant-figure framing at 30 steps with facefixer_strength raised to 1.0; and a 768x512 landscape frame. Every one of them repaired invisibly. To vary next: render locally so the comparison is controlled, then reach for a plainer SD1.5 checkpoint than this face-tuned merge, or a framing that leaves the face genuinely broken. Worlds 2 and 3 have no variant: the anime face is left as it was by GFPGAN (see facefix--w2), and the robot has no face. The first world's pair stands in for both."
+      }
     },
     {
       "flow_id": "facefix--w2",
