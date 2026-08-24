@@ -546,8 +546,11 @@ def test_a_worlds_subject_is_described_in_the_same_words_everywhere(spec: SweepS
         "portrait": "w1",
         "snowstorm": "w1",
         "courier": "w1",
+        "courier-ink": "w1",
         "anime": "w2",
+        "fox-shrine-ink": "w2",
         "thing": "w3",
+        "robot-gardener-ink": "w3",
     }
     for scene_id, world in subject_scenes.items():
         assert descriptor_blocks[world] in spec.scene_for_id(scene_id).prompt, scene_id
