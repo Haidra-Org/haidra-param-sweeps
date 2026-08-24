@@ -1619,7 +1619,7 @@ wheels = [
 
 [[package]]
 name = "horde-sdk"
-version = "0.27.0"
+version = "0.29.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiodns" },
@@ -1636,9 +1636,9 @@ dependencies = [
     { name = "requests" },
     { name = "strenum" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/92/182f697a076e81ee31037312cceecd2bb8d372cfd3244106aaad6a5897ea/horde_sdk-0.27.0.tar.gz", hash = "sha256:7d10bece0dbdd0e33763178bfe4f95615495d1ea09c0b7d5ff1f3c1e0be4c77e", size = 4846151, upload-time = "2026-07-11T17:13:40.971Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/36/cca82e3a6456b51884c5449e4d192e7b92965a4c7a9c5c73c97a92b8516e/horde_sdk-0.29.3.tar.gz", hash = "sha256:4bdf345c2ce0747e77f55c5e4b335260aa2ac4a0604435b6ae96b5c20e5fab76", size = 4897025, upload-time = "2026-08-23T23:18:07.724Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/2f/b3dd2ce6090858ca40fab708fa126781df925ebfa1e0845a2509c4b0f93a/horde_sdk-0.27.0-py3-none-any.whl", hash = "sha256:03b01b5eff7e547de642119f0b95321e8c3ca27540b4b1cf393384e6e8137852", size = 273540, upload-time = "2026-07-11T17:13:38.768Z" },
+    { url = "https://files.pythonhosted.org/packages/33/94/28be013759ea58ae0c972b079306cdd0f75cbfc2eebbc6e227c17441b103/horde_sdk-0.29.3-py3-none-any.whl", hash = "sha256:4ab746c03f26d2ec6ead5f0f25c9d6d977b4aa5c982d68682e811ab7938bc812", size = 301034, upload-time = "2026-08-23T23:18:06.03Z" },
 ]
 
 [[package]]
