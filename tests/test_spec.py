@@ -566,16 +566,74 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
 
     A stop that reached its scan by changing seed as well as strength would be teaching two things
     at once, so each strip is pinned to the one seed that holds across the whole range it publishes.
-    The QR strip walks the ladder on the QR workflow; the rest walk the same ladder once per
-    detector family, so the grip of each family is read against the others and against the QR one.
+    Every control type the horde serves has a strip of its own on one model and one scene, all
+    walking one ladder, so the grip of each detector is readable against every other. The QR strip
+    walks a narrower ladder on the QR workflow, which conditions on no detector at all.
     """
-    strength_ladder = [1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6]
+    detector_ladder = [
+        0.01,
+        0.05,
+        0.15,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.125,
+        1.25,
+        1.375,
+        1.5,
+        1.75,
+        2.0,
+        2.25,
+        2.5,
+        2.75,
+        3.0,
+    ]
+    qr_ladder = [1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6]
+    detector_order = [
+        "canny",
+        "hed",
+        "pidinet",
+        "teed",
+        "pyracanny",
+        "binary",
+        "scribble",
+        "fakescribbles",
+        "scribble_xdog",
+        "scribble_pidinet",
+        "standard_lineart",
+        "lineart",
+        "lineart_anime",
+        "lineart_anime_denoise",
+        "mlsd",
+        "depth",
+        "midas_depth",
+        "zoe_depth",
+        "depth_anything",
+        "depth_anything_v2",
+        "normal",
+        "normal_bae",
+        "openpose",
+        "seg",
+        "oneformer_ade20k",
+        "oneformer_coco",
+        "color",
+        "shuffle",
+        "recolor_luminance",
+        "recolor_intensity",
+        "tile",
+        "tile_ttplanet_guided",
+        "tile_ttplanet_simple",
+    ]
+
     strips = [strip for strip in spec.expand_strips() if strip.parameter is SweepParameter.CONTROL_STRENGTH]
 
-    assert len(strips) == 8
+    assert len(strips) == len(detector_order) + 1
 
     for strip in strips:
-        assert [job.control_strength for job in strip.jobs] == strength_ladder
         assert len({job.seed for job in strip.jobs}) == 1
         assert len({job.prompt for job in strip.jobs}) == 1
         assert len({job.control_type for job in strip.jobs}) == 1
@@ -585,15 +643,17 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
 
     assert len(qr_strips) == 1
     assert all(job.control_type is None for job in qr_strips[0].jobs)
-    assert {strip.jobs[0].control_type for strip in detector_strips} == {
-        "canny",
-        "mlsd",
-        "depth_anything_v2",
-        "normal_bae",
-        "openpose",
-        "oneformer_ade20k",
-        "tile",
-    }
+    assert [job.control_strength for job in qr_strips[0].jobs] == qr_ladder
+
+    assert len(detector_strips) == len(detector_order)
+    for detector_strip in detector_strips:
+        assert [job.control_strength for job in detector_strip.jobs] == detector_ladder
+        assert len({job.model_slug for job in detector_strip.jobs}) == 1
+        assert len({job.scene_id for job in detector_strip.jobs}) == 1
+
+    assert [strip.jobs[0].control_type for strip in detector_strips] == detector_order
+    assert {strip.jobs[0].model_slug for strip in detector_strips} == {"deliberate"}
+    assert {strip.jobs[0].scene_id for strip in detector_strips} == {"courier-ink"}
 
 
 def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> None:

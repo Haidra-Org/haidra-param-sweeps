@@ -3557,8 +3557,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/canny/deliberate",
-      "rationale": "The strength dial read against a map of hard edges, which is the mode most readers meet first and the one whose grip is easiest to see: an edge either survives into the render or it does not. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "Canny's outline is already in charge at the lowest strength here, so all eight stops keep the same railing, the same coat and the same face. What rises with the number is how literally the render follows the line: the sky flattens into bands, the fittings on the mast are sanded away and the brushwork tightens onto the edges. Nothing in this range breaks, so the lower stops are the useful ones and the higher stops only cost the render its own ideas.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the canny control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3574,44 +3574,1690 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The loosest of the eight. There is real weather in the sky, a white cloud out over the water, and the coat is painted with visible brush rather than filled in."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "Almost the same picture with the cloud thinned. The sky is starting to settle into flat bands of peach and grey."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The wash tightens onto the outline. The hills behind the railing lose their mottling and the hair picks up the teal the earpiece had."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The middle of the strip and a fair place to work: the rails and the deck edge are where the map put them, and the picture still looks painted."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "The fittings begin to go. There are fewer buttons down the coat than there were and the horizon is one clean edge."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The brushwork has pulled in to the lines. The sleeve is flat brown with a single gold stroke on it, and there is no cloud left in the sky."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "Little is left to give up. The hills are flat colour between drawn edges and the collar has lost its shading."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest reading of the outline: every edge is honoured and the areas between them are filled rather than painted. Nothing has broken, and nothing has been gained since 1.4."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/hed/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the hed control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "hed"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/pidinet/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the pidinet control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "pidinet"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/teed/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the teed control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "teed"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/pyracanny/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the pyracanny control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "pyracanny"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/binary/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the binary control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "binary"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/scribble/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "scribble"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/fakescribbles/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the fakescribbles control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "fakescribbles"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/scribble-xdog/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble_xdog control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "scribble_xdog"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/scribble-pidinet/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble_pidinet control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "scribble_pidinet"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/standard-lineart/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the standard_lineart control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "standard_lineart"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/lineart/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "lineart"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/lineart-anime/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart_anime control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "lineart_anime"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/lineart-anime-denoise/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart_anime_denoise control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "lineart_anime_denoise"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3619,8 +5265,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/mlsd/deliberate",
-      "rationale": "The strength dial read against a map that holds only long straight lines. The deck's railing and rigging are the whole of what this detector kept, so the strip is a reading of how hard a sparse map can pull. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "Straight lines are all this map holds, so the woman is redrawn at every stop and only the ironwork answers to the number. At 1.25 the railing is loosely painted and the deck curves where the render wants it to; by 1.4 the rails are ruled and the deck edge is straight; at the top the frame of the envelope looks drafted rather than drawn. Around 1.4 keeps the architecture true while the rest of the picture still looks painted.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the mlsd control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3636,44 +5282,592 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "Loose ironwork. The rail bars wander, the deck boards curve away, and the vessel out over the water is a woven basket the render invented."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "The rails begin to line up and a white hull replaces the basket. The deck edge still bends where the render wanted it to."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The railing is drawn bar by bar now and the deck edge has straightened out. The clouds are still doing as they please."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The architecture is true: rails ruled, deck edge straight, mast upright. Everything else is still painted loosely, which is what makes this a fair place to work."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "Little changes in the ironwork, so the render spends the stop above it, running a cable out of the frame and flattening the vessel into a deck with windows."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The straight lines are now hard enough to pull the airship into being: a ribbed envelope over the rail, drawn with the same ruled edges."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The envelope is drafted rather than drawn, and an orange seat has grown in the near corner where the map had a straight edge and nothing else."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest stop. Every long edge in the picture is a ruled line, including the seams of the envelope, and the woman is the only thing left that looks hand-drawn."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/depth/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "depth"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/midas-depth/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the midas_depth control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "midas_depth"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/zoe-depth/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the zoe_depth control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "zoe_depth"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/depth-anything/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth_anything control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "depth_anything"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3681,8 +5875,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything-v2/deliberate",
-      "rationale": "The strength dial read against distance rather than line. A depth map states where things sit rather than where their edges are, so what tightens as the dial climbs is the arrangement of the scene rather than its drawing. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "The depth map holds the figure at every stop, so what the number changes is everything behind her. Low, the view is invented freely, with an island and a boat out in the water; high, the background settles into the flat layers the map describes and the envelope becomes a plain pale shape. The picture never stops looking painted, and 1.35 to 1.45 keeps the invention without letting the layers go slack.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth_anything_v2 control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3698,44 +5892,226 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The loosest of the eight. The map asked for a near figure and a far view, and the render answers with a headland, a small boat and a bank of drawn cloud."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "The same freedom with a little more order. The boats are still out there and the envelope is still woven basketwork."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The headland goes. The water resolves into the broad layers of distance the map describes, and the envelope loses its weave."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The view behind her is layered rather than invented, and the cloud bank is the last piece of the render's own drawing left in it."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "A small town reappears on the far shore. The layers around it are flatter than at 1.35, so what survives here is a detail rather than a place."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The water is a set of flat steps going back, with a low island sitting on one of them. Nothing has broken; the picture has simply stopped adding."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The layers go slack. What was a sea is bands of grey and blue with a few rocks on them."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest reading of distance: pale flat planes stacked to the horizon and an envelope with no surface at all. The woman is unchanged, which is the whole point of this strip."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/normal/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the normal control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "normal"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3743,8 +6119,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/normal-bae/deliberate",
-      "rationale": "The strength dial read against which way each surface faces. Nothing in this map is an outline, so it is the clearest case of a control that governs form and lighting while leaving the drawing to the model. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "The surface map fixes the modelling from the first stop: the same coat, the same folds and the same light on the sleeves in all eight. Raising the number firms the shading and drains the invention out of the background, so the sea and the hills lose the small things the lower stops put there. Nothing here turns into a tracing, which makes the bottom of the range the practical place to work.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the normal_bae control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3760,44 +6136,104 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The loosest of the eight, and the modelling of the coat is already fixed. What the render still owns is the ornament: three medallions on the chain and a small boat out on the ice."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "Almost the same picture, warmer in the sky. The rocks under the railing keep the pink the render put there."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "A fur collar grows where the map had a raised surface. The clouds are still drawn rather than washed."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The drawn clouds go. The sky is a set of pale streaks and the ornament on the chain is thinning out."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "One medallion left. The shape out on the water has settled into a plain white hull with nothing on it."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The sea is flat and the far shore is a block. The figure has not moved since the first stop and will not move again."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The rocks below the railing are outlines with one wash inside them. The shading on the coat is at its firmest here."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest stop, and it looks it: a plain sky, a plain hull, plain planking. The map never asked for any of that detail, and at this strength the render stops supplying it."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3805,8 +6241,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/openpose/deliberate",
-      "rationale": "The strength dial read against a map that is almost entirely empty: a stick figure and nothing else. A reader can see what happens when a strong control has very little to say about most of the frame. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "Only the body is in this map, so every stop rebuilds the world around it and none of them return to the deck the photograph was taken on. What the number buys is the stance: at 1.25 the arm reaches oddly and the shoulders drift, and from 1.4 up the pose settles into the one the map describes and stays there. Use the top of the range when the pose is what matters, and expect the setting to come from the prompt at any strength.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the openpose control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3822,44 +6258,226 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The stance is loose. The shoulders tilt and the reaching arm is longer than a body's, and the room around her is entirely the render's own, down to the framed print on the wall and the satchel at her hip."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "The shoulders square up and the arm shortens to something a body could do. The cabin has been rebuilt again, with a wooden bench where the print was."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The hand finds the window frame and holds it. The pose is close to the map now, and everything around it has changed once more."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The stance settles: shoulders level, head upright, one hand at the frame. This is the first stop that returns the pose the map describes."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "The same stance again, so the difference is all in the room. A bird crosses the water outside and the wall behind her has gone orange."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "Still the same body. The render has spent the stop on furniture, putting a padded bench and a rail into the cabin."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The pose is fixed and the room is quieter, with the curve of a hull filling what was open cabin."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest stop holds the stance exactly as the map drew it and gives back a boat on the water outside. A pose map never gets more faithful than this, and it never tells the render where she is."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/seg/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the seg control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "seg"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3867,8 +6485,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-ade20k/deliberate",
-      "rationale": "The strength dial read against flat regions of colour standing for what the detector thinks each part of the picture is. The map has no detail in it at all, so the dial governs how strictly the render honours the boundaries. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "The region map fixes where the sky, the water, the deck and the figure go, and it fixes it from the first stop. As the number rises the edges between those regions harden, the water fills with flat islands and a row of buildings grows where the map has a block, until the picture reads more like a diagram than a place. Around 1.3 to 1.4 keeps the layout without the flattening.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the oneformer_ade20k control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3884,44 +6502,714 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The regions are already in charge: sky, water, deck and figure sit where the map puts them. Inside them the render is free, so the water is scattered ice and a roof leans in at the edge."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "A row of houses grows in the block the map marked as building. The ice on the water is still loosely painted."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The far shore gains a town and a stack of crates appears under the railing. The boundary between water and land is sharper than it was."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "The edges harden. The floes flatten into shapes with outlines and the buildings line up along the far side of the water."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "Panels with writing on them fill the block by the railing. Anything the map called one region is now one flat colour."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The water is flat plates on flat blue and the town is a strip. The picture has begun to read as a plan of a place rather than a view of one."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The panels are framed in arches and the sky is banded. Little is left inside each region for the brush to do."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest stop, and the flattest: the sea is brown shapes on blue, the shore is a band, and the boundaries the map drew are the strongest lines in the picture."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/oneformer-coco/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the oneformer_coco control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "oneformer_coco"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/color/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the color control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "color"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/shuffle/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the shuffle control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "shuffle"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/recolor-luminance/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the recolor_luminance control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "recolor_luminance"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/recolor-intensity/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the recolor_intensity control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "recolor_intensity"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     },
@@ -3929,8 +7217,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile/deliberate",
-      "rationale": "The strength dial read against a map that is the picture itself. This is the mode with the least room between guidance and copying, which is what the top of the range is here to show. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
-      "caption": "The map is the picture itself, so the hold is total at every stop and the difference between them is small. Low, the render still paints: the coat is recoloured, the sky is redrawn and the brush is visible. High, it narrows onto the source's own colours and edges until the ink and watercolour of the prompt is a thin layer over a copy. For repainting something in a new style, stay at the bottom of this range.",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile control type.",
+      "caption": "",
       "model_slugs": [
         "deliberate"
       ],
@@ -3946,44 +7234,348 @@
       },
       "stops": [
         {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
           "value": 1.25,
           "control_strength": 1.25,
-          "caption": "The most painted of the eight. The wash runs loose over the coat, the wrist is a dark cuff rather than a glove, and the hills beyond the railing are soft."
+          "caption": ""
         },
         {
-          "value": 1.3,
-          "control_strength": 1.3,
-          "caption": "Nearly the same picture, with the hand read as a mitten and the edge of the collar drawn a little firmer."
-        },
-        {
-          "value": 1.35,
-          "control_strength": 1.35,
-          "caption": "The belt and its buckle come back the way the source has them. The brushwork is still visible across the coat."
-        },
-        {
-          "value": 1.4,
-          "control_strength": 1.4,
-          "caption": "A brooch appears at the throat and the buttons down the front line up. The picture is tightening onto the source rather than changing."
-        },
-        {
-          "value": 1.45,
-          "control_strength": 1.45,
-          "caption": "The distant hull on the water sharpens into a shape with a wake behind it, and the coat keeps its white patches of light."
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
         },
         {
           "value": 1.5,
           "control_strength": 1.5,
-          "caption": "The envelope over the deck darkens and its ribs show. Small marks are turning into drawn detail."
+          "caption": ""
         },
         {
-          "value": 1.55,
-          "control_strength": 1.55,
-          "caption": "The paint thins. Edges that were two washes meeting at 1.25 are lines here, and the hair has lost its softest strokes."
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
         },
         {
-          "value": 1.6,
-          "control_strength": 1.6,
-          "caption": "The strictest stop, and the closest to a copy: brass rims on the goggles, hard edges on the coat, and a wash thin enough to read the photograph through."
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/tile-ttplanet-guided/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile_ttplanet_guided control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "tile_ttplanet_guided"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/tile-ttplanet-simple/deliberate",
+      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile_ttplanet_simple control type.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "tile_ttplanet_simple"
+      },
+      "stops": [
+        {
+          "value": 0.01,
+          "control_strength": 0.01,
+          "caption": ""
+        },
+        {
+          "value": 0.05,
+          "control_strength": 0.05,
+          "caption": ""
+        },
+        {
+          "value": 0.15,
+          "control_strength": 0.15,
+          "caption": ""
+        },
+        {
+          "value": 0.25,
+          "control_strength": 0.25,
+          "caption": ""
+        },
+        {
+          "value": 0.375,
+          "control_strength": 0.375,
+          "caption": ""
+        },
+        {
+          "value": 0.5,
+          "control_strength": 0.5,
+          "caption": ""
+        },
+        {
+          "value": 0.625,
+          "control_strength": 0.625,
+          "caption": ""
+        },
+        {
+          "value": 0.75,
+          "control_strength": 0.75,
+          "caption": ""
+        },
+        {
+          "value": 0.875,
+          "control_strength": 0.875,
+          "caption": ""
+        },
+        {
+          "value": 1,
+          "control_strength": 1,
+          "caption": ""
+        },
+        {
+          "value": 1.125,
+          "control_strength": 1.125,
+          "caption": ""
+        },
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": ""
+        },
+        {
+          "value": 1.375,
+          "control_strength": 1.375,
+          "caption": ""
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": ""
+        },
+        {
+          "value": 1.75,
+          "control_strength": 1.75,
+          "caption": ""
+        },
+        {
+          "value": 2,
+          "control_strength": 2,
+          "caption": ""
+        },
+        {
+          "value": 2.25,
+          "control_strength": 2.25,
+          "caption": ""
+        },
+        {
+          "value": 2.5,
+          "control_strength": 2.5,
+          "caption": ""
+        },
+        {
+          "value": 2.75,
+          "control_strength": 2.75,
+          "caption": ""
+        },
+        {
+          "value": 3,
+          "control_strength": 3,
+          "caption": ""
         }
       ]
     }
