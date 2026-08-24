@@ -3075,13 +3075,13 @@
           "value": "color",
           "control_type": "color",
           "control_group": "colour",
-          "caption": "color keeps a grid of the source's colours and none of its shapes. The render builds a new picture out of that palette: the teal of the coat and the blue of the water survive, and the deck becomes a cabin with a window."
+          "caption": "color reduces the photograph to a grid of its colours and keeps none of its shapes: cream sky at the top, the teal of the coat, a band of dark below. The render builds a fresh picture out of that palette, and the courier comes back seated beside a cabin window with a box of flowers next to her."
         },
         {
           "value": "shuffle",
           "control_type": "shuffle",
           "control_group": "colour",
-          "caption": "shuffle swirls the picture into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, cabin and window and all, so on the software that rendered this gallery the two control types resolve to the same thing."
+          "caption": "shuffle stirs the picture into loops of itself, with her head, the railing and the ring of the airship smeared around the turns. The render keeps the colours and the round shapes and puts them somewhere new, with goggles, banks of cloud and a sea with one small boat on it."
         },
         {
           "value": "recolor_luminance",
@@ -3294,13 +3294,13 @@
           "value": "color",
           "control_type": "color",
           "control_group": "colour",
-          "caption": "color keeps a grid of the drawing's colours and none of its shapes. The white, the red and the autumn orange come back in a scene the render has arranged for itself, on new steps under new trees."
+          "caption": "color keeps a grid of the drawing's colours and none of its shapes: white, vermilion, cream and a little navy. The render spends that palette on an arrangement of its own, a row of torii running back into the trees, and hands the keeper white hair along with everything else."
         },
         {
           "value": "shuffle",
           "control_type": "shuffle",
           "control_group": "colour",
-          "caption": "shuffle swirls the drawing into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, the same white and red and autumn orange on new steps, so on the software that rendered this gallery the two control types resolve to the same thing."
+          "caption": "shuffle stirs the drawing into loops of itself, the maples and the black hair wound around white spirals. The render takes the same colours into a colder scene, with pale trees behind the gate and the keeper sitting silver-haired on the steps."
         },
         {
           "value": "recolor_luminance",
@@ -3513,13 +3513,13 @@
           "value": "color",
           "control_type": "color",
           "control_group": "colour",
-          "caption": "color keeps a grid of the picture's colours and none of its shapes. The orange, the brick and the green come back on a rooftop the render has arranged for itself, with the machine standing rather than crouching."
+          "caption": "color holds a grid of the picture's colours and none of its shapes: cream across the top, orange and brown through the middle, one square of bright blue. The render gives that palette to a different machine, orange shelled with a blue arm and a blue wheel, clipping a bed of plants."
         },
         {
           "value": "shuffle",
           "control_type": "shuffle",
           "control_group": "colour",
-          "caption": "shuffle swirls the photograph into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, the same standing machine on the same rooftop, so on the software that rendered this gallery the two control types resolve to the same thing."
+          "caption": "shuffle stirs the photograph into loops of itself, shell, lenses and leaves wound round the sunset. The render keeps every colour and spends it on another robot, pale green in the body with orange rings painted across it and the city behind gone hazy."
         },
         {
           "value": "recolor_luminance",
