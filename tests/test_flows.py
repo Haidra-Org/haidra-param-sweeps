@@ -51,8 +51,8 @@ def test_the_qr_flow_runs_the_recipe_that_was_scan_tested(flows_spec: FlowsSpec)
 
     A QR code that does not scan is not a worked example of anything, so these five values are the
     flow's teaching payload and not incidental parameters. The strength is stated at the workflow's
-    own baseline because the API's payload has no field to raise it with, and the published example
-    is the one that decoded through that path.
+    own baseline of 1.0, which is what a worker renders this code at, and the published example is
+    the one that decoded through that path.
     """
     request = flows_spec.flow_for_id(QR_FLOW_ID).request
 

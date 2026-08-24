@@ -85,14 +85,15 @@ preflight warning are for. Rendering these strips locally needs no server suppor
 """
 
 
-SILENTLY_IGNORED_FEATURES: tuple[str, ...] = ("control_strength",)
+SILENTLY_IGNORED_FEATURES: tuple[str, ...] = ()
 """Features the public API's request payload has no field for, so a request cannot ask for them.
 
 This is the worse failure of the two. A parameter the API refuses fails the job and says so; one
 it has no field for is dropped on the way in and the render comes back at whatever the backend's
-own graph does, which for the QR workflow is the strength its pipeline was exported at. A strip
-that sweeps such a feature would publish the same image at every stop, so the runner says this
-before it queues anything and the strip is rendered locally instead.
+own graph does. A strip that swept such a feature would publish the same image at every stop, so
+the runner says so before it queues anything and the strip is rendered locally instead. Nothing
+belongs here at present: ``control_strength`` did until the API grew a field for it, and it now
+reaches the request body like any other per-job feature.
 """
 
 

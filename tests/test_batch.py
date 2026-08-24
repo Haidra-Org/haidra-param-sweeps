@@ -309,16 +309,22 @@ def test_both_runners_carry_the_same_features_into_their_own_payloads(batch_spec
     assert api_params["n"] == 8
 
 
-def test_a_job_that_sets_a_strength_the_api_cannot_carry_is_named(batch_spec: SweepSpec) -> None:
-    """Assert the runner can name the feature the API drops, which is the warning it prints.
+def test_the_control_strength_a_job_states_reaches_the_request_body(batch_spec: SweepSpec) -> None:
+    """Assert a stated control strength is posted and an unstated one leaves the key out.
 
-    A dropped feature is worse than a refused one: the job succeeds and the image is not the image
-    that was asked for, so the QR strips are rendered locally and this is what says why.
+    The API takes ``control_strength`` in its params, so nothing is dropped on the way in and the
+    runner has no ignored feature left to name.
     """
     qr_job = next(job for job in batch_spec.expand_jobs() if job.workflow is WorkflowName.QR_CODE)
     plain_job = next(job for job in batch_spec.expand_jobs() if job.features().is_plain)
 
-    assert silently_ignored_features_in(qr_job) == ["control_strength"]
+    qr_params = HordeGenerationRequest.from_job(qr_job).as_request_body()["params"]
+    assert qr_params["control_strength"] == qr_job.control_strength
+
+    plain_params = HordeGenerationRequest.from_job(plain_job).as_request_body()["params"]
+    assert "control_strength" not in plain_params
+
+    assert silently_ignored_features_in(qr_job) == []
     assert silently_ignored_features_in(plain_job) == []
 
 

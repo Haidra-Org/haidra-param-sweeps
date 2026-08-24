@@ -1791,7 +1791,7 @@
     {
       "kind": "strip",
       "parameter": "control_strength",
-      "rationale": "The QR workflow's one real dial, on a scene with no straight lines in it: the code has to be made out of vapour rather than traced over decking, which is the only way the strength is what the reader is looking at. Every stop was decoded with zbar before it was published. The floor was found by rendering this scene at ten strengths against four seeds: 1.2 and below never scanned, on any of them; 1.25 scans on this strip's seed and is the first stop; from 1.3 up almost every draw scans. One seed for the whole strip, so nothing but the strength moves. Local runner only: the public API's payload has no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The QR workflow's one real dial, on a scene with no straight lines in it: the code has to be made out of vapour rather than traced over decking, which is the only way the strength is what the reader is looking at. Every stop was decoded with zbar before it was published. The floor was found by rendering this scene at ten strengths against four seeds: 1.2 and below never scanned, on any of them; 1.25 scans on this strip's seed and is the first stop; from 1.3 up almost every draw scans. One seed for the whole strip, so nothing but the strength moves. The horde takes control_strength alongside a control type or the QR code workflow, so a QR request can ask for any of these stops; the ones here were rendered locally.",
       "caption": "How hard the QR ControlNet holds the render to the code it was given. Low, and the picture wins: the modules soften into the scene until no scanner can find them. High, and the code wins: it sits on the picture like printed ink. Every stop here still decodes to https://aihorde.net, and the usable range is narrower than it looks.",
       "model_slugs": [
         "albedobase-xl"
@@ -3557,7 +3557,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/canny/deliberate",
-      "rationale": "The strength dial read against a map of hard edges, which is the mode most readers meet first and the one whose grip is easiest to see: an edge either survives into the render or it does not. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against a map of hard edges, which is the mode most readers meet first and the one whose grip is easiest to see: an edge either survives into the render or it does not. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "Canny's outline is already in charge at the lowest strength here, so all eight stops keep the same railing, the same coat and the same face. What rises with the number is how literally the render follows the line: the sky flattens into bands, the fittings on the mast are sanded away and the brushwork tightens onto the edges. Nothing in this range breaks, so the lower stops are the useful ones and the higher stops only cost the render its own ideas.",
       "model_slugs": [
         "deliberate"
@@ -3619,7 +3619,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/mlsd/deliberate",
-      "rationale": "The strength dial read against a map that holds only long straight lines. The deck's railing and rigging are the whole of what this detector kept, so the strip is a reading of how hard a sparse map can pull. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against a map that holds only long straight lines. The deck's railing and rigging are the whole of what this detector kept, so the strip is a reading of how hard a sparse map can pull. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "Straight lines are all this map holds, so the woman is redrawn at every stop and only the ironwork answers to the number. At 1.25 the railing is loosely painted and the deck curves where the render wants it to; by 1.4 the rails are ruled and the deck edge is straight; at the top the frame of the envelope looks drafted rather than drawn. Around 1.4 keeps the architecture true while the rest of the picture still looks painted.",
       "model_slugs": [
         "deliberate"
@@ -3681,7 +3681,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything-v2/deliberate",
-      "rationale": "The strength dial read against distance rather than line. A depth map states where things sit rather than where their edges are, so what tightens as the dial climbs is the arrangement of the scene rather than its drawing. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against distance rather than line. A depth map states where things sit rather than where their edges are, so what tightens as the dial climbs is the arrangement of the scene rather than its drawing. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "The depth map holds the figure at every stop, so what the number changes is everything behind her. Low, the view is invented freely, with an island and a boat out in the water; high, the background settles into the flat layers the map describes and the envelope becomes a plain pale shape. The picture never stops looking painted, and 1.35 to 1.45 keeps the invention without letting the layers go slack.",
       "model_slugs": [
         "deliberate"
@@ -3743,7 +3743,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/normal-bae/deliberate",
-      "rationale": "The strength dial read against which way each surface faces. Nothing in this map is an outline, so it is the clearest case of a control that governs form and lighting while leaving the drawing to the model. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against which way each surface faces. Nothing in this map is an outline, so it is the clearest case of a control that governs form and lighting while leaving the drawing to the model. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "The surface map fixes the modelling from the first stop: the same coat, the same folds and the same light on the sleeves in all eight. Raising the number firms the shading and drains the invention out of the background, so the sea and the hills lose the small things the lower stops put there. Nothing here turns into a tracing, which makes the bottom of the range the practical place to work.",
       "model_slugs": [
         "deliberate"
@@ -3805,7 +3805,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/openpose/deliberate",
-      "rationale": "The strength dial read against a map that is almost entirely empty: a stick figure and nothing else. A reader can see what happens when a strong control has very little to say about most of the frame. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against a map that is almost entirely empty: a stick figure and nothing else. A reader can see what happens when a strong control has very little to say about most of the frame. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "Only the body is in this map, so every stop rebuilds the world around it and none of them return to the deck the photograph was taken on. What the number buys is the stance: at 1.25 the arm reaches oddly and the shoulders drift, and from 1.4 up the pose settles into the one the map describes and stays there. Use the top of the range when the pose is what matters, and expect the setting to come from the prompt at any strength.",
       "model_slugs": [
         "deliberate"
@@ -3867,7 +3867,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-ade20k/deliberate",
-      "rationale": "The strength dial read against flat regions of colour standing for what the detector thinks each part of the picture is. The map has no detail in it at all, so the dial governs how strictly the render honours the boundaries. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against flat regions of colour standing for what the detector thinks each part of the picture is. The map has no detail in it at all, so the dial governs how strictly the render honours the boundaries. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "The region map fixes where the sky, the water, the deck and the figure go, and it fixes it from the first stop. As the number rises the edges between those regions harden, the water fills with flat islands and a row of buildings grows where the map has a block, until the picture reads more like a diagram than a place. Around 1.3 to 1.4 keeps the layout without the flattening.",
       "model_slugs": [
         "deliberate"
@@ -3929,7 +3929,7 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile/deliberate",
-      "rationale": "The strength dial read against a map that is the picture itself. This is the mode with the least room between guidance and copying, which is what the top of the range is here to show. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "rationale": "The strength dial read against a map that is the picture itself. This is the mode with the least room between guidance and copying, which is what the top of the range is here to show. The stops are the ones the QR strength strip already walks, so the two can be read against each other. The horde takes control_strength alongside a control type or the QR code workflow and refuses a request that sets it with neither, and only a recently updated worker is handed a job that carries it.",
       "caption": "The map is the picture itself, so the hold is total at every stop and the difference between them is small. Low, the render still paints: the coat is recoloured, the sky is redrawn and the brush is visible. High, it narrows onto the source's own colours and edges until the ink and watercolour of the prompt is a thin layer over a copy. For repainting something in a new style, stay at the bottom of this range.",
       "model_slugs": [
         "deliberate"

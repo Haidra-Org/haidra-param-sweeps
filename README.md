@@ -155,12 +155,10 @@ looks and it moves with the scene: on `cloud-sea` at 1024 with AlbedoBase XL, no
 1.2 decoded on any seed tried, 1.25 is the lowest that does, and by 1.6 the code has taken over.
 That range is what the `control_strength` strip publishes, stop by stop.
 
-**The two QR strips are local-runner work.** The public API's request payload has no
-`control_strength` field, so a job sent through the horde renders at the workflow's own baseline
-whatever it asked for: the strength strip would come back as eight copies of one image, and the
-gallery would come back at a strength nobody chose. The horde runner says so before it queues
-anything rather than letting that happen quietly. The tutorial flow, which does go through the
-API, states the baseline it will actually get and teaches the dial by pointing at the strip.
+**Where the dial is accepted.** The horde takes `control_strength` alongside a `control_type` or the
+`qr_code` workflow, and refuses a request that sets the strength with neither. A job that carries it
+reaches only a recently updated worker; older ones are never handed it. The strength strips here were
+rendered locally, which is the same picture a current worker returns.
 
 **Every published code is decoded before it ships.** Not by a contrast heuristic: by `zbar`,
 through `pyzbar`, against the image exactly as it is published and at the size it is published at.
