@@ -3557,8 +3557,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/canny/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the canny control type.",
-      "caption": "",
+      "rationale": "Canny's map is a single clean outline of everything in the photograph, from the wires of the railing to the folds of the coat. An outline fixes where every shape sits and says nothing about colour or material, so the dial trades the render's own composition for the source's and leaves the palette free to argue with the prompt.",
+      "caption": "Up to 0.15 the render is the prompt's own picture, a woman at a window with a harbour behind her. The deck and the railing arrive at 0.25 and the whole source composition is in place by 0.375, with the pose, the envelope overhead and the wires of the railing holding from 0.5 on. Past 0.5 the composition stops changing and only the colour moves, so the coat settles to brown and the hair takes on teal. From 1.75 the palette drains toward olive and cream, and by 2.5 the sky is a flat band with the cloud sea gone. At 3 the picture is exact and almost colourless.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3679,8 +3679,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/hed/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the hed control type.",
-      "caption": "",
+      "rationale": "hed draws softer, thicker strokes and lets the small detail go, so its map carries the pose, the railing and the horizon and very little of the face. There is less in the map to obey, so the dial buys the layout early and spends the rest of its travel on colour.",
+      "caption": "Up to 0.25 the render is the prompt's own picture, a woman at a window above a harbour. The deck and the railing arrive at 0.375 and the source layout is settled by 0.5. Past 0.5 the pose and the horizon hold while the colour keeps moving, with the sky turning orange and the hair mint green by 0.625. From 1.75 the picture darkens, and by 2.5 the deck is a muddy dark mass and the sea has gone black. At 3 the layout still holds and the colour has broken.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3801,8 +3801,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/pidinet/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the pidinet control type.",
-      "caption": "",
+      "rationale": "pidinet keeps the heavy boundaries and empties the interiors, so the head, the coat and the railing arrive as flat shapes with nothing inside them. Those shapes fix the composition, and what fills them stays the render's own invention however far the dial goes.",
+      "caption": "Up to 0.25 the render is the prompt's own picture, a woman at a window with a harbour behind her. The deck and the railing arrive at 0.375 and the shapes are in place by 0.5. Past 0.5 the composition holds and the filling keeps changing, with the sky banding orange and the coat moving between tan and brown. From 1.75 the picture darkens, and by 2.5 the deck and the sea are close to black with the coat a flat orange-brown. At 3 the outline of the scene survives and little else does.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3923,8 +3923,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/teed/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the teed control type.",
-      "caption": "",
+      "rationale": "teed finds fine line everywhere, including the edges of the clouds and the panels of the envelope, so its map describes almost the whole picture. A map that complete leaves only the medium to the render, and the dial's later travel shows in the colour rather than in the drawing.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck arrives at 0.375 and the full scene, envelope and railing included, is in place by 0.5. Past 0.5 the drawing holds and the colour keeps moving, with the envelope coming back gold and ribbed from 0.625. From 1.75 the sea darkens to olive and the sky flattens, and by 2.5 the cloud sea has gone and the picture is a dark olive drawing. At 3 nothing of the composition has slipped and the colour has.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4045,8 +4045,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/pyracanny/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the pyracanny control type.",
-      "caption": "",
+      "rationale": "pyracanny gives the same complete outline as canny with a softer edge to it, so the whole scene down to the wires of the railing is in the map. The composition settles early, and everything the dial does above that setting is taken out of the colour.",
+      "caption": "Up to 0.25 the render is the prompt's own picture, a woman at a window above a harbour. The deck and the railing arrive at 0.375 and the scene is settled by 0.5. Past 0.5 the drawing holds and the colour drains steadily, with the sky losing its blue by 1.375. From 1.75 the picture is close to a tinted drawing in tan and grey, and by 2.5 the cloud sea and the teal of the coat have both gone. At 3 the outline is exact and hardly any colour is left in it.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4167,8 +4167,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/binary/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the binary control type.",
-      "caption": "",
+      "rationale": "binary reduces the photograph to black and white with no grey between, so the coat is one mass and the face is missing from the map. There is little for the render to hold onto, so the dial has to be pushed much further before anything grips, and what grips is a shape with no face in it.",
+      "caption": "Up to 0.5 the render is the prompt's own picture, a seated woman in a cabin above a harbour. The deck and the railing arrive at 0.625 and the standing pose settles by 0.75. Past 1 the layout holds and the figure keeps being redrawn, since the map gives no face to work from. From 1.75 the colour drains toward sepia, and at 2.25 the invented face gains a dark band across the eyes that stays to the end. At 3 the deck is bleached pale and the figure is masked.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4289,8 +4289,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble control type.",
-      "caption": "",
+      "rationale": "scribble reduces the picture to a few coarse strokes, which name the standing figure and the railing and nothing smaller. A map that sparse grips late and holds loosely, so the render keeps rebuilding the detail at every setting.",
+      "caption": "Up to 0.5 the render is the prompt's own picture, a woman at a window with a harbour behind her. The deck and the railing arrive at 0.625 and the standing pose settles by 0.75. Past 1 the pose and the railing hold while the coat, the face and the background carry on changing at every setting. From 2.25 a dark band appears across the eyes and the colour flattens to grey-green. At 3 the scene is legible and the face has stopped being drawn.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4411,8 +4411,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/fakescribbles/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the fakescribbles control type.",
-      "caption": "",
+      "rationale": "fakescribbles traces the main shapes in thick rounded strokes and puts nothing inside them. The outer shapes are firm enough to fix the composition early, and the interiors stay the render's own work however far the dial is pushed.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the scene is settled by 0.5. Past 0.5 the pose and the railing hold and the contents keep moving, with the coat drifting from tan toward olive. From 1.75 the colour drains and the hands at the railing collapse into a dark blob. At 3 the sky is bleached and the coat is khaki, with the composition unchanged since 0.5.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4533,8 +4533,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble-xdog/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble_xdog control type.",
-      "caption": "",
+      "rationale": "scribble_xdog keeps more than the other scribble modes, an inked, grainy line that still carries the folds of the coat and the rails. That extra detail lets the composition grip as early as it does for the edge modes, and it holds through the whole upper half of the range.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the scene is settled by 0.5. Past 0.5 the pose and the drawing hold, and only the colour and the face keep moving. From 1.75 the palette drains to olive and cream and the goggles stop being drawn. At 3 the picture is a pale olive drawing of the scene it settled on at 0.5.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4655,8 +4655,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble-pidinet/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the scribble_pidinet control type.",
-      "caption": "",
+      "rationale": "scribble_pidinet is the loosest map of the edge modes, a few beaded strokes with the interiors gone. The render invents most of what it shows at every setting, and the beads themselves start to print into the picture once the dial is pushed hard.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the standing pose settles by 0.5. Past 0.5 the pose holds and everything inside it keeps changing, since the map has no interior to give. From 1.75 the sea flattens to grey-green and the beads of the map show up as white specks scattered across the water. At 3 the picture is a grey-olive scene speckled with those marks.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4777,8 +4777,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/standard-lineart/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the standard_lineart control type.",
-      "caption": "",
+      "rationale": "standard_lineart carries tone as well as line, so the clouds, the hills and the folds of the coat all arrive as shading. A map that describes the light as well as the shapes leaves the render very little to decide, and above a low setting the dial can only take colour away.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck arrives at 0.375 and the full scene is settled by 0.5. Past 0.5 the drawing and the shading hold and the colour leaves quickly, with the coat white by 1.25. From 1.75 the picture is a shaded pen drawing tinted cream and grey. At 3 there is effectively no colour in it and the ink and watercolour the prompt asked for is gone.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4899,8 +4899,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart control type.",
-      "caption": "",
+      "rationale": "lineart draws a thin, even outline and leaves the shading out, so the map fixes the shapes and says nothing about the light. The composition settles early, and the extra strength goes on flattening the render toward the bare line it was given.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the scene is settled by 0.5. Past 0.5 the outline holds and the colour drains, with the coat cream by 1.125. From 1.75 the sea is a beige band and the picture reads as pen with a light wash. At 3 the drawing is exact and almost colourless.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5021,8 +5021,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart-anime/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart_anime control type.",
-      "caption": "",
+      "rationale": "lineart_anime draws a clean line and hatches the large flat areas, so the map carries a texture as well as an outline. The hatching is drawing too, and at high settings the render copies it as ruled marks across the sky and the sea.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck arrives at 0.375 and the scene is settled by 0.5. Past 0.5 the drawing holds and the colour drains, with the coat cream by 1.125. From 1.75 the hatching of the map prints into the picture as ruled lines over the sky and the water. At 3 the render is a hatched pen drawing with orange streaks along the deck.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5143,8 +5143,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart-anime-denoise/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the lineart_anime_denoise control type.",
-      "caption": "",
+      "rationale": "lineart_anime_denoise clears the faint lines away and keeps the confident ones, so the face is barely in the map at all. The pose and the horizon hold from a low setting and the face is invented afresh at every one, which is what fails first when the dial is pushed.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the scene is settled by 0.5. Past 0.5 the pose and the horizon hold and the face keeps being redrawn. From 1.75 the colour washes out and the picture loses its weight. At 2.5 the figure is a pale smudge against a bare railing, and 3 is no better.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5265,8 +5265,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/mlsd/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the mlsd control type.",
-      "caption": "",
+      "rationale": "mlsd finds straight lines and nothing else, so the mast, the rails and the edges of the deck are in the map and the woman is missing from it entirely. The ironwork arrives early and holds, and the figure is drawn from the prompt at every setting however far the dial goes.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The railing and the deck arrive at 0.375 and stay put from 0.5 on. The woman never settles, and her coat, her stance and her face change at every setting from one end of the range to the other. From 2 the render fills the empty part of the map with things of its own, including a red mass at the deck and a barred structure out at sea. At 3 the ironwork is still exact and everything around it is still moving.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5387,8 +5387,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/depth/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth control type.",
-      "caption": "",
+      "rationale": "depth reports how far away things are and says nothing about what they are. Distances fix the silhouette and the layers of the scene, and what everything is made of stays the render's decision, which is where the dial's later travel shows.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck and the railing arrive at 0.25 and the silhouette and the distances are settled by 0.375. Past 0.5 the figure and the railing hold their places while the world behind them is rebuilt at each setting. From 1.75 the sky flattens to a cream band and the colour drains, and the coat is grey-green by 2. At 3 the cloud sea is gone and the background is a flat pale plain with a repeating arch of ironwork in it.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5509,8 +5509,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/midas-depth/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the midas_depth control type.",
-      "caption": "",
+      "rationale": "midas_depth reads the sky as empty and cuts the figure sharply out of it, so the map gives a strong silhouette against nothing. The silhouette grips early, and the whole view behind it stays invented at every setting.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the silhouette is settled by 0.5. Past 0.5 the figure and the railing hold and the view keeps being invented again, with headlands and small boats coming and going. From 1.75 the sky flattens to cream and the colour drains. At 2.5 the coat is a dark olive shape carrying teal patches that belong to nothing, and 3 is the same.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5631,8 +5631,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/zoe-depth/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the zoe_depth control type.",
-      "caption": "",
+      "rationale": "zoe_depth gives a flatter reading, with less distance between the figure and everything behind her. The silhouette still holds, and the weaker separation lets the background collapse into the foreground as the dial is pushed.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the silhouette is settled by 0.5. Past 0.5 the pose holds and the background keeps changing, with hills and floating ice giving way to open water. From 1.5 the colour drains faster than in the other depth modes and the sky becomes a flat cream band. At 2.5 the sea has gone, the hands are ill-formed and the picture is close to monochrome.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5753,8 +5753,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth_anything control type.",
-      "caption": "",
+      "rationale": "depth_anything cuts the figure out crisply and leaves the background dark, so the map is a clean silhouette on almost nothing. The silhouette arrives early and stays exact, and the emptiness behind it is the render's own invention at every setting.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck arrives at 0.25 and the silhouette is settled by 0.375. Past 0.5 the figure holds exactly while the render fills the emptiness behind her, settling on a ribbed hull out over the clouds from 0.875. From 1.75 the colour drains and the coat darkens toward one olive mass. At 3 the folds of the coat are gone and the background is a flat pale plain.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5875,8 +5875,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything-v2/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the depth_anything_v2 control type.",
-      "caption": "",
+      "rationale": "depth_anything_v2 models the folds of the coat and the curve of the envelope rather than cutting a flat shape out of the background. The extra modelling holds more of the source than the other depth modes do, and the upper half of the dial spends itself flattening what it holds.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck arrives at 0.25 and the figure and the envelope are settled by 0.375. Past 0.5 the modelling holds and the background keeps changing, with the clouds giving way to hills. From 1.5 the colour drains to olive and tan and the folds of the coat flatten out. At 2.5 the sea and the clouds are gone, replaced by bare brown ground under an empty sky.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5997,8 +5997,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/normal/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the normal control type.",
-      "caption": "",
+      "rationale": "normal reports which way each surface faces, and on this photograph it comes back noisy with the sky flattened to a single colour. The figure and the railing are described well enough to grip early, and the noisy sky is licence the render keeps at every setting.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck and the railing arrive at 0.25 and the scene is settled by 0.375. Past 0.5 the figure and the railing hold and the view behind them is rebuilt each time. From 1.75 the colour drains, the deck goes grey-brown and the coat turns olive by 2.5. At 3 the picture is flat olive and brown with little contrast left.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6119,8 +6119,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/normal-bae/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the normal_bae control type.",
-      "caption": "",
+      "rationale": "normal_bae reads the same surfaces cleanly, so the shoulders, the sleeves and the folds face the way they do in the source. That modelling holds the figure from a low setting, and the range above it takes colour out rather than adding hold.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck and the railing arrive at 0.25 and the scene is settled by 0.375. Past 0.5 the pose and the modelling of the coat hold with very little movement between settings. From 1.75 the colour drains, and the sea is a pale band by 2.25. At 3 the picture is cream and tan throughout, with the teal gone from the hair.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6241,8 +6241,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/openpose/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the openpose control type.",
-      "caption": "",
+      "rationale": "openpose keeps the body and throws the world away, leaving shoulders, arms, hips and a few points of the face on black. The stance is all the map holds, so the dial buys a pose and the setting stays free at every value.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The stance arrives at 0.375 and holds from 0.5 on. Everything around it keeps changing at every setting, so the open deck becomes a cabin with a window and the view through that window is different each time. From 2 the render furnishes the empty map with things of its own, and a table of cups and a teapot grows across the picture. At 3 the pose is the only part of the source still in the render.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6363,8 +6363,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/seg/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the seg control type.",
-      "caption": "",
+      "rationale": "seg paints the picture into labelled regions, with the figure as one block and the sky, the water and the deck as others. Blocks fix the layout and say nothing about what fills them, so the dial buys an arrangement and leaves the contents open.",
+      "caption": "Up to 0.15 the render is the prompt's own picture. The deck and the railing arrive at 0.25 and the bands of sky, water and deck are settled by 0.375. Past 0.5 the arrangement holds and what sits inside each band keeps changing. From 1.75 the colour drains and the water band turns into flat sand-coloured ground. At 3 the bands are exactly where they were and the sea is no longer water.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6485,8 +6485,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-ade20k/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the oneformer_ade20k control type.",
-      "caption": "",
+      "rationale": "oneformer_ade20k gives cleaner regions than seg and separates the sky, the land, the water and the deck. Cleaner edges between the bands hold the layout harder, and once the dial is pushed the render decorates those edges with inventions of its own.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the bands are settled by 0.5. Past 0.5 the layout holds band for band and the contents keep changing. From 1.75 the water band becomes a flat green field and the railing turns into a repeating row of arches that was never in the source. At 3 the picture is a green plain behind an ornamental railing, with the coat gone olive.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6607,8 +6607,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-coco/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the oneformer_coco control type.",
-      "caption": "",
+      "rationale": "oneformer_coco works from coarser labels and merges what ade20k separates, so the map gives a rough arrangement and little else. The layout still arrives early, and inside it the render keeps its freedom at every setting.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the arrangement is settled by 0.5. Past 0.5 the layout holds and the land beyond the railing keeps being redrawn as scrub, water or bare ground. From 1.75 the colour drains and the background flattens to brown. At 3 the picture is a pale figure against a flat brown plain, with the arrangement unchanged.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6729,8 +6729,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/color/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the color control type.",
-      "caption": "",
+      "rationale": "color reduces the photograph to a grid of its colours and keeps none of its shapes. There is no composition in the map to hold, so the dial buys a palette, and pushing it hard drives the render toward colour alone until the picture stops being a picture.",
+      "caption": "Up to 0.25 the render is the prompt's own picture, in the source's own composition. The palette takes over at 0.375, and by 0.625 the courier is seated beside a cabin window with a box of flowers next to her, which is a scene the source never had. Past 1 that arrangement holds and the painting loosens at every setting. From 1.75 the edges smear, and at 2.25 the face and the hands dissolve into blotches of paint. At 3 there is colour with no drawing under it.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6851,8 +6851,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/shuffle/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the shuffle control type.",
-      "caption": "",
+      "rationale": "shuffle stirs the picture into loops of itself, so the map carries the source's colours and round shapes with none of its arrangement. The dial buys a palette and a mood, and the render builds a fresh picture out of them at every setting.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. From 0.375 the source's colours take over, the coat goes deep teal-green and the goggles come back round and dark. There is no arrangement to settle on, so the picture is a different one at every setting from 0.5 to 3. From 1.75 the ink and watercolour gives way to a smooth painted finish. At 2.75 the view has closed to a tight portrait and the brush work the prompt asked for has gone.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6973,8 +6973,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/recolor-luminance/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the recolor_luminance control type.",
-      "caption": "",
+      "rationale": "recolor_luminance is the source in grey with every tone kept, which leaves the render almost nothing to invent. The whole picture is already in the map, so the dial reaches the end of its useful travel very early and the settings above it repeat one another.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the source is fully in place by 0.5. From 0.625 the picture stops changing in any useful way, and every setting up to 3 shows the same standing figure, the same dark hillside and the same bright band of sky. The tones are held so tightly that the ink and watercolour the prompt asked for never arrives, and the render is a smooth painting instead. Nothing breaks at the top of the range because nothing moves there.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7095,8 +7095,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/recolor-intensity/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the recolor_intensity control type.",
-      "caption": "",
+      "rationale": "recolor_intensity measures brightness differently and holds the picture just as tightly as recolor_luminance does. The tone of every part of the source is in the map, so the useful travel of the dial is over almost as soon as it begins.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the source is fully in place by 0.5. From 0.625 the picture stops changing in any useful way, and the settings up to 3 repeat it. The hold is tight enough that the coat keeps the source's tones and the loose brush work of the prompt never arrives. The top of the range adds nothing and takes nothing away.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7217,8 +7217,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile control type.",
-      "caption": "",
+      "rationale": "tile hands the render a blurred copy of the picture itself, so every shape is already there and the work left is to sharpen it. With the whole picture in the map the dial finishes early, and the range above that setting changes nothing.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the source is in place by 0.5. From 1 the picture stops changing, and every setting up to 3 shows the same figure in the same blue coat at the same railing. The hold takes the medium with it, so from 0.5 upward the render is a smooth painting rather than the ink and watercolour asked for. Nothing breaks at the top of the range because nothing moves there.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7339,8 +7339,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile-ttplanet-guided/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile_ttplanet_guided control type.",
-      "caption": "",
+      "rationale": "tile_ttplanet_guided passes the picture through almost untouched, so the map is very nearly the source itself. The render has only the medium left to choose, and the dial runs out of work as soon as the composition arrives.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the source is in place by 0.5. From 1 the picture stops changing, and the settings up to 3 repeat it line for line. The medium goes with the composition, so the render is a smooth painting rather than ink and watercolour. The top of the range costs more and shows nothing new.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7461,8 +7461,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile-ttplanet-simple/deliberate",
-      "rationale": "The control_strength ladder of twenty stops from 0.01 to 3, read against the tile_ttplanet_simple control type.",
-      "caption": "",
+      "rationale": "tile_ttplanet_simple hands over the picture with no blur at all, which is the tightest hold of any mode here. The whole source is in the map, so the dial's useful travel is over as soon as the composition arrives.",
+      "caption": "Up to 0.25 the render is the prompt's own picture. The deck and the railing arrive at 0.375 and the source is in place by 0.5. From 1 the picture stops changing, and the settings up to 3 repeat it. The hold covers the light and the surfaces as well as the shapes, so the render is a smooth painting rather than the ink and watercolour asked for. Past 1 the dial has nothing left to do.",
       "model_slugs": [
         "deliberate"
       ],
