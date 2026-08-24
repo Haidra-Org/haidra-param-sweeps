@@ -46,6 +46,7 @@ from param_sweeps.alchemy import (
     use_case_counts,
 )
 from param_sweeps.campaign import CampaignResult, JobFilter, run_campaign
+from param_sweeps.control_maps import draw_control_maps
 from param_sweeps.flows import (
     FlowResult,
     FlowsSpec,
@@ -397,6 +398,44 @@ def build_parser() -> argparse.ArgumentParser:
     choose_parser.add_argument("--title", default="Sign-off contact sheet", help="the refreshed sheet's heading")
     choose_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
+    control_maps_parser = subparsers.add_parser(
+        "control-maps",
+        help="draw the control map beside every render a ControlNet guided",
+    )
+    control_maps_parser.add_argument(
+        "--spec",
+        type=Path,
+        default=DEFAULT_SPEC_PATH,
+        help="the sweep specification to read",
+    )
+    control_maps_parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=DEFAULT_OUTPUT_ROOT,
+        help="the output tree's root; each map lands beside the render it guided",
+    )
+    control_maps_parser.add_argument(
+        "--parameter",
+        action="append",
+        default=[],
+        choices=[str(parameter) for parameter in SweepParameter],
+        help="restrict the run to this parameter (repeatable)",
+    )
+    control_maps_parser.add_argument(
+        "--hiu-url",
+        default=None,
+        help=(
+            "the horde-image-utilities service to draw the maps on"
+            f" (default: {DEFAULT_SERVICE_URL}, or PARAM_SWEEPS_HIU_URL)"
+        ),
+    )
+    control_maps_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="redraw maps that are already on disk",
+    )
+    control_maps_parser.add_argument("--verbose", action="store_true", help="log at debug level")
+
     index_parser = subparsers.add_parser("index", help="rebuild index.json from the images already on disk")
     index_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     index_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
@@ -542,6 +581,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "step-preview":
         return _run_step_preview(arguments, spec=spec, output_root=output_root)
+
+    if arguments.command == "control-maps":
+        return _run_control_maps(arguments, spec=spec, output_root=output_root)
 
     if arguments.command == "index":
         index_path = write_index(spec=spec, output_root=output_root)
@@ -774,6 +816,39 @@ def _run_alchemy(arguments: argparse.Namespace) -> int:
     )
     if unavailable:
         print(f"Unavailable here (published as entries that say so): {', '.join(unavailable)}", file=sys.stderr)
+    return 0
+
+
+def _run_control_maps(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
+    """Draw the control maps, and return the process exit code.
+
+    A detector the service will not run is published as a gap rather than as a failure, for the
+    same reason an unavailable alchemy form is: what this machine can serve is evidence about the
+    machine, and the renders those maps belong to are already on disk either way.
+    """
+    backend = HordeImageUtilitiesBackend(service_url=resolve_service_url(requested=arguments.hiu_url))
+    parameters = [SweepParameter(parameter) for parameter in arguments.parameter]
+
+    try:
+        backend.prepare()
+        outcomes = draw_control_maps(
+            spec=spec,
+            output_root=output_root,
+            backend=backend,
+            parameters=parameters,
+            force=arguments.force,
+        )
+    except (RuntimeError, OSError, ValueError) as control_map_error:
+        print(f"error: {control_map_error}", file=sys.stderr)
+        return 1
+    finally:
+        backend.close()
+
+    reused = [outcome for outcome in outcomes if outcome.skipped]
+    missing = [outcome for outcome in outcomes if not outcome.drawn]
+    print(f"Drew {len(outcomes) - len(reused) - len(missing)}, reused {len(reused)}, undrawn {len(missing)}.")
+    for outcome in missing:
+        print(f"  {outcome.strip_id} {outcome.control_type}: {outcome.unavailable_reason}", file=sys.stderr)
     return 0
 
 

@@ -141,6 +141,14 @@ class SweepParameter(StrEnum):
     """How hard a ControlNet holds the render to its control image, which on the QR workflow is
     the dial between a picture that scans and a picture worth looking at."""
 
+    CONTROLNET_GALLERY = "controlnet_gallery"
+    """Every ControlNet guidance mode the horde publishes, one stop each, on one source and seed.
+
+    The sampler gallery's counterpart for the other long vocabulary a reader has to choose from.
+    A stop is three pictures rather than one: the source, the map the detector drew from it, and
+    the render that map guided, because the map is what a reader is actually choosing between.
+    """
+
     QR_STYLE = "qr_style"
     """Not a parameter a strip teaches: finished QR artworks at one strength, a treatment each."""
 
@@ -211,11 +219,16 @@ class StripPresentation(StrEnum):
     alongside the single image itself, which is the only way the difference a seamless-tiling
     flag makes is visible at all: the odd grid puts whole joins in the interior rather than only
     at the crossing point, and the isolated tile says what was actually rendered.
+
+    ``TRIPTYCH`` asks for three pictures per stop: the strip's source, the stop's own control map,
+    and the render. A reader choosing a detector is choosing what the map keeps, so the map has to
+    be on the page beside the render it produced rather than described in words.
     """
 
     STRIP = "strip"
     GRID = "grid"
     TILE_REPEAT_3X3 = "tile_repeat_3x3"
+    TRIPTYCH = "triptych"
 
 
 class AnchorParameters(BaseModel):
@@ -449,6 +462,9 @@ class SweepStop(ParameterOverrides):
     caption: str
     label: str | None = None
 
+    control_group: str | None = None
+    """Which family this stop's control type belongs to, on the strips that walk a vocabulary."""
+
     @property
     def filename_label(self) -> str:
         """Return the filename-safe token identifying this stop."""
@@ -475,6 +491,15 @@ class SweepBase(BaseModel):
 
     holds: ParameterOverrides = Field(default_factory=ParameterOverrides)
     """What this sweep holds differently from the anchor, for every stop that does not say."""
+
+    directory_override: str | None = None
+    """Where this sweep's strips are filed, in place of the parameter and model directories.
+
+    The default layout gives one directory per parameter, model and scene, which two sweeps of
+    the same parameter on the same model and scene would share. Stating a directory is how a set
+    of such sweeps stays distinct: the ControlNet strength strips are one strength sweep per
+    guidance mode, all on one model and one scene, and the mode is what tells them apart.
+    """
 
 
 class StripSweep(SweepBase):
@@ -933,6 +958,13 @@ class RenderJob(BaseModel):
     requires_source_from: str | None = None
     """The scene id of the job whose chosen render is staged into this one's ``source_image``."""
 
+    control_group: str | None = None
+    """Which family of detectors this job's control type belongs to, for a consumer to group by.
+
+    Stated in the specification rather than derived, because the grouping is an editorial reading
+    of what each detector is for and the backend has no opinion about it.
+    """
+
     @model_validator(mode="after")
     def _check_feature_combinations(self) -> RenderJob:
         """Validate that the features this job turns on are ones the backends can act on."""
@@ -1032,6 +1064,17 @@ class RenderJob(BaseModel):
     def relative_sidecar_path(self) -> str:
         """Return the published sidecar's path relative to the output root, with forward slashes."""
         return self.relative_candidate_sidecar_path(self.chosen_candidate_number)
+
+    @property
+    def relative_control_map_path(self) -> str | None:
+        """Return where this job's control map is published, or None when it conditions on none.
+
+        The map lives beside the render it guided rather than in a tree of its own: the pair is
+        only meaningful together, and a consumer that has the render's path has the map's.
+        """
+        if self.control_type is None:
+            return None
+        return f"{self.relative_directory}/{self.candidate_stem(1)}_map.webp"
 
     @property
     def checkpoint_key(self) -> str:
@@ -1442,6 +1485,7 @@ class SweepSpec(BaseModel):
             source_image=sweep.source_image,
             grid_rows=sweep.rows if isinstance(sweep, GridSweep) else None,
             grid_columns=sweep.columns if isinstance(sweep, GridSweep) else None,
+            directory_override=sweep.directory_override,
         )
 
     def _build_job(
@@ -1471,6 +1515,7 @@ class SweepSpec(BaseModel):
             stop_label=stop.filename_label,
             stop_value=stop.value,
             caption=stop.caption,
+            control_group=stop.control_group,
             width=width,
             height=height,
             steps=_resolved(stop.steps, held.steps, self.anchor.steps),
@@ -1494,6 +1539,7 @@ class SweepSpec(BaseModel):
             scheduler=_resolved(stop.scheduler, held.scheduler, self.anchor.scheduler),
             negative_prompt=sweep.negative_prompt if uses_negative_prompt else "",
             source_image=_resolved(stop.source_image, held.source_image, sweep.source_image),
+            directory_override=sweep.directory_override,
             **resolved_solver_parameters(stop=stop, held=held),
             **resolved_features(stop=stop, held=held),
         )

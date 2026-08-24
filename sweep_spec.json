@@ -70,6 +70,16 @@
       "anchor_clip_skip": 1,
       "approximate_download_size_gb": 2.1,
       "note": "The SD1.5 model the QR and ControlNet recipes are known good on."
+    },
+    {
+      "slug": "anything-diffusion",
+      "horde_name": "Anything Diffusion",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 2,
+      "approximate_download_size_gb": 2.1,
+      "note": "The SD1.5 anime checkpoint world 2 moves to, since ControlNet is served on SD1.5 alone."
     }
   ],
   "scenes": [
@@ -156,6 +166,24 @@
       "label": "A person, in prose",
       "prompt": "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck stands at the wooden railing of a zeppelin airship's open gondola deck at sunset, the vast canvas envelope of the airship curving above her, brass fittings and taut rigging around her. The wind pulls at her coat and a sea of clouds stretches out below her, lit warmly from the west.",
       "derived_from": "World 1, the skyharbor courier: the deck prompt as the batch signed it off for Flux, which reads prose rather than tags"
+    },
+    {
+      "scene_id": "courier-ink",
+      "label": "The courier, asked for in ink and watercolour",
+      "prompt": "ink and watercolour illustration of a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair, a patched teal canvas coat, a small brass compass on a cord around her neck, at the wooden railing of a zeppelin airship's open gondola deck, the canvas envelope curving overhead, a sea of clouds below, loose brush strokes, soft washes of colour, visible paper texture",
+      "derived_from": "World 1's ControlNet tutorial, prompt verbatim: the re-theming the anchor render's own composition is held against"
+    },
+    {
+      "scene_id": "fox-shrine-ink",
+      "label": "The shrine keeper, asked for in ink and watercolour",
+      "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, ink and watercolor illustration, 1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin, (silver fox:1.2) sitting at her side, fox, amber eyes, torii path, maple, stone steps, loose brush strokes, soft washes of colour, visible paper texture, traditional media",
+      "derived_from": "World 2's ControlNet tutorial, prompt verbatim: the illustrated world, where the detectors read flat colour and line rather than a photograph"
+    },
+    {
+      "scene_id": "robot-gardener-ink",
+      "label": "The gardening robot, asked for in ink and watercolour",
+      "prompt": "ink and watercolour illustration of a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop, city haze beyond, loose brush strokes, soft washes of colour, visible paper texture, traditional media",
+      "derived_from": "World 3's ControlNet tutorial, prompt verbatim: a scene with no person in it, which is what the pose detector is published against"
     }
   ],
   "sweeps": [
@@ -2865,6 +2893,1097 @@
           "source_mask": "inputs/deck-outpaint-2048-mask.png",
           "width": 2048,
           "height": 1024
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "One example per ControlNet guidance mode, on the world the ControlNet tutorial itself uses: a photographed person with a face, hands, a horizon and a lot of straight ironwork, which is the scene most of the detectors have something to find in. The source, the map the detector drew and the render it guided are published together because the map is the thing a reader is choosing between and the render alone cannot show it. Everything but the mode is held: one model, one seed, one prompt, one strength, the same source at 512. Deliberate and 512 because the horde serves ControlNet on SD1.5 alone. The maps are drawn on horde-image-utilities, the same detector code an alchemist worker runs, rather than approximated by anything else.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny drew a single clean outline for everything it could find: the wires of the railing, the fittings on the mast, the folds of the coat and the line of the hills. The render keeps all of it in place and changes only what an outline cannot say, so the coat comes back brown instead of teal and the goggles become spectacles."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed draws softer, thicker strokes and lets the small detail go, so the railing survives as a few bars and the face is barely described. The render holds the pose and the horizon and takes the rest for itself: a warmer sky, a tan coat, teal in the hair."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps the heavy boundaries and empties out the interior, leaving the head, the coat and the railing as flat shapes. The render fills those shapes with its own picture, and the airship envelope comes back as a pale sail."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed finds fine line everywhere, including the edges of the clouds and the panels of the envelope. The render follows it closely and reads as a pen drawing with colour washed over it, with the envelope drawn as a ribbed gold balloon."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny gives the same complete outline as canny with a softer edge to it. The render keeps the whole scene, down to the wires of the railing and the curve of the deck, and spends its freedom on colour."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "binary reduces the photograph to black and white with no grey between, so the coat becomes one mass and the face is lost. The render invents a face to fill the gap and reads the speckle under the railing as boats on water."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "scribble reduces the picture to a few coarse strokes. The render keeps the standing figure and the railing, closes the eyes it had to invent, and turns the envelope into a plain white shape."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles traces the main shapes in thick rounded strokes and puts nothing inside them. The pose and the deck hold, the railing comes back as wire mesh, and the goggles become an earpiece against the hair."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog keeps more than the other scribble modes: an inked, grainy line that still carries the folds of the coat and the rails. The render stays close to the source and reads as a drawing made with a dry pen."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet is the loosest map here, a few beaded strokes with the interior gone. The render invents most of what it shows: rigging ropes where the mast was, birds in the sky, fur on the collar and the cuffs."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart carries tone as well as line, so the clouds, the hills and the folds of the coat all arrive as shading. The render stays closer to the source than any other line mode here and adds only small things of its own, such as the pines below the railing."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart draws a thin, even outline and leaves the shading out. The render keeps the composition and softens everything else, so the envelope becomes a pale balloon and a second airship appears in the distance."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime draws a clean line and hatches the large flat areas. The render keeps the scene and answers the hatching with a ribbed envelope and a dark sea."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise clears the faint lines away and keeps the confident ones, so the face is barely in the map at all. The render holds the pose and the horizon and puts its own face, its own coat and a fan-shaped envelope over them."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd finds straight lines and nothing else: the mast, the rails and the edges of the deck. The woman is missing from the map entirely, so the ironwork arrives exactly and she is redrawn from the prompt."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "depth reports how far away things are and says nothing about what they are. The figure and the railing keep their distances, and the sea of clouds is rebuilt as water with a pale hull lying in it."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth reads the sky as empty and cuts the figure sharply out of it. The standing shape and the railing hold, and the view is invented: headlands, houses and a small boat."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth gives a flatter reading, with less distance between the figure and everything behind her. The silhouette still holds, and the softer background fills with hills, floating ice and a ribbed envelope."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything cuts the figure out crisply and leaves the background dark. The silhouette comes through exactly, and everything behind it is the prompt's invention."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 models the folds of the coat and the curve of the envelope rather than a flat cut-out. The render follows that modelling and stays closest to the source of the depth modes, with the envelope drawn as a ribbed hull."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "normal reports which way each surface faces, and on this photograph it comes back noisy, with the sky flattened to a single colour. The render holds the figure and the railing and rebuilds the view behind them."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae reads the same surfaces cleanly: the shoulders, the sleeves and the folds face the way they do in the source. The render keeps that modelling and invents the sea, the rocks and the small boat."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose keeps the body and throws the world away, leaving shoulders, arms, hips and a few points of the face on black. The stance survives and everything else changes, so the open deck becomes the inside of a cabin."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "seg paints the picture into labelled regions, with the figure as one block and the sky, the water and the deck as others. The render respects the blocks and fills them freely, turning the envelope into a balloon and a drum."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k gives cleaner regions than seg and separates the sky, the land, the water and the deck. The render keeps that layout band for band and invents the contents, including a village under the railing."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco works from coarser labels and merges what ade20k separates. The layout still arrives, and with less to go on the render makes the deck a hull and the land a bank of scrub."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "color keeps a grid of the source's colours and none of its shapes. The render builds a new picture out of that palette: the teal of the coat and the blue of the water survive, and the deck becomes a cabin with a window."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "shuffle swirls the picture into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, cabin and window and all, so on the software that rendered this gallery the two control types resolve to the same thing."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance is the source in grey with every tone kept, which leaves almost nothing to invent. The render is the photograph again with new colour in it, and the ink and watercolour the prompt asked for barely shows."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity measures brightness differently and holds the picture just as tightly. The render is the source recoloured once more, with the coat split between tan and teal."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "tile hands the render a blurred copy of the picture itself. Every shape is held and the work left is to sharpen it, which the render does in the prompt's own brush and wash."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided passes the picture through almost untouched. The render repaints it line for line, and the goggles, the belt and the wires of the railing all survive the change of medium."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple hands over the picture with no blur at all. The hold is the tightest in this gallery: the same scene, the same pose and the same light, painted rather than photographed."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same walk through every guidance mode on an illustrated source, which several of the detectors were trained for and several others were not. The anime line detectors have something to find here that world 1 never gave them, and the depth and surface detectors have much less. Anything Diffusion, at clip skip 2, because ControlNet is SD1.5 only and the booru dialect needs the anime checkpoint.",
+      "caption": "",
+      "model_slugs": [
+        "anything-diffusion"
+      ],
+      "scene_ids": [
+        "fox-shrine-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-w2-512.webp",
+      "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, photorealistic, 3d, cg",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny outlines everything in the drawing: the ears, the strands at the edge of the hair, the steps and the fallen leaves. The render matches it shape for shape and changes only what an outline cannot say, so the hair comes back silver and the maples lose their fire."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed keeps the heavy strokes and lets the small ones go, so the leaves and the stonework arrive as suggestions. The seated pose and the pillars hold, and the render puts a warmer autumn back into the scene."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps only the strong boundaries, and the face and the folds of the haori go with the rest. The render keeps the seated shape and the steps and paints its own face and its own gold sash."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed finds fine line everywhere, including each maple leaf on the stone. The render follows it closely and gives the most detailed reading of the source in this group, down to the wet steps."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny outlines as completely as canny with a softer edge to it. The render keeps the whole scene and spends its freedom on colour, which drains to grey with the red of the hakama kept."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "binary reduces the drawing to black and white, and the face, the hair and the fox tail fall into one mass. The render keeps the seated figure and the pillars and rebuilds the trees as a shrine in mist."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "scribble leaves a coarse black and white reduction of the picture. The pose and the steps survive, and the maples behind are replaced with a corridor of torii gates."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles traces the main shapes in thick rounded strokes. The seated figure holds, and the trees become a wall of gates in fog."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog leaves a fine grainy line that still carries the folds of the cloth and the edges of the steps. The render stays close to the source and sets props of its own on the stone."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet gives the loosest strokes here and loses the boundary between the figure and the ground. The render keeps the pose and dresses it differently, in black over white."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart carries shading as well as line, so the trees, the steps and the cloth all arrive with weight. The render stays close to the source and warms the maples to pink."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart draws a thin even line and leaves the shading out. The render keeps the pose, the steps and the dark hair the source has, and lets the season drift towards pink."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime draws the clean line this kind of drawing was made for, and it catches the ears, the tail and the fall of the hair. The render keeps all of it and changes little more than the colour of the maples."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise clears the faint lines away first, so the map is sparser. The render keeps the pose and the steps and adds furniture of its own, including a pair of standing lanterns."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd finds the pillars, the crossbeam and the edges of the steps, and finds nothing of the girl or the fox. The render keeps that architecture and builds a different picture inside it, with the figure seen from behind on a long stair."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "depth reports distance alone, and here it does keep the ears and the tail as part of the near shape. The render holds that silhouette and rebuilds the gates, the trees and the leaves around it."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth separates the figure from a flat dark background. The seated shape holds and the setting is invented, with red cloth laid across the steps."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth reads the scene more softly, with the tail barely separated from the stone. The render keeps the shape and gives the background less structure than the other depth modes do."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything cuts the figure, the ears and the tail out cleanly. The silhouette arrives exactly, and the railing, the trees and the mist behind it are the render's own."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 models the hair and the folds rather than a flat cut-out, and the render follows it closely. It gives the truest seat and posture of the depth modes on this drawing."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "normal comes back noisy on a drawing that has no real lighting in it, with flat patches where it could not decide. The render still holds the figure and invents a shrine roof and a hanging lantern."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae is soft and almost featureless here, because a flat illustration gives a surface detector very little to read. The render keeps the pose loosely, adds a large bow, and moves the scene indoors."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose finds the body and nothing else: no ears, no tail, no shrine. The seat and the reach of the arm hold, and everything that makes her a fox keeper comes from the prompt."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "seg labels the picture into regions and mislabels several of them on a drawing. The render keeps the block layout and reads the steps as the floor of a wooden hall."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k gives clean regions: the figure, the two pillars, the ground and the trees. The render keeps that arrangement and fills the trees with a corridor of gates."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco labels the same scene more coarsely and loses the figure into one flat shape. The layout still holds, and the render puts its own keeper and its own maples inside it."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "color keeps a grid of the drawing's colours and none of its shapes. The white, the red and the autumn orange come back in a scene the render has arranged for itself, on new steps under new trees."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "shuffle swirls the drawing into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, the same white and red and autumn orange on new steps, so on the software that rendered this gallery the two control types resolve to the same thing."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance is the drawing in grey with every tone intact, so the render has only the colour left to decide. It returns the scene exactly, with the black hair and the red hakama the source has."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity measures brightness differently and holds the picture just as tightly. The colour comes back thinner here, with a gold sash and pale leaves."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "tile hands over a blurred copy of the drawing itself. The render sharpens it back and paints in the detail the blur had lost, including the grain of the steps and the leaves on them."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided passes the drawing through almost unchanged. The render repaints it faithfully and sets shrine buildings behind the trees."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple hands over the picture untouched, and the render is the source again in ink and wash, with the same pose, the same tail and the same fallen leaves."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The third world is here to show the detectors failing honestly. Nothing in it has a human skeleton, so the pose detector has nothing to return, and the scene is close, soft and shallow, so the long-range depth detectors have much less to separate than the deck did. A reader deciding whether a mode suits their picture is better served by seeing what an empty map looks like than by reading that one is possible.",
+      "caption": "",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "robot-gardener-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-w3-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny outlines the whole rooftop: the ports in the robot's shell, the leaves growing from its head, the pots and the skyline. The render keeps every one of them in place and repaints the scene in ink and wash."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed keeps the heavy strokes and lets the fine ones go. The shell and the pots hold, and with the small detail gone the render reads the three lens ports as a face and gives them eyes."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps the boundaries and empties the interior. The render answers with a cartoon, putting two eyes, a nose and a mouth where the ports and the seams were."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed finds fine line across the whole picture, including the foliage and the water at the tap. The render follows it closely and keeps the machine looking like a machine."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny outlines as completely as canny with a softer edge to it. The render holds the pots, the planters and the skyline exactly while painting them freely."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "binary flattens a sunset photograph into black and white and loses the markings on the shell. The render keeps the shape, paints the body pale, and puts a brush where the tap was."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "scribble leaves a few coarse strokes and no surface at all. The render turns the machine into a character with a face and wheels and keeps only the pots and the skyline from the source."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles traces the main shapes in thick rounded strokes. The stance and the pots hold, the shell comes back green, and the lens ports become eyes again."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog keeps a finer, grainier line and more of the surface with it. The render stays closer to the machine and sets sunflowers over its head."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet gives beaded strokes that lose the edge of the robot altogether. The render invents the most here: a smiling face, blue gloves and a row of pots."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart carries the shading as well as the line. The render keeps the shell, the arms and the pots and repaints the metal in blue."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart draws a thin even line and leaves the tone out. The render keeps the three ports, the plants and the planters, and the shell stays orange."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime keeps a clean line over the whole picture. The render holds the machine and the rooftop and reads them as a drawing rather than a photograph."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise drops the faint lines and keeps the strong ones. The render holds the shape and the pots and puts sunflowers where the source has leaves."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd finds the roof edges, the planters and the buildings, and finds nothing of the robot at all. The rooftop arrives exactly and the machine is rebuilt from the prompt as something else, with a helmet for a head and an apron over its body."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "depth gives the rounded mass of the robot and the lumps of the plants without a single marking. The render keeps the volumes and paints a smiling face onto them."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth reads the same volumes more coarsely. The render keeps the round body and puts one large eye where the map left a shadow."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth flattens the scene, with the robot barely separated from the pots. The render keeps the mass and gives it a single green eye, because the map never said there were three ports."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything separates the robot and the plants crisply. The three ports come back and the shell keeps the source's shape, with the colour left to the prompt."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 models the dome and the leaves rather than a flat cut-out. It gives the most faithful robot of the depth modes, orange again and with all three lenses."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "normal comes back noisy on this photograph, with the sky flattened to a single colour. The render still keeps the shell, the arms and the pots and repaints the rooftop behind them."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae reads the dome, the arms and the pots as surfaces facing where they face in the source. The render keeps that modelling and changes little more than the colour of the lenses and the plants."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose found no person here, so the map it drew is empty black. With nothing to hold, the render keeps only what the prompt asked for and builds a different machine on a different rooftop."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "seg labels the picture and splits the robot across several regions, so the shell arrives in pieces. The render keeps the pots and the greenery in place and reassembles the machine its own way."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k reads the robot as one region, with the sky, the hedges and the floor around it. The render keeps that arrangement and paints a wide-eyed machine into the shape."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco has no label that fits a gardening robot, so it hands over a shape among the foliage. The layout holds, and the render fills the shape with a crowned machine and hoses for arms."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "color keeps a grid of the picture's colours and none of its shapes. The orange, the brick and the green come back on a rooftop the render has arranged for itself, with the machine standing rather than crouching."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "shuffle swirls the photograph into loops of its own colour and keeps none of its shapes. What came back is the same picture as color's, pixel for pixel, the same standing machine on the same rooftop, so on the software that rendered this gallery the two control types resolve to the same thing."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance is the photograph in grey with every tone kept, which leaves the render only the colour to choose. It comes back as the photograph again, orange shell and blue lenses, with none of the ink and wash the prompt asked for."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity measures brightness differently and holds the picture just as tightly. The result is the same photograph once more, with cooler colour in it."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "tile hands over a heavily blurred copy of the picture. Every shape is held and the work left is to put the detail back, which the render does in ink and wash, with flowers and grass where the blur said nothing."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided passes the picture through almost untouched, and the render repaints it faithfully: the same shell, the same three lenses and the same pots, in the medium the prompt asked for."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple hands over the picture with no blur at all, and the hold is the tightest in this gallery. The render is the rooftop again, painted instead of photographed."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/canny/deliberate",
+      "rationale": "The strength dial read against a map of hard edges, which is the mode most readers meet first and the one whose grip is easiest to see: an edge either survives into the render or it does not. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "Canny's outline is already in charge at the lowest strength here, so all eight stops keep the same railing, the same coat and the same face. What rises with the number is how literally the render follows the line: the sky flattens into bands, the fittings on the mast are sanded away and the brushwork tightens onto the edges. Nothing in this range breaks, so the lower stops are the useful ones and the higher stops only cost the render its own ideas.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "canny"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The loosest of the eight. There is real weather in the sky, a white cloud out over the water, and the coat is painted with visible brush rather than filled in."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "Almost the same picture with the cloud thinned. The sky is starting to settle into flat bands of peach and grey."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The wash tightens onto the outline. The hills behind the railing lose their mottling and the hair picks up the teal the earpiece had."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The middle of the strip and a fair place to work: the rails and the deck edge are where the map put them, and the picture still looks painted."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "The fittings begin to go. There are fewer buttons down the coat than there were and the horizon is one clean edge."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The brushwork has pulled in to the lines. The sleeve is flat brown with a single gold stroke on it, and there is no cloud left in the sky."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "Little is left to give up. The hills are flat colour between drawn edges and the collar has lost its shading."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest reading of the outline: every edge is honoured and the areas between them are filled rather than painted. Nothing has broken, and nothing has been gained since 1.4."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/mlsd/deliberate",
+      "rationale": "The strength dial read against a map that holds only long straight lines. The deck's railing and rigging are the whole of what this detector kept, so the strip is a reading of how hard a sparse map can pull. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "Straight lines are all this map holds, so the woman is redrawn at every stop and only the ironwork answers to the number. At 1.25 the railing is loosely painted and the deck curves where the render wants it to; by 1.4 the rails are ruled and the deck edge is straight; at the top the frame of the envelope looks drafted rather than drawn. Around 1.4 keeps the architecture true while the rest of the picture still looks painted.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "mlsd"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "Loose ironwork. The rail bars wander, the deck boards curve away, and the vessel out over the water is a woven basket the render invented."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "The rails begin to line up and a white hull replaces the basket. The deck edge still bends where the render wanted it to."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The railing is drawn bar by bar now and the deck edge has straightened out. The clouds are still doing as they please."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The architecture is true: rails ruled, deck edge straight, mast upright. Everything else is still painted loosely, which is what makes this a fair place to work."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "Little changes in the ironwork, so the render spends the stop above it, running a cable out of the frame and flattening the vessel into a deck with windows."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The straight lines are now hard enough to pull the airship into being: a ribbed envelope over the rail, drawn with the same ruled edges."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The envelope is drafted rather than drawn, and an orange seat has grown in the near corner where the map had a straight edge and nothing else."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest stop. Every long edge in the picture is a ruled line, including the seams of the envelope, and the woman is the only thing left that looks hand-drawn."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/depth-anything-v2/deliberate",
+      "rationale": "The strength dial read against distance rather than line. A depth map states where things sit rather than where their edges are, so what tightens as the dial climbs is the arrangement of the scene rather than its drawing. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "The depth map holds the figure at every stop, so what the number changes is everything behind her. Low, the view is invented freely, with an island and a boat out in the water; high, the background settles into the flat layers the map describes and the envelope becomes a plain pale shape. The picture never stops looking painted, and 1.35 to 1.45 keeps the invention without letting the layers go slack.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "depth_anything_v2"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The loosest of the eight. The map asked for a near figure and a far view, and the render answers with a headland, a small boat and a bank of drawn cloud."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "The same freedom with a little more order. The boats are still out there and the envelope is still woven basketwork."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The headland goes. The water resolves into the broad layers of distance the map describes, and the envelope loses its weave."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The view behind her is layered rather than invented, and the cloud bank is the last piece of the render's own drawing left in it."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "A small town reappears on the far shore. The layers around it are flatter than at 1.35, so what survives here is a detail rather than a place."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The water is a set of flat steps going back, with a low island sitting on one of them. Nothing has broken; the picture has simply stopped adding."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The layers go slack. What was a sea is bands of grey and blue with a few rocks on them."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest reading of distance: pale flat planes stacked to the horizon and an envelope with no surface at all. The woman is unchanged, which is the whole point of this strip."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/normal-bae/deliberate",
+      "rationale": "The strength dial read against which way each surface faces. Nothing in this map is an outline, so it is the clearest case of a control that governs form and lighting while leaving the drawing to the model. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "The surface map fixes the modelling from the first stop: the same coat, the same folds and the same light on the sleeves in all eight. Raising the number firms the shading and drains the invention out of the background, so the sea and the hills lose the small things the lower stops put there. Nothing here turns into a tracing, which makes the bottom of the range the practical place to work.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "normal_bae"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The loosest of the eight, and the modelling of the coat is already fixed. What the render still owns is the ornament: three medallions on the chain and a small boat out on the ice."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "Almost the same picture, warmer in the sky. The rocks under the railing keep the pink the render put there."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "A fur collar grows where the map had a raised surface. The clouds are still drawn rather than washed."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The drawn clouds go. The sky is a set of pale streaks and the ornament on the chain is thinning out."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "One medallion left. The shape out on the water has settled into a plain white hull with nothing on it."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The sea is flat and the far shore is a block. The figure has not moved since the first stop and will not move again."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The rocks below the railing are outlines with one wash inside them. The shading on the coat is at its firmest here."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest stop, and it looks it: a plain sky, a plain hull, plain planking. The map never asked for any of that detail, and at this strength the render stops supplying it."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/openpose/deliberate",
+      "rationale": "The strength dial read against a map that is almost entirely empty: a stick figure and nothing else. A reader can see what happens when a strong control has very little to say about most of the frame. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "Only the body is in this map, so every stop rebuilds the world around it and none of them return to the deck the photograph was taken on. What the number buys is the stance: at 1.25 the arm reaches oddly and the shoulders drift, and from 1.4 up the pose settles into the one the map describes and stays there. Use the top of the range when the pose is what matters, and expect the setting to come from the prompt at any strength.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "openpose"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The stance is loose. The shoulders tilt and the reaching arm is longer than a body's, and the room around her is entirely the render's own, down to the framed print on the wall and the satchel at her hip."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "The shoulders square up and the arm shortens to something a body could do. The cabin has been rebuilt again, with a wooden bench where the print was."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The hand finds the window frame and holds it. The pose is close to the map now, and everything around it has changed once more."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The stance settles: shoulders level, head upright, one hand at the frame. This is the first stop that returns the pose the map describes."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "The same stance again, so the difference is all in the room. A bird crosses the water outside and the wall behind her has gone orange."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "Still the same body. The render has spent the stop on furniture, putting a padded bench and a rail into the cabin."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The pose is fixed and the room is quieter, with the curve of a hull filling what was open cabin."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest stop holds the stance exactly as the map drew it and gives back a boat on the water outside. A pose map never gets more faithful than this, and it never tells the render where she is."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/oneformer-ade20k/deliberate",
+      "rationale": "The strength dial read against flat regions of colour standing for what the detector thinks each part of the picture is. The map has no detail in it at all, so the dial governs how strictly the render honours the boundaries. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "The region map fixes where the sky, the water, the deck and the figure go, and it fixes it from the first stop. As the number rises the edges between those regions harden, the water fills with flat islands and a row of buildings grows where the map has a block, until the picture reads more like a diagram than a place. Around 1.3 to 1.4 keeps the layout without the flattening.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "oneformer_ade20k"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The regions are already in charge: sky, water, deck and figure sit where the map puts them. Inside them the render is free, so the water is scattered ice and a roof leans in at the edge."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "A row of houses grows in the block the map marked as building. The ice on the water is still loosely painted."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The far shore gains a town and a stack of crates appears under the railing. The boundary between water and land is sharper than it was."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "The edges harden. The floes flatten into shapes with outlines and the buildings line up along the far side of the water."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "Panels with writing on them fill the block by the railing. Anything the map called one region is now one flat colour."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The water is flat plates on flat blue and the town is a strip. The picture has begun to read as a plan of a place rather than a view of one."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The panels are framed in arches and the sky is banded. Little is left inside each region for the brush to do."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest stop, and the flattest: the sea is brown shapes on blue, the shore is a band, and the boundaries the map drew are the strongest lines in the picture."
+        }
+      ]
+    },
+    {
+      "kind": "strip",
+      "parameter": "control_strength",
+      "directory_override": "control-strength/tile/deliberate",
+      "rationale": "The strength dial read against a map that is the picture itself. This is the mode with the least room between guidance and copying, which is what the top of the range is here to show. The stops are the ones the QR strength strip already walks, so the two can be read against each other. Local runner only: the public API's payload carries no control_strength field, so every stop sent through the horde would come back at the workflow's baseline and the strip would be eight copies of one image.",
+      "caption": "The map is the picture itself, so the hold is total at every stop and the difference between them is small. Low, the render still paints: the coat is recoloured, the sky is redrawn and the brush is visible. High, it narrows onto the source's own colours and edges until the ink and watercolour of the prompt is a thin layer over a copy. For repainting something in a new style, stay at the bottom of this range.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "courier-ink"
+      ],
+      "source_image": "inputs/tutorial-anchor-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img",
+        "control_type": "tile"
+      },
+      "stops": [
+        {
+          "value": 1.25,
+          "control_strength": 1.25,
+          "caption": "The most painted of the eight. The wash runs loose over the coat, the wrist is a dark cuff rather than a glove, and the hills beyond the railing are soft."
+        },
+        {
+          "value": 1.3,
+          "control_strength": 1.3,
+          "caption": "Nearly the same picture, with the hand read as a mitten and the edge of the collar drawn a little firmer."
+        },
+        {
+          "value": 1.35,
+          "control_strength": 1.35,
+          "caption": "The belt and its buckle come back the way the source has them. The brushwork is still visible across the coat."
+        },
+        {
+          "value": 1.4,
+          "control_strength": 1.4,
+          "caption": "A brooch appears at the throat and the buttons down the front line up. The picture is tightening onto the source rather than changing."
+        },
+        {
+          "value": 1.45,
+          "control_strength": 1.45,
+          "caption": "The distant hull on the water sharpens into a shape with a wake behind it, and the coat keeps its white patches of light."
+        },
+        {
+          "value": 1.5,
+          "control_strength": 1.5,
+          "caption": "The envelope over the deck darkens and its ribs show. Small marks are turning into drawn detail."
+        },
+        {
+          "value": 1.55,
+          "control_strength": 1.55,
+          "caption": "The paint thins. Edges that were two washes meeting at 1.25 are lines here, and the hair has lost its softest strokes."
+        },
+        {
+          "value": 1.6,
+          "control_strength": 1.6,
+          "caption": "The strictest stop, and the closest to a copy: brass rims on the goggles, hard edges on the coat, and a wash thin enough to read the photograph through."
         }
       ]
     }

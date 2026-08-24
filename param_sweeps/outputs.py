@@ -150,6 +150,20 @@ class IndexStop(BaseModel):
     chosen_candidate: int | None = None
     """Which candidate was published, one-based, when more than one was rendered."""
 
+    control_type: str | None = None
+    """The ControlNet guidance mode this stop conditioned on, when it conditioned on one."""
+
+    control_group: str | None = None
+    """Which family of detectors that guidance mode belongs to, for a consumer to group by."""
+
+    control_map: str | None = None
+    """The map the detector drew, relative to this index, or None when none was published.
+
+    None on a stop that has a control type is the honest report of a detector that would not
+    draw: the render is still here, guided by whatever the backend derived internally, and the
+    missing map is the thing a consumer says out loud rather than hides.
+    """
+
 
 class IndexGridAxis(BaseModel):
     """Represents one axis of a two-dimensional strip."""
@@ -323,6 +337,9 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                     prompt_fragment=job.prompt_fragment,
                     batch_size=job.batch_size,
                     chosen_candidate=job.chosen_candidate,
+                    control_type=job.control_type,
+                    control_group=job.control_group,
+                    control_map=_published_control_map(job=job, output_root=output_root),
                 ),
             )
 
@@ -418,6 +435,14 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
         published.append(destination)
 
     return published
+
+
+def _published_control_map(*, job: RenderJob, output_root: Path) -> str | None:
+    """Return the job's control map path when the map is on disk, and None when it is not."""
+    relative_path = job.relative_control_map_path
+    if relative_path is None or not (output_root / relative_path).is_file():
+        return None
+    return relative_path
 
 
 def _varying_field_names(strip: RenderStrip) -> list[str]:
