@@ -37,6 +37,7 @@ def test_spec_loads_and_declares_the_expected_models(spec: SweepSpec) -> None:
         "stable-diffusion",
         "flux-schnell",
         "deliberate",
+        "anything-diffusion",
     }
     assert spec.seed == 1234567890
 
@@ -344,7 +345,8 @@ SOURCED_PARAMETERS = frozenset(
 
 Denoising strength is swept image-to-image, and the three masked readings are the same thing with
 part of the picture covered. The upscaler-form strip is not a generation at all: its stops are one
-image put through each of the horde's upscalers.
+image put through each of the horde's upscalers. The ControlNet strips are sourced too, but by
+their control type rather than by their parameter, so they are not listed here.
 """
 
 MASKED_PARAMETERS = frozenset(
@@ -361,9 +363,14 @@ DENOISING_PARAMETERS = frozenset({SweepParameter.DENOISING_STRENGTH, SweepParame
 
 
 def test_the_image_to_image_strips_are_the_only_ones_with_a_source(spec: SweepSpec) -> None:
-    """Assert the sweeps that start from an image are the only ones declaring a source."""
+    """Assert the sweeps that start from an image are the only ones declaring a source.
+
+    A job that conditions on a control type has a source too, whatever it is sweeping: the picture
+    the detector reads is that source, so the strength strips carry one and the parameter alone
+    does not say whether a job should.
+    """
     for job in spec.expand_jobs():
-        expects_source = job.parameter in SOURCED_PARAMETERS
+        expects_source = job.parameter in SOURCED_PARAMETERS or job.control_type is not None
         assert (job.source_image is not None) is expects_source, job.relative_image_path
 
     source_paths = {job.source_image_path for job in spec.expand_jobs() if job.source_image_path is not None}
@@ -451,12 +458,15 @@ def test_the_negative_prompt_strips_turn_one_prompt_on_and_off(spec: SweepSpec) 
     # tutorial's request verbatim, so the frames arrive at the picture the tutorial already showed
     # the reader, and that request carries a negative prompt. The two QR strips carry the one the
     # workflow's recipe was measured with: their stops were scan-tested with it, and dropping it
-    # would mean publishing a code nothing had decoded.
+    # would mean publishing a code nothing had decoded. The ControlNet galleries reproduce the
+    # request the ControlNet tutorial makes of each of its worlds, negative prompt included, so a
+    # reader comparing detectors is looking at the pictures that tutorial's recipe produces.
     carry_a_negative_prompt = {
         SweepParameter.NEGATIVE_PROMPT,
         SweepParameter.STEP_PREVIEW,
         SweepParameter.STEP_PREVIEW_GUESS,
         SweepParameter.CONTROL_STRENGTH,
+        SweepParameter.CONTROLNET_GALLERY,
         SweepParameter.QR_STYLE,
     }
     other_jobs = [job for job in spec.expand_jobs() if job.parameter not in carry_a_negative_prompt]
@@ -492,6 +502,9 @@ def test_every_scene_belongs_to_one_of_the_three_anchor_worlds(spec: SweepSpec) 
         "cloud-sea",
         "qr-artwork",
         "deck-prose",
+        "courier-ink",
+        "fox-shrine-ink",
+        "robot-gardener-ink",
     }
     world_markers = ("skyharbor", "zeppelin", "shrine", "gardening robot", "rooftop")
 
@@ -545,19 +558,58 @@ def test_a_worlds_subject_is_described_in_the_same_words_everywhere(spec: SweepS
             assert descriptor_blocks[job_world] in job.prompt, job.relative_image_path
 
 
-def test_the_control_strength_strip_moves_nothing_but_the_strength(spec: SweepSpec) -> None:
-    """Assert the QR strength strip varies its ControlNet and holds everything else, seed included.
+def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSpec) -> None:
+    """Assert every strength strip varies its ControlNet and holds everything else, seed included.
 
     A stop that reached its scan by changing seed as well as strength would be teaching two things
-    at once, so the strip is pinned to the one seed that scans across the whole range it publishes.
+    at once, so each strip is pinned to the one seed that holds across the whole range it publishes.
+    The QR strip walks the ladder on the QR workflow; the rest walk the same ladder once per
+    detector family, so the grip of each family is read against the others and against the QR one.
     """
-    jobs = [job for job in spec.expand_jobs() if job.parameter is SweepParameter.CONTROL_STRENGTH]
+    strength_ladder = [1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6]
+    strips = [strip for strip in spec.expand_strips() if strip.parameter is SweepParameter.CONTROL_STRENGTH]
 
-    assert len(jobs) == 8
-    assert [job.control_strength for job in jobs] == [1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6]
-    assert len({job.seed for job in jobs}) == 1
-    assert len({job.prompt for job in jobs}) == 1
-    assert all(job.workflow is WorkflowName.QR_CODE for job in jobs)
+    assert len(strips) == 8
+
+    for strip in strips:
+        assert [job.control_strength for job in strip.jobs] == strength_ladder
+        assert len({job.seed for job in strip.jobs}) == 1
+        assert len({job.prompt for job in strip.jobs}) == 1
+        assert len({job.control_type for job in strip.jobs}) == 1
+
+    qr_strips = [strip for strip in strips if strip.jobs[0].workflow is WorkflowName.QR_CODE]
+    detector_strips = [strip for strip in strips if strip.jobs[0].workflow is not WorkflowName.QR_CODE]
+
+    assert len(qr_strips) == 1
+    assert all(job.control_type is None for job in qr_strips[0].jobs)
+    assert {strip.jobs[0].control_type for strip in detector_strips} == {
+        "canny",
+        "mlsd",
+        "depth_anything_v2",
+        "normal_bae",
+        "openpose",
+        "oneformer_ade20k",
+        "tile",
+    }
+
+
+def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> None:
+    """Assert a job states a map path when it conditions on a detector and none when it does not.
+
+    The map and the render are only meaningful as a pair, so a consumer holding the render's path
+    holds the map's: same directory, same stem.
+    """
+    unconditioned = next(job for job in spec.expand_jobs() if job.control_type is None)
+    assert unconditioned.relative_control_map_path is None
+
+    conditioned = next(job for job in spec.expand_jobs() if job.control_type is not None)
+    map_path = conditioned.relative_control_map_path
+    assert map_path is not None
+
+    render_directory, _, render_filename = conditioned.relative_image_path.rpartition("/")
+    map_directory, _, map_filename = map_path.rpartition("/")
+    assert map_directory == render_directory
+    assert map_filename == f"{render_filename.removesuffix('.webp')}_map.webp"
 
 
 def test_the_qr_gallery_shows_the_layout_knobs_it_claims_to(spec: SweepSpec) -> None:

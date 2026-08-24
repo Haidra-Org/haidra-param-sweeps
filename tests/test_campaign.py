@@ -23,12 +23,13 @@ from param_sweeps.horde_runner import (
 from param_sweeps.local_runner import GpuBackend, HordelibPayload, resolve_gpu_backend
 from param_sweeps.outputs import INDEX_FILENAME, SweepIndex, build_index
 from param_sweeps.runner import FetchPlanEntry, RenderOutcome, SweepRunner
-from param_sweeps.spec import ModelSpec, RenderJob, SweepParameter, SweepSpec, load_spec
+from param_sweeps.spec import ModelSpec, RenderJob, StripPresentation, SweepParameter, SweepSpec, load_spec
 
 SPEC_PATH = Path(__file__).resolve().parents[1] / "sweep_spec.json"
 
 ONE_STRIP = JobFilter(parameters=("clip_skip",), model_slugs=("icbinp",), scene_ids=("person",))
 EVERY_IMAGE_TO_IMAGE_STRIP = JobFilter(parameters=("denoising_strength",))
+ONE_GALLERY = JobFilter(parameters=("controlnet_gallery",), model_slugs=("deliberate",), scene_ids=("courier-ink",))
 
 
 class CountingRunner(SweepRunner):
@@ -219,12 +220,45 @@ def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, t
         "prompt_fragment",
         "batch_size",
         "chosen_candidate",
+        "control_type",
+        "control_group",
+        "control_map",
     }
     assert stop["prompt_fragment"] is None
     assert stop["batch_size"] == 1
 
     sidecar = json.loads((tmp_path / stop["sidecar"]).read_text(encoding="utf-8"))
     assert sidecar["params"]["clip_skip"] == 1
+
+
+def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert a ControlNet gallery's stops carry their control type, family and map into the index.
+
+    The map is half of what the stop teaches, so a consumer reads it from the index rather than
+    guessing at a path. A map that was never drawn is reported as absent rather than as a path to
+    a file that is not there: the render exists either way, and the gap is what the page says.
+    """
+    run_campaign(spec=spec, runner=CountingRunner(), output_root=tmp_path, job_filter=ONE_GALLERY)
+
+    index = SweepIndex.model_validate_json((tmp_path / INDEX_FILENAME).read_text(encoding="utf-8"))
+    (gallery,) = index.strips
+
+    assert gallery.presentation is StripPresentation.TRIPTYCH
+    assert gallery.source_image is not None
+    assert all(stop.control_type for stop in gallery.stops)
+    assert all(stop.control_group for stop in gallery.stops)
+    assert all(stop.control_map is None for stop in gallery.stops), "no detector has drawn anything yet"
+
+    drawn = next(job for job in spec.expand_jobs() if job.relative_image_path == gallery.stops[0].file)
+    map_path = drawn.relative_control_map_path
+    assert map_path is not None
+    Image.new("RGB", (16, 16), color=(0, 0, 0)).save(tmp_path / map_path, format="WEBP")
+
+    rebuilt = build_index(spec=spec, output_root=tmp_path)
+    (rebuilt_gallery,) = [strip for strip in rebuilt.strips if strip.strip_id == gallery.strip_id]
+    published_maps = [stop.control_map for stop in rebuilt_gallery.stops if stop.control_map is not None]
+
+    assert published_maps == [map_path]
 
 
 def test_hordelib_payload_asks_for_img2img_only_when_the_job_starts_from_an_image(spec: SweepSpec) -> None:

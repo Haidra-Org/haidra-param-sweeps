@@ -460,7 +460,17 @@ def test_settings_come_from_the_environment_first_then_the_env_file(
         ),
         encoding="utf-8",
     )
-    for variable_name in vars(PublishEnvironment):
+    # The variables have to be cleared by their own names rather than by the attribute names that
+    # hold them: importing horde_sdk loads whatever .env is above the working directory into the
+    # process, so a machine that publishes for real has the live bucket set before the test starts.
+    for variable_name in (
+        PublishEnvironment.ENDPOINT_URL,
+        PublishEnvironment.BUCKET,
+        PublishEnvironment.ACCESS_KEY_ID,
+        PublishEnvironment.SECRET_ACCESS_KEY,
+        PublishEnvironment.PREFIX,
+        PublishEnvironment.REGION,
+    ):
         monkeypatch.delenv(variable_name, raising=False)
     monkeypatch.setenv(PublishEnvironment.ENDPOINT_URL, "https://from-environment.example")
 
