@@ -343,17 +343,23 @@ def indexed_relative_paths(index: SweepIndex) -> list[str]:
     paths: list[str] = [INDEX_FILENAME]
     seen: set[str] = {INDEX_FILENAME}
 
+    def take(path: str | None) -> None:
+        if path is None or path in seen:
+            return
+        seen.add(path)
+        paths.append(path)
+
     for strip in index.strips:
-        if strip.source_image is not None and strip.source_image not in seen:
-            seen.add(strip.source_image)
-            paths.append(strip.source_image)
+        take(strip.source_image)
+        # A strip held to one detector publishes the map beside its source; a gallery stop
+        # publishes the map beside its render. Both are read off the index by consumers, so
+        # both are part of the closure the library has to carry.
+        take(strip.control_map)
 
         for stop in strip.stops:
-            for stop_path in (stop.file, stop.sidecar):
-                if stop_path in seen:
-                    continue
-                seen.add(stop_path)
-                paths.append(stop_path)
+            take(stop.file)
+            take(stop.sidecar)
+            take(stop.control_map)
 
     return paths
 

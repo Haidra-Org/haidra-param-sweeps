@@ -280,6 +280,36 @@ def test_enumerate_library_ignores_files_the_index_does_not_reference(tmp_path: 
     assert "leftover.webp" not in relative_paths
 
 
+def test_the_closure_carries_the_control_maps_a_strip_and_its_stops_publish(tmp_path: Path) -> None:
+    """A map beside the strip source or beside a render is read off the index, so it ships with it."""
+    document = _index_document()
+    strip_map = f"{STRIP_DIRECTORY}/person-source_map.webp"
+    stop_map = f"{STRIP_DIRECTORY}/001_4_map.webp"
+    document["strips"][0]["control_map"] = strip_map
+    document["strips"][0]["stops"][0]["control_map"] = stop_map
+    (tmp_path / INDEX_FILENAME).write_text(json.dumps(document, indent=2), encoding="utf-8")
+    for relative_path in (
+        SOURCE_IMAGE,
+        FIRST_STOP_IMAGE,
+        FIRST_STOP_SIDECAR,
+        SECOND_STOP_IMAGE,
+        SECOND_STOP_SIDECAR,
+        strip_map,
+    ):
+        file_path = tmp_path / relative_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_bytes(relative_path.encode("utf-8"))
+
+    with pytest.raises(IncompleteLibraryError, match=r"001_4_map.webp"):
+        enumerate_library(output_root=tmp_path)
+
+    (tmp_path / stop_map).write_bytes(b"map")
+    relative_paths = [library_file.relative_path for library_file in enumerate_library(output_root=tmp_path)]
+
+    assert strip_map in relative_paths
+    assert stop_map in relative_paths
+
+
 def test_enumerate_library_refuses_an_index_that_names_a_missing_file(tmp_path: Path) -> None:
     _write_library(tmp_path)
     (tmp_path / SECOND_STOP_SIDECAR).unlink()
