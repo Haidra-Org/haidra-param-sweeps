@@ -1183,6 +1183,28 @@ class RenderStrip(BaseModel):
             return f"{self.directory_override}/{self.scene.scene_id}-source{suffix}"
         return f"{self.strip_id}/source{suffix}"
 
+    @property
+    def relative_control_map_path(self) -> str | None:
+        """Return where this strip's control map is published, or None when it publishes none.
+
+        A strip held to one detector is guided by one map, and the dial the strip turns is only
+        readable beside it. The map is therefore published once, beside the strip's own source and
+        under its stem, rather than once per stop. A strip that changes detector from stop to stop
+        has no single map to publish, and one whose source already is the control map has nothing
+        for a detector to draw.
+        """
+        published_source = self.published_source_image
+        if published_source is None or not self.jobs:
+            return None
+
+        control_types = {job.control_type for job in self.jobs}
+        if len(control_types) != 1 or None in control_types:
+            return None
+        if any(job.image_is_control for job in self.jobs):
+            return None
+
+        return f"{PurePosixPath(published_source).with_suffix('')}_map.webp"
+
 
 class SweepSpec(BaseModel):
     """Represents the whole checked-in sweep specification."""

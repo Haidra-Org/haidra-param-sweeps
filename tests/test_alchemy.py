@@ -36,6 +36,7 @@ from param_sweeps.alchemy import (
     upscaler_form_strip,
 )
 from param_sweeps.cli import build_parser
+from param_sweeps.control_maps import draw_control_maps
 from param_sweeps.horde_client import HordeApiClient
 from param_sweeps.outputs import WebpEncoding
 from param_sweeps.spec import SweepParameter, SweepSpec, load_spec
@@ -706,6 +707,70 @@ def test_a_run_can_be_restricted_to_one_detector(
     parsed = build_parser().parse_args(["alchemy", "--control-type", CONTROL_TYPE, "--backend", "hiu"])
     assert parsed.control_type == [CONTROL_TYPE]
     assert parsed.hiu_url is None
+
+
+def test_a_strength_strip_draws_one_map_and_a_strip_with_no_detector_draws_none(
+    tmp_path: Path,
+    sweep_spec: SweepSpec,
+) -> None:
+    """Assert a strip held to one detector publishes one map, beside its source, and only one.
+
+    Every stop of a strength strip is held to the same map, so drawing it per stop would ask the
+    service for the same picture a dozen times and publish a dozen copies of it. A strip that
+    conditions on nothing has nothing for a detector to draw.
+    """
+    backend = FakeAlchemyBackend()
+    held_strips = [strip for strip in sweep_spec.expand_strips() if strip.relative_control_map_path is not None]
+
+    outcomes = draw_control_maps(
+        spec=sweep_spec,
+        output_root=tmp_path,
+        backend=backend,
+        parameters=(SweepParameter.CONTROL_STRENGTH,),
+    )
+
+    assert [outcome.relative_path for outcome in outcomes] == [
+        strip.relative_control_map_path for strip in held_strips
+    ]
+    assert all(outcome.drawn and not outcome.skipped for outcome in outcomes)
+    assert backend.applied_forms == [strip.jobs[0].control_type for strip in held_strips]
+    assert len(list(tmp_path.rglob("*.webp"))) == len(held_strips), "one map per strip and nothing else"
+
+    first = held_strips[0]
+    published = first.relative_control_map_path
+    assert published is not None
+    assert (tmp_path / published).is_file()
+    sidecar = json.loads((tmp_path / published).with_suffix(".json").read_text(encoding="utf-8"))
+    assert sidecar["control_type"] == first.jobs[0].control_type
+    assert sidecar["source"] == first.source_image
+    assert sidecar["render"] is None, "the map stands for the whole strip rather than for one render"
+
+    reused = draw_control_maps(
+        spec=sweep_spec,
+        output_root=tmp_path,
+        backend=backend,
+        parameters=(SweepParameter.CONTROL_STRENGTH,),
+    )
+    assert all(outcome.skipped for outcome in reused)
+
+    redrawn = draw_control_maps(
+        spec=sweep_spec,
+        output_root=tmp_path,
+        backend=backend,
+        parameters=(SweepParameter.CONTROL_STRENGTH,),
+        force=True,
+    )
+    assert all(outcome.drawn and not outcome.skipped for outcome in redrawn)
+
+    assert (
+        draw_control_maps(
+            spec=sweep_spec,
+            output_root=tmp_path,
+            backend=backend,
+            parameters=(SweepParameter.QR_STYLE,),
+        )
+        == []
+    )
 
 
 def test_a_backend_that_does_not_draw_control_maps_says_where_they_are_drawn() -> None:

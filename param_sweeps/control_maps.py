@@ -54,7 +54,9 @@ class ControlMapSidecar(BaseModel):
     control_type: str
     control_group: str | None
     source: str
-    render: str
+    render: str | None = None
+    """The render the map guided, and None on a map published once for a whole strip."""
+
     backend: str
     service_host: str | None
     service_version: str | None
@@ -110,7 +112,12 @@ def draw_control_maps(
     parameters: Sequence[SweepParameter] | None = None,
     force: bool = False,
 ) -> list[ControlMapOutcome]:
-    """Draw and publish the control map for every job that conditions on one.
+    """Draw and publish the control map every strip and every job that conditions on one needs.
+
+    A strip held to a single detector publishes one map beside its own source, because the dial
+    such a strip turns is only readable against the map it is holding the render to and the map is
+    the same at every stop. A strip that changes detector publishes one map per stop instead,
+    beside the render each guided.
 
     Args:
         spec: The specification to read the jobs from.
@@ -120,92 +127,155 @@ def draw_control_maps(
         force: Redraw maps that are already on disk.
 
     Returns:
-        One outcome per job, in specification order.
+        One outcome per published map, in specification order, the strip's own map first.
 
     Side Effects:
-        Writes a WebP and a JSON sidecar beside each render whose map the backend drew.
+        Writes a WebP and a JSON sidecar beside each source or render whose map the backend drew.
     """
     outcomes: list[ControlMapOutcome] = []
     sources: dict[Path, Image.Image] = {}
 
     for strip in spec.expand_strips():
+        if parameters and strip.parameter not in parameters:
+            continue
+
+        strip_map_path = strip.relative_control_map_path
+        held_control_type = strip.jobs[0].control_type if strip.jobs else None
+        if strip_map_path is not None and strip.source_image is not None and held_control_type is not None:
+            outcomes.append(
+                _publish_control_map(
+                    backend=backend,
+                    sources=sources,
+                    output_root=output_root,
+                    relative_path=strip_map_path,
+                    strip_id=strip.strip_id,
+                    control_type=held_control_type,
+                    control_group=strip.jobs[0].control_group,
+                    source_image=strip.source_image,
+                    render=None,
+                    force=force,
+                ),
+            )
+            continue
+
         for job in strip.jobs:
-            relative_path = job.relative_control_map_path
-            if job.source_image is None or job.control_type is None or relative_path is None:
+            job_map_path = job.relative_control_map_path
+            if job.source_image is None or job.control_type is None or job_map_path is None:
                 continue
             if parameters and job.parameter not in parameters:
                 continue
 
-            destination = output_root / relative_path
-            if destination.is_file() and not force:
-                outcomes.append(
-                    ControlMapOutcome(
-                        control_type=job.control_type,
-                        strip_id=strip.strip_id,
-                        relative_path=relative_path,
-                        drawn=True,
-                        skipped=True,
-                    ),
-                )
-                continue
-
-            source_path = (TOOL_ROOT / job.source_image).resolve()
-            if source_path not in sources:
-                with Image.open(source_path) as opened:
-                    sources[source_path] = opened.convert("RGB")
-
-            outcome = backend.apply(
-                form=ANNOTATION_FORM,
-                control_type=job.control_type,
-                source_image=sources[source_path],
-            )
-
-            if outcome.image is None:
-                logger.warning(
-                    "No control map published: control_type=%s strip=%s reason=%s",
-                    job.control_type,
-                    strip.strip_id,
-                    outcome.unavailable_reason,
-                )
-                outcomes.append(
-                    ControlMapOutcome(
-                        control_type=job.control_type,
-                        strip_id=strip.strip_id,
-                        relative_path=relative_path,
-                        drawn=False,
-                        unavailable_reason=outcome.unavailable_reason,
-                    ),
-                )
-                continue
-
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            outcome.image.save(
-                destination,
-                format="WEBP",
-                quality=WebpEncoding.QUALITY,
-                method=WebpEncoding.METHOD,
-            )
-
-            sidecar = ControlMapSidecar(
-                control_type=job.control_type,
-                control_group=job.control_group,
-                source=job.source_image,
-                render=job.relative_image_path,
-                backend=backend.name,
-                service_host=backend.service_host,
-                service_version=backend.service_version,
-                drawn_at=datetime.now(UTC).isoformat(),
-                image=destination.name,
-            )
-            destination.with_suffix(".json").write_text(sidecar.model_dump_json(indent=2) + "\n", encoding="utf-8")
-
             outcomes.append(
-                ControlMapOutcome(
-                    control_type=job.control_type,
+                _publish_control_map(
+                    backend=backend,
+                    sources=sources,
+                    output_root=output_root,
+                    relative_path=job_map_path,
                     strip_id=strip.strip_id,
-                    relative_path=relative_path,
-                    drawn=True,
+                    control_type=job.control_type,
+                    control_group=job.control_group,
+                    source_image=job.source_image,
+                    render=job.relative_image_path,
+                    force=force,
                 ),
             )
 
     return outcomes
+
+
+def _publish_control_map(
+    *,
+    backend: AlchemyBackend,
+    sources: dict[Path, Image.Image],
+    output_root: Path,
+    relative_path: str,
+    strip_id: str,
+    control_type: str,
+    control_group: str | None,
+    source_image: str,
+    render: str | None,
+    force: bool,
+) -> ControlMapOutcome:
+    """Draw one map on the backend and write it with its sidecar, and return what became of it.
+
+    Args:
+        backend: The prepared backend to ask for the map.
+        sources: Images already opened, keyed by resolved path, added to as sources are opened.
+        output_root: The root of the output tree.
+        relative_path: Where the map is published, relative to the output root.
+        strip_id: The strip the map belongs to, for the reader of an outcome.
+        control_type: The detector to draw with.
+        control_group: The detector's family, for the sidecar.
+        source_image: The image to draw from, relative to the tool root.
+        render: The render the map guided, or None for a map published once for a strip.
+        force: Redraw a map that is already on disk.
+
+    Returns:
+        The outcome, which says whether the map was drawn, reused, or refused by the service.
+
+    Side Effects:
+        Writes a WebP and a JSON sidecar under the output root.
+    """
+    destination = output_root / relative_path
+    if destination.is_file() and not force:
+        return ControlMapOutcome(
+            control_type=control_type,
+            strip_id=strip_id,
+            relative_path=relative_path,
+            drawn=True,
+            skipped=True,
+        )
+
+    source_path = (TOOL_ROOT / source_image).resolve()
+    if source_path not in sources:
+        with Image.open(source_path) as opened:
+            sources[source_path] = opened.convert("RGB")
+
+    outcome = backend.apply(
+        form=ANNOTATION_FORM,
+        control_type=control_type,
+        source_image=sources[source_path],
+    )
+
+    if outcome.image is None:
+        logger.warning(
+            "No control map published: control_type=%s strip=%s reason=%s",
+            control_type,
+            strip_id,
+            outcome.unavailable_reason,
+        )
+        return ControlMapOutcome(
+            control_type=control_type,
+            strip_id=strip_id,
+            relative_path=relative_path,
+            drawn=False,
+            unavailable_reason=outcome.unavailable_reason,
+        )
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    outcome.image.save(
+        destination,
+        format="WEBP",
+        quality=WebpEncoding.QUALITY,
+        method=WebpEncoding.METHOD,
+    )
+
+    sidecar = ControlMapSidecar(
+        control_type=control_type,
+        control_group=control_group,
+        source=source_image,
+        render=render,
+        backend=backend.name,
+        service_host=backend.service_host,
+        service_version=backend.service_version,
+        drawn_at=datetime.now(UTC).isoformat(),
+        image=destination.name,
+    )
+    destination.with_suffix(".json").write_text(sidecar.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+    return ControlMapOutcome(
+        control_type=control_type,
+        strip_id=strip_id,
+        relative_path=relative_path,
+        drawn=True,
+    )

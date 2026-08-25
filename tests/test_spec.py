@@ -675,6 +675,31 @@ def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> 
     assert map_filename == f"{render_filename.removesuffix('.webp')}_map.webp"
 
 
+def test_a_strip_held_to_one_detector_files_its_map_beside_its_source(spec: SweepSpec) -> None:
+    """Assert a strip states one map path when every stop shares a detector, and none when not.
+
+    The reader of a strength strip is being asked to judge how hard a dial holds the render to a
+    map, which is unreadable without the map. It is the same map at every stop, so the strip
+    publishes it once, beside the source it was drawn from.
+    """
+    strips = spec.expand_strips()
+
+    unconditioned = next(strip for strip in strips if strip.jobs[0].control_type is None)
+    assert unconditioned.relative_control_map_path is None
+
+    held = next(strip for strip in strips if strip.parameter is SweepParameter.CONTROL_STRENGTH and strip.source_image)
+    assert len({job.control_type for job in held.jobs}) == 1
+
+    published_source = held.published_source_image
+    map_path = held.relative_control_map_path
+    assert published_source is not None
+    assert map_path is not None
+    assert map_path == f"{published_source.removesuffix('.webp')}_map.webp"
+
+    changing_detector = next(strip for strip in strips if len({job.control_type for job in strip.jobs}) > 1)
+    assert changing_detector.relative_control_map_path is None
+
+
 def test_the_qr_gallery_shows_the_layout_knobs_it_claims_to(spec: SweepSpec) -> None:
     """Assert each gallery stop states the knobs its caption names, and curates from a batch."""
     jobs = [job for job in spec.expand_jobs() if job.parameter is SweepParameter.QR_STYLE]

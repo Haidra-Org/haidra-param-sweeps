@@ -208,6 +208,13 @@ class IndexStrip(BaseModel):
     source_image: str | None = None
     """The image the strip starts from, relative to this index, for a consumer to show beside it."""
 
+    control_map: str | None = None
+    """The map the detector drew from the strip's source, on strips held to one control type.
+
+    None when none is published, which covers a strip that changes detector from stop to stop as
+    well as one no detector has been run for yet.
+    """
+
     grid: IndexGrid | None = None
     features: JobFeatures | None = None
     """The features the strip turns on, or None when it uses none of them."""
@@ -369,6 +376,7 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                 varying=_varying_field_names(strip),
                 stops=stops,
                 source_image=strip.published_source_image,
+                control_map=_published_strip_control_map(strip=strip, output_root=output_root),
                 grid=_index_grid(strip),
                 features=_index_features(strip),
                 batch_section=strip.batch_section,
@@ -440,6 +448,14 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
 def _published_control_map(*, job: RenderJob, output_root: Path) -> str | None:
     """Return the job's control map path when the map is on disk, and None when it is not."""
     relative_path = job.relative_control_map_path
+    if relative_path is None or not (output_root / relative_path).is_file():
+        return None
+    return relative_path
+
+
+def _published_strip_control_map(*, strip: RenderStrip, output_root: Path) -> str | None:
+    """Return the strip's control map path when the map is on disk, and None when it is not."""
+    relative_path = strip.relative_control_map_path
     if relative_path is None or not (output_root / relative_path).is_file():
         return None
     return relative_path

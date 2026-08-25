@@ -261,6 +261,35 @@ def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec,
     assert published_maps == [map_path]
 
 
+def test_a_strength_strip_names_the_map_its_dial_holds_the_render_to(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert a strip held to one detector carries its map into the index once the map is on disk.
+
+    A map that has not been drawn is reported as absent rather than as a path to a file that is
+    not there, for the same reason a stop's map is: the renders are on disk either way.
+    """
+    strip = next(candidate for candidate in spec.expand_strips() if candidate.relative_control_map_path is not None)
+    for job in strip.jobs:
+        image_path = tmp_path / job.relative_image_path
+        image_path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (16, 16), color=(0, 0, 0)).save(image_path, format="WEBP")
+
+    (built,) = [
+        entry for entry in build_index(spec=spec, output_root=tmp_path).strips if entry.strip_id == strip.strip_id
+    ]
+    assert built.control_map is None, "no detector has drawn anything yet"
+
+    map_path = strip.relative_control_map_path
+    assert map_path is not None
+    (tmp_path / map_path).parent.mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", (16, 16), color=(0, 0, 0)).save(tmp_path / map_path, format="WEBP")
+
+    (rebuilt,) = [
+        entry for entry in build_index(spec=spec, output_root=tmp_path).strips if entry.strip_id == strip.strip_id
+    ]
+    assert rebuilt.control_map == map_path
+    assert all(stop.control_map is None for stop in rebuilt.stops), "the strip's map stands for every stop"
+
+
 def test_hordelib_payload_asks_for_img2img_only_when_the_job_starts_from_an_image(spec: SweepSpec) -> None:
     text_to_image_job = next(job for job in spec.expand_jobs() if job.parameter is SweepParameter.STEPS)
     image_to_image_job = next(job for job in spec.expand_jobs() if job.parameter is SweepParameter.DENOISING_STRENGTH)
