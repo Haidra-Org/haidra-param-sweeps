@@ -507,6 +507,12 @@ def test_every_scene_belongs_to_one_of_the_three_anchor_worlds(spec: SweepSpec) 
         "courier-ink",
         "fox-shrine-ink",
         "robot-gardener-ink",
+        "skyharbor-tower-ink",
+        "shrine-gate-ink",
+        "glasshouse-ink",
+        "skyharbor-poster-ink",
+        "shrine-gate-flat-ink",
+        "robot-gardener-flat-ink",
     }
     world_markers = ("skyharbor", "zeppelin", "shrine", "gardening robot", "rooftop")
 

@@ -53,13 +53,25 @@ strip that starts from a source image names it in `source_image`, relative to th
 consumer can show it beside the strip. Each such strip carries its own copy inside its own
 directory, because two sweeps of the same parameter can start from different images.
 
-Three presentations appear in the index, and a consumer is expected to honour them:
+Four presentations appear in the index, and a consumer is expected to honour them:
 
 - `strip`: show the stops in order, as a scrubber.
 - `grid`: lay the stops out row-major using the strip's `grid.rows` and `grid.columns` values.
 - `tile_repeat_3x3`: draw each image repeated nine times in a square, beside the single image on
   its own. The tiling strip teaches nothing at all if the images are only shown singly, and a
   three-by-three plate puts whole joins in the interior rather than only at the crossing point.
+- `triptych`: show three pictures per stop, in order: the strip's source, the stop's own control
+  map, and the render the map guided. A reader choosing a detector is choosing what the map keeps,
+  so the map belongs on the page rather than in a description of it.
+
+The triptych strips are the ControlNet gallery: every control type the horde serves, on one model
+and one seed, so the detector is the only thing that changes. Each of the three worlds runs the
+gallery on three sources, and the strip says which in `subject`: `anchor` is the world's own
+tutorial picture, `building` is a structure with straight edges and deep perspective, and `flat` is
+a drawing of solid colour with no shading in it. The three are alternatives to each other, and
+reading one detector across them is what separates the detectors that trace outlines from the ones
+that read light and shade: the flat source starves the depth and surface detectors of everything
+they look for, and the building hands the line detectors more than a person ever does.
 
 Nearly every strip is N renders that differ in one parameter. Two kinds are the exception and read
 the same way in the index, stating no varying field at all:

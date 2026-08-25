@@ -184,6 +184,42 @@
       "label": "The gardening robot, asked for in ink and watercolour",
       "prompt": "ink and watercolour illustration of a small rounded gardening robot with weathered orange paint, a single round blue lens for a head, a hand-painted daisy decal on its chest plate, young ivy curling around its left arm, watering tomato planters on a rooftop, city haze beyond, loose brush strokes, soft washes of colour, visible paper texture, traditional media",
       "derived_from": "World 3's ControlNet tutorial, prompt verbatim: a scene with no person in it, which is what the pose detector is published against"
+    },
+    {
+      "scene_id": "skyharbor-tower-ink",
+      "label": "The mooring tower, asked for at dusk in rain",
+      "prompt": "ink and watercolour illustration of a skyharbor mooring tower at dusk in heavy rain, a tall brick and iron tower with a railed gantry and a long flight of steel stairs, its rectangular windows lit warm yellow, wet metal, rain streaking past, a bruised violet sky behind, loose brush strokes, soft washes of colour, visible paper texture",
+      "derived_from": "World 1's mooring tower, re-themed the way the tutorial re-themes its own source: the same structure at a different hour and weather."
+    },
+    {
+      "scene_id": "shrine-gate-ink",
+      "label": "The shrine gate, asked for at night in snow",
+      "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, no humans, scenery, ink and watercolor illustration, a shrine gatehouse and a long stone stairway at night in falling snow, paper lanterns lit orange along the path, snow settling on the tiled roof edges and the steps, deep blue night sky",
+      "derived_from": "World 2's shrine gate, re-themed to night, lanterns and snow, holding the structure and changing the hour and weather."
+    },
+    {
+      "scene_id": "glasshouse-ink",
+      "label": "The glasshouse, asked for at golden hour",
+      "prompt": "ink and watercolour illustration of a rooftop glasshouse at golden hour, a steel and glass frame with straight glazing bars, raised beds in rows, low sun coming through the glass, the city skyline behind softened to haze, warm amber light, loose brush strokes, soft washes of colour, visible paper texture",
+      "derived_from": "World 3's glasshouse, re-themed to a different hour and a hazier distance, holding the structure."
+    },
+    {
+      "scene_id": "skyharbor-poster-ink",
+      "label": "The zeppelin, asked for in ink and watercolour",
+      "prompt": "ink and watercolour illustration of a zeppelin moored over a skyharbor, the canvas envelope curving above the platform, rigging and brass fittings, cloud tops below, soft modelled light and shadow on the hull, loose brush strokes, soft washes of colour, visible paper texture",
+      "derived_from": "World 1's flat poster subject, asked for in the world's normal look, so the shading the source has none of has to be invented."
+    },
+    {
+      "scene_id": "shrine-gate-flat-ink",
+      "label": "The torii, asked for in the world's normal look",
+      "prompt": "masterpiece, best quality, very aesthetic, absurdres, rating_safe, no humans, scenery, a red torii gate on the shrine hillside at late afternoon, weathered paint, moss at the base, trees and distant hills behind, soft shadows, detailed shading, ink and watercolor illustration",
+      "derived_from": "World 2's flat torii, asked for with the shading and depth the source deliberately has none of."
+    },
+    {
+      "scene_id": "robot-gardener-flat-ink",
+      "label": "The gardening robot, asked for in ink and watercolour",
+      "prompt": "ink and watercolour illustration of a small rounded gardening robot with weathered orange paint and a single round blue lens, standing among raised beds in a rooftop garden, soft modelled light, shadow pooling under it, loose brush strokes, soft washes of colour, visible paper texture",
+      "derived_from": "World 3's flat robot, asked for in the world's normal look, so the volume the source flattens away has to be re-imagined."
     }
   ],
   "sweeps": [
@@ -3171,7 +3207,8 @@
           "control_group": "colour",
           "caption": "tile_ttplanet_simple hands over the picture with no blur at all. Nothing in this set follows the photograph more closely: the same scene, the same pose and the same light, painted rather than photographed."
         }
-      ]
+      ],
+      "subject": "anchor"
     },
     {
       "kind": "strip",
@@ -3390,7 +3427,8 @@
           "control_group": "colour",
           "caption": "tile_ttplanet_simple hands over the picture untouched, and the image is the drawing again in ink and wash, with the same pose, the same tail and the same fallen leaves."
         }
-      ]
+      ],
+      "subject": "anchor"
     },
     {
       "kind": "strip",
@@ -3609,7 +3647,1328 @@
           "control_group": "colour",
           "caption": "tile_ttplanet_simple hands over the picture with no blur at all, and nothing in this set follows it more closely. The image is the rooftop again, painted instead of photographed."
         }
-      ]
+      ],
+      "subject": "anchor"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a building instead of a person. Straight edges, rows of windows and a deep perspective are what the line and edge detectors were built for, and a structure has none of the things a pose detector looks for. Reading this beside the other two sources in world 1 is how the choice of detector stops being a list of names and becomes a question about the picture in front of you.",
+      "caption": "The source is a building: straight edges, repeated windows, and a long run of perspective. Edge and line detectors have a great deal to hold on to here, and the detectors that look for a body find nothing.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "skyharbor-tower-ink"
+      ],
+      "source_image": "inputs/controlnet-building-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny traces the building's outlines: the girders, the window openings, the edges of the stairs. The image that comes back stands the same structure in the same place and paints it in the weather the prompt asked for."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed draws thicker, softer strokes than Canny. The frame and the roofline survive, the small fittings do not. The image follows the mass of the building and invents its surface."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps a moderate amount of the building: the main uprights and the roof, with some of the smaller structure. The image holds the shape and takes the colour and the light for itself."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed draws dense, soft edges, so most of the building's structure reaches the map. The image follows it closely and changes the hour and the weather rather than the shape."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds more of the building than Canny does, including faint edges in the distance. More of the background survives into the image as a result."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. A building of lit and shaded faces splits into large solid blocks, so the map is areas rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble finds a great deal in a building: it marks far more of this picture than it marked of the character picture. The image gets a loose, sketched version of the same structure to follow."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles draws the building as rough strokes, dropping the fine structure. The image keeps the silhouette and the main lines and fills the rest in."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog draws a thin, sparse tracing of the building. The image keeps the main shape and is free with everything else."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet marks the building broadly, including a lot of the background. The image follows the whole scene rather than the structure alone."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the building as clean, even lines: uprights, cross-bracing, the roof. The image reads it as a drawing to paint over."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart finds more of the building than it finds of the character picture, because straight edges are what it is good at. The image follows those lines and re-lights the scene."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, and it still reads a building's straight edges cleanly. The map is sparser than standard lineart's, so the image invents more."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise drops the faint marks and keeps the confident ones, so the map is the building's main structure only. The image fills in the detail it lost."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines and nothing else, which is exactly what a building is made of. It finds more of them here than in the character picture, and the image gets the frame of the structure to build on."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "The depth map reads the building as a solid nearer the viewer with the sky behind. The image keeps that arrangement and re-invents the surfaces."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth separates the building from its background, though it is vaguer about the structure inside it. The image holds the mass and the distance and makes up the detail."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth reads the run of distance through the picture and keeps the building standing out of it. The image follows that sense of depth."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything gives a smoother reading than the older depth detectors: the building is one mass at one distance. The image keeps that and invents its surface."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 marks the building's distance and the ground it stands on. The image holds the arrangement and changes the light."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces. On a building that means broad flat planes and few curves. The image builds a scene from those planes."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae reads a building as a small number of flat faces, so the map is much plainer than it is on the character picture. The image gets the arrangement of surfaces and little else."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture: building, sky, ground. A building gives fewer and larger regions than the character picture does, and the image fills each one with something of that kind."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region. It finds the building, the sky and the ground here, and the image puts something of each kind back in the same place."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco marks a few large regions on a building: the structure, the sky, the ground. The image follows the layout of those regions rather than any edge."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. A building holds its palette in large blocks, so the image gets a strong steer on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The image keeps that palette and arranges the building however the prompt suggests."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same building, repainted: the structure barely moves."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the building and changes its colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same building again with new detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the building tightly and lets the prompt add detail. The image is a cleaner version of the same picture."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the building just as tightly, with a plainer reading of it. The image stays very close to the source."
+        }
+      ],
+      "subject": "building"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a flat drawing: solid blocks of colour, no shading, no gradients. Half of these detectors read light and shade to work out what is in front of what, and there is none here for them to read. The prompt then asks for the world's normal painted look, so what each map carried across is visible in the result.",
+      "caption": "The source is flat colour with no shading in it at all. Detectors that trace outlines still find their shapes; detectors that read light and shade to judge distance and surface direction have nothing to work from.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "skyharbor-poster-ink"
+      ],
+      "source_image": "inputs/controlnet-flat-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed hands, extra fingers, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "There is little for Canny to trace in flat colour. It marks well under half as much of this picture as it marks of the character picture, so the map is a few outlines around the big shapes, and the image invents everything inside them."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed finds the boundaries between the blocks of colour and almost nothing else. The image treats those few soft strokes as the outline of a scene and paints the rest."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet marks the edges between colour blocks. The map is sparse, and the image keeps the layout while making up the surface and the light."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed needs texture to draw densely, and there is none here. It marks far less than it does in the character picture, and the image fills the space with detail of its own."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds under half as much here as it does in the character picture. The image keeps the big shapes and invents the rest."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. Flat colour splits cleanly into solid areas, so the map is large blocks rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble draws around each block of colour, so the map is bolder than the edge detectors manage here. The image gets clear shapes to work from and paints them with light the source never had."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles marks the boundaries between the flat areas as rough strokes. The image keeps that arrangement and invents the surface."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog needs fine detail to work with, and flat colour has none. The map is very sparse and the image is mostly the prompt's own."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet still marks the edges between the colour blocks. The image follows those shapes and fills them with texture the source does not have."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the outlines of the flat shapes. The map is thinner than the one it draws from the character picture, and the image paints inside those outlines as it likes."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart has only the boundaries between colours to find, far less than the building gives it. The image keeps the shapes and invents their surface."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, so it reads these clean shapes without trouble. The map is thin, and the image adds the shading the source refuses to have."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise keeps only its confident marks, which in flat colour means the outlines of the big shapes. The image builds a shaded picture on that frame."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines. Flat artwork has few of them, so the map is nearly bare and the image owes most of what it shows to the prompt."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "There is no shading here to judge distance from, so the depth detector guesses from the shapes alone: it reads the big form as nearer and the background as further. The image comes back with real volume the source never had."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth guesses depth from the outlines, since there is no light and shade to read. It returns a rounded reading of the flat shapes, and the image is modelled the way that map suggests."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth also has only the shapes to go on. The map is a smooth run of distance across them, and the image builds a scene with real depth from it."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything fills the frame here, but with far less structure in it: flat colour gives it nothing to separate. The image invents the volume."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 reads the flat shapes as one rounded mass. The image gives that mass surfaces and light of its own."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces, and it works that out from shading. There is no shading here, so the map is close to a single flat direction and the image invents the modelling."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae returns a single flat surface direction for the whole picture. Nothing about the source reaches the image at all."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture. Flat colour gives it almost nothing to tell apart: the whole picture comes back as one region with a small patch in it. The image is barely held at all."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region, and here it labels the entire picture as one thing. The map carries no layout, so the image is what the prompt alone would make."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco returns one or two large regions here, where the character picture gives it many. The image keeps only that rough layout."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. Flat artwork is already blocks of colour, so the map is a faithful palette and the image is steered hard on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The palette here is only a few solid colours, so the image comes back in those colours arranged however the prompt likes."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same flat shapes, repainted, and this is one of the few control types that survives a flat source intact."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the source's shapes and changes their colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same flat artwork again with painted detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the flat shapes tightly and lets the prompt add shading. The image is the same picture with modelling on it."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the picture just as tightly with a plainer reading of it. The image stays very close to the flat source."
+        }
+      ],
+      "subject": "flat"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a building instead of a person. Straight edges, rows of windows and a deep perspective are what the line and edge detectors were built for, and a structure has none of the things a pose detector looks for. Reading this beside the other two sources in the anime world is how the choice of detector stops being a list of names and becomes a question about the picture in front of you.",
+      "caption": "The source is a building: straight edges, repeated windows, and a long run of perspective. Edge and line detectors have a great deal to hold on to here, and the detectors that look for a body find nothing.",
+      "model_slugs": [
+        "anything-diffusion"
+      ],
+      "scene_ids": [
+        "shrine-gate-ink"
+      ],
+      "source_image": "inputs/controlnet-building-w2-512.webp",
+      "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, photorealistic, 3d, cg",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny traces the building's outlines: the girders, the window openings, the edges of the stairs. The image that comes back stands the same structure in the same place and paints it in the weather the prompt asked for."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed draws thicker, softer strokes than Canny. The frame and the roofline survive, the small fittings do not. The image follows the mass of the building and invents its surface."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps a moderate amount of the building: the main uprights and the roof, with some of the smaller structure. The image holds the shape and takes the colour and the light for itself."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed draws dense, soft edges, so most of the building's structure reaches the map. The image follows it closely and changes the hour and the weather rather than the shape."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds more of the building than Canny does, including faint edges in the distance. More of the background survives into the image as a result."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. A building of lit and shaded faces splits into large solid blocks, so the map is areas rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble already found a lot in the character picture here, and it finds only a little more in the building. The image gets a loose, sketched version of the same structure to follow."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles draws the building as rough strokes, dropping the fine structure. The image keeps the silhouette and the main lines and fills the rest in."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog draws a thin, sparse tracing of the building. The image keeps the main shape and is free with everything else."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet marks the building broadly, including a lot of the background. The image follows the whole scene rather than the structure alone."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the building as clean, even lines: uprights, cross-bracing, the roof. The image reads it as a drawing to paint over."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart finds more of the building than it finds of the character picture, because straight edges are what it is good at. The image follows those lines and re-lights the scene."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, and it still reads a building's straight edges cleanly. The map is sparser than standard lineart's, so the image invents more."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise drops the faint marks and keeps the confident ones, so the map is the building's main structure only. The image fills in the detail it lost."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines and nothing else. It finds no more of them in this gatehouse than it found in the character picture, because that picture had a torii and steps in it already. The image gets the frame of the structure to build on."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "The depth map reads the building as a solid nearer the viewer with the sky behind. The image keeps that arrangement and re-invents the surfaces."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth separates the building from its background, though it is vaguer about the structure inside it. The image holds the mass and the distance and makes up the detail."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth reads the run of distance through the picture and keeps the building standing out of it. The image follows that sense of depth."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything gives a smoother reading than the older depth detectors: the building is one mass at one distance. The image keeps that and invents its surface."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 marks the building's distance and the ground it stands on. The image holds the arrangement and changes the light."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces. On a building that means broad flat planes and few curves. The image builds a scene from those planes."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae reads a building as a small number of flat faces, so the map is much plainer than it is on the character picture. The image gets the arrangement of surfaces and little else."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture: building, sky, ground. A building gives fewer and larger regions than the character picture does, and the image fills each one with something of that kind."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region. It finds the building, the sky and the ground here, and the image puts something of each kind back in the same place."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco marks a few large regions on a building: the structure, the sky, the ground. The image follows the layout of those regions rather than any edge."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. A building holds its palette in large blocks, so the image gets a strong steer on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The image keeps that palette and arranges the building however the prompt suggests."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same building, repainted: the structure barely moves."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the building and changes its colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same building again with new detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the building tightly and lets the prompt add detail. The image is a cleaner version of the same picture."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the building just as tightly, with a plainer reading of it. The image stays very close to the source."
+        }
+      ],
+      "subject": "building"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a flat drawing: solid blocks of colour, no shading, no gradients. Half of these detectors read light and shade to work out what is in front of what, and there is none here for them to read. The prompt then asks for the world's normal painted look, so what each map carried across is visible in the result.",
+      "caption": "The source is flat colour with no shading in it at all. Detectors that trace outlines still find their shapes; detectors that read light and shade to judge distance and surface direction have nothing to work from.",
+      "model_slugs": [
+        "anything-diffusion"
+      ],
+      "scene_ids": [
+        "shrine-gate-flat-ink"
+      ],
+      "source_image": "inputs/controlnet-flat-w2-512.webp",
+      "negative_prompt": "lowres, worst quality, bad anatomy, bad hands, extra digits, watermark, signature, photorealistic, 3d, cg",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "There is little for Canny to trace in flat colour. It marks well under half as much of this picture as it marks of the character picture, so the map is a few outlines around the big shapes, and the image invents everything inside them."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed finds the boundaries between the blocks of colour and almost nothing else. The image treats those few soft strokes as the outline of a scene and paints the rest."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet marks the edges between colour blocks. The map is sparse, and the image keeps the layout while making up the surface and the light."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed needs texture to draw densely, and there is none here. It marks far less than it does in the character picture, and the image fills the space with detail of its own."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds under half as much here as it does in the character picture. The image keeps the big shapes and invents the rest."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. Flat colour splits cleanly into solid areas, so the map is large blocks rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble draws around each block of colour, so the map is bolder than the edge detectors manage here. The image gets clear shapes to work from and paints them with light the source never had."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles marks the boundaries between the flat areas as rough strokes. The image keeps that arrangement and invents the surface."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog needs fine detail to work with, and flat colour has none. The map is very sparse and the image is mostly the prompt's own."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet still marks the edges between the colour blocks. The image follows those shapes and fills them with texture the source does not have."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the outlines of the flat shapes. The map is thinner than the one it draws from the character picture, and the image paints inside those outlines as it likes."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart has only the boundaries between colours to find, far less than the building gives it. The image keeps the shapes and invents their surface."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, so it reads these clean shapes without trouble. The map is thin, and the image adds the shading the source refuses to have."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise keeps only its confident marks, which in flat colour means the outlines of the big shapes. The image builds a shaded picture on that frame."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines. Flat artwork has few of them, so the map is nearly bare and the image owes most of what it shows to the prompt."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "There is no shading here to judge distance from, so the depth detector guesses from the shapes alone: it reads the big form as nearer and the background as further. The image comes back with real volume the source never had."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth guesses depth from the outlines, since there is no light and shade to read. It returns a rounded reading of the flat shapes, and the image is modelled the way that map suggests."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth also has only the shapes to go on. The map is a smooth run of distance across them, and the image builds a scene with real depth from it."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything fills the frame here, but with far less structure in it: flat colour gives it nothing to separate. The image invents the volume."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 reads the flat shapes as one rounded mass. The image gives that mass surfaces and light of its own."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces, and it works that out from shading. There is no shading here, so the map is close to a single flat direction and the image invents the modelling."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae returns almost one flat surface direction for the whole picture. Nothing about the source's form reaches the image, which builds its own."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture. Flat colour gives it almost nothing to tell apart, so nearly the whole picture becomes one region and the image is only loosely held."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region. Flat artwork gives it very little to separate, so the map is a few large areas and the image follows them loosely."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco returns one or two large regions here, where the character picture gives it many. The image keeps only that rough layout."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. Flat artwork is already blocks of colour, so the map is a faithful palette and the image is steered hard on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The palette here is only a few solid colours, so the image comes back in those colours arranged however the prompt likes."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same flat shapes, repainted, and this is one of the few control types that survives a flat source intact."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the source's shapes and changes their colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same flat artwork again with painted detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the flat shapes tightly and lets the prompt add shading. The image is the same picture with modelling on it."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the picture just as tightly with a plainer reading of it. The image stays very close to the flat source."
+        }
+      ],
+      "subject": "flat"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a building instead of a person. Straight edges, rows of windows and a deep perspective are what the line and edge detectors were built for, and a structure has none of the things a pose detector looks for. Reading this beside the other two sources in world 3 is how the choice of detector stops being a list of names and becomes a question about the picture in front of you.",
+      "caption": "The source is a building: straight edges, repeated windows, and a long run of perspective. Edge and line detectors have a great deal to hold on to here, and the detectors that look for a body find nothing.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "glasshouse-ink"
+      ],
+      "source_image": "inputs/controlnet-building-w3-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "Canny traces the building's outlines: the girders, the window openings, the edges of the stairs. The image that comes back stands the same structure in the same place and paints it in the weather the prompt asked for."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed draws thicker, softer strokes than Canny. The frame and the roofline survive, the small fittings do not. The image follows the mass of the building and invents its surface."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet keeps a moderate amount of the building: the main uprights and the roof, with some of the smaller structure. The image holds the shape and takes the colour and the light for itself."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed draws dense, soft edges, so most of the building's structure reaches the map. The image follows it closely and changes the hour and the weather rather than the shape."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds more of the building than Canny does, including faint edges in the distance. More of the background survives into the image as a result."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. A building of lit and shaded faces splits into large solid blocks, so the map is areas rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble finds a great deal in a building: it marks far more of this picture than it marked of the character picture. The image gets a loose, sketched version of the same structure to follow."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles draws the building as rough strokes, dropping the fine structure. The image keeps the silhouette and the main lines and fills the rest in."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog draws a thin, sparse tracing of the building. The image keeps the main shape and is free with everything else."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet marks the building broadly, including a lot of the background. The image follows the whole scene rather than the structure alone."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the building as clean, even lines: uprights, cross-bracing, the roof. The image reads it as a drawing to paint over."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart finds more of the building than it finds of the character picture, because straight edges are what it is good at. The image follows those lines and re-lights the scene."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, and it still reads a building's straight edges cleanly. The map is sparser than standard lineart's, so the image invents more."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise drops the faint marks and keeps the confident ones, so the map is the building's main structure only. The image fills in the detail it lost."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines and nothing else, which is exactly what a building is made of. It finds more of them here than in the character picture, and the image gets the frame of the structure to build on."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "The depth map reads the building as a solid nearer the viewer with the sky behind. The image keeps that arrangement and re-invents the surfaces."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth separates the building from its background, though it is vaguer about the structure inside it. The image holds the mass and the distance and makes up the detail."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth reads the run of distance through the picture and keeps the building standing out of it. The image follows that sense of depth."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything gives a smoother reading than the older depth detectors: the building is one mass at one distance. The image keeps that and invents its surface."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 marks the building's distance and the ground it stands on. The image holds the arrangement and changes the light."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces. On a building that means broad flat planes and few curves. The image builds a scene from those planes."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae reads a building as a small number of flat faces, so the map is much plainer than it is on the character picture. The image gets the arrangement of surfaces and little else."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture: building, sky, ground. A building gives fewer and larger regions than the character picture does, and the image fills each one with something of that kind."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region. It finds the building, the sky and the ground here, and the image puts something of each kind back in the same place."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco marks a few large regions on a building: the structure, the sky, the ground. The image follows the layout of those regions rather than any edge."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. A building holds its palette in large blocks, so the image gets a strong steer on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The image keeps that palette and arranges the building however the prompt suggests."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same building, repainted: the structure barely moves."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the building and changes its colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same building again with new detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the building tightly and lets the prompt add detail. The image is a cleaner version of the same picture."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the building just as tightly, with a plainer reading of it. The image stays very close to the source."
+        }
+      ],
+      "subject": "building"
+    },
+    {
+      "kind": "strip",
+      "parameter": "controlnet_gallery",
+      "presentation": "triptych",
+      "rationale": "The same 33 detectors on a flat drawing: solid blocks of colour, no shading, no gradients. Half of these detectors read light and shade to work out what is in front of what, and there is none here for them to read. The prompt then asks for the world's normal painted look, so what each map carried across is visible in the result.",
+      "caption": "The source is flat colour with no shading in it at all. Detectors that trace outlines still find their shapes; detectors that read light and shade to judge distance and surface direction have nothing to work from.",
+      "model_slugs": [
+        "deliberate"
+      ],
+      "scene_ids": [
+        "robot-gardener-flat-ink"
+      ],
+      "source_image": "inputs/controlnet-flat-w3-512.webp",
+      "negative_prompt": "photograph, 3d render, lowres, blurry, deformed, watermark, text",
+      "holds": {
+        "denoising_strength": 0.75,
+        "source_processing": "img2img"
+      },
+      "stops": [
+        {
+          "value": "canny",
+          "control_type": "canny",
+          "control_group": "edges",
+          "caption": "There is little for Canny to trace in flat colour. It marks well under half as much of this picture as it marks of the character picture, so the map is a few outlines around the big shapes, and the image invents everything inside them."
+        },
+        {
+          "value": "hed",
+          "control_type": "hed",
+          "control_group": "edges",
+          "caption": "hed finds the boundaries between the blocks of colour and almost nothing else. The image treats those few soft strokes as the outline of a scene and paints the rest."
+        },
+        {
+          "value": "pidinet",
+          "control_type": "pidinet",
+          "control_group": "edges",
+          "caption": "pidinet marks the edges between colour blocks. The map is sparse, and the image keeps the layout while making up the surface and the light."
+        },
+        {
+          "value": "teed",
+          "control_type": "teed",
+          "control_group": "edges",
+          "caption": "teed needs texture to draw densely, and there is none here. It marks far less than it does in the character picture, and the image fills the space with detail of its own."
+        },
+        {
+          "value": "pyracanny",
+          "control_type": "pyracanny",
+          "control_group": "edges",
+          "caption": "pyracanny finds under half as much here as it does in the character picture. The image keeps the big shapes and invents the rest."
+        },
+        {
+          "value": "binary",
+          "control_type": "binary",
+          "control_group": "edges",
+          "caption": "Binary splits the picture into black and white at a brightness threshold. Flat colour splits cleanly into solid areas, so the map is large blocks rather than lines, and the image reads them as masses of light and dark."
+        },
+        {
+          "value": "scribble",
+          "control_type": "scribble",
+          "control_group": "edges",
+          "caption": "Scribble draws around each block of colour, so the map is bolder than the edge detectors manage here. The image gets clear shapes to work from and paints them with light the source never had."
+        },
+        {
+          "value": "fakescribbles",
+          "control_type": "fakescribbles",
+          "control_group": "edges",
+          "caption": "fakescribbles marks the boundaries between the flat areas as rough strokes. The image keeps that arrangement and invents the surface."
+        },
+        {
+          "value": "scribble_xdog",
+          "control_type": "scribble_xdog",
+          "control_group": "edges",
+          "caption": "scribble_xdog needs fine detail to work with, and flat colour has none. The map is very sparse and the image is mostly the prompt's own."
+        },
+        {
+          "value": "scribble_pidinet",
+          "control_type": "scribble_pidinet",
+          "control_group": "edges",
+          "caption": "scribble_pidinet still marks the edges between the colour blocks. The image follows those shapes and fills them with texture the source does not have."
+        },
+        {
+          "value": "standard_lineart",
+          "control_type": "standard_lineart",
+          "control_group": "lines",
+          "caption": "standard_lineart draws the outlines of the flat shapes. The map is thinner than the one it draws from the character picture, and the image paints inside those outlines as it likes."
+        },
+        {
+          "value": "lineart",
+          "control_type": "lineart",
+          "control_group": "lines",
+          "caption": "lineart has only the boundaries between colours to find, far less than the building gives it. The image keeps the shapes and invents their surface."
+        },
+        {
+          "value": "lineart_anime",
+          "control_type": "lineart_anime",
+          "control_group": "lines",
+          "caption": "lineart_anime is built for drawn artwork, so it reads these clean shapes without trouble. The map is thin, and the image adds the shading the source refuses to have."
+        },
+        {
+          "value": "lineart_anime_denoise",
+          "control_type": "lineart_anime_denoise",
+          "control_group": "lines",
+          "caption": "lineart_anime_denoise keeps only its confident marks, which in flat colour means the outlines of the big shapes. The image builds a shaded picture on that frame."
+        },
+        {
+          "value": "mlsd",
+          "control_type": "mlsd",
+          "control_group": "lines",
+          "caption": "mlsd looks for straight lines. This picture is made of circles and curves, so the map is almost empty and the image is the prompt's own."
+        },
+        {
+          "value": "depth",
+          "control_type": "depth",
+          "control_group": "depth",
+          "caption": "There is no shading here to judge distance from, so the depth detector guesses from the shapes alone: it reads the big form as nearer and the background as further. The image comes back with real volume the source never had."
+        },
+        {
+          "value": "midas_depth",
+          "control_type": "midas_depth",
+          "control_group": "depth",
+          "caption": "midas_depth guesses depth from the outlines, since there is no light and shade to read. It returns a rounded reading of the flat shapes, and the image is modelled the way that map suggests."
+        },
+        {
+          "value": "zoe_depth",
+          "control_type": "zoe_depth",
+          "control_group": "depth",
+          "caption": "zoe_depth also has only the shapes to go on. The map is a smooth run of distance across them, and the image builds a scene with real depth from it."
+        },
+        {
+          "value": "depth_anything",
+          "control_type": "depth_anything",
+          "control_group": "depth",
+          "caption": "depth_anything fills the frame here, but with far less structure in it: flat colour gives it nothing to separate. The image invents the volume."
+        },
+        {
+          "value": "depth_anything_v2",
+          "control_type": "depth_anything_v2",
+          "control_group": "depth",
+          "caption": "depth_anything_v2 reads the flat shapes as one rounded mass. The image gives that mass surfaces and light of its own."
+        },
+        {
+          "value": "normal",
+          "control_type": "normal",
+          "control_group": "surface",
+          "caption": "The normal map says which way each surface faces, and it works that out from shading. There is no shading here, so the map is close to a single flat direction and the image invents the modelling."
+        },
+        {
+          "value": "normal_bae",
+          "control_type": "normal_bae",
+          "control_group": "surface",
+          "caption": "normal_bae returns almost one flat surface direction for the whole picture. Nothing about the source's form reaches the image, which builds its own."
+        },
+        {
+          "value": "openpose",
+          "control_type": "openpose",
+          "control_group": "pose",
+          "caption": "openpose looks for a human body. There is no body in this picture, so the map is empty and the image is what the prompt alone would make."
+        },
+        {
+          "value": "seg",
+          "control_type": "seg",
+          "control_group": "regions",
+          "caption": "The segmentation map labels each part of the picture. Flat colour gives it almost nothing to tell apart, so nearly the whole picture becomes one region and the image is only loosely held."
+        },
+        {
+          "value": "oneformer_ade20k",
+          "control_type": "oneformer_ade20k",
+          "control_group": "regions",
+          "caption": "oneformer_ade20k labels the picture by region. Flat artwork gives it very little to separate, so the map is a few large areas and the image follows them loosely."
+        },
+        {
+          "value": "oneformer_coco",
+          "control_type": "oneformer_coco",
+          "control_group": "regions",
+          "caption": "oneformer_coco returns one or two large regions here, where the character picture gives it many. The image keeps only that rough layout."
+        },
+        {
+          "value": "color",
+          "control_type": "color",
+          "control_group": "colour",
+          "caption": "The colour map is the picture blurred down to its colours. Flat artwork is already blocks of colour, so the map is a faithful palette and the image is steered hard on where each colour goes."
+        },
+        {
+          "value": "shuffle",
+          "control_type": "shuffle",
+          "control_group": "colour",
+          "caption": "Shuffle stirs the picture's colours into a swirl. The palette here is only a few solid colours, so the image comes back in those colours arranged however the prompt likes."
+        },
+        {
+          "value": "recolor_luminance",
+          "control_type": "recolor_luminance",
+          "control_group": "colour",
+          "caption": "recolor_luminance throws the colour away and keeps the brightness. The image is the same flat shapes, repainted, and this is one of the few control types that survives a flat source intact."
+        },
+        {
+          "value": "recolor_intensity",
+          "control_type": "recolor_intensity",
+          "control_group": "colour",
+          "caption": "recolor_intensity keeps a slightly different reading of brightness. The image stays close to the source's shapes and changes their colours."
+        },
+        {
+          "value": "tile",
+          "control_type": "tile",
+          "control_group": "colour",
+          "caption": "Tile keeps almost the whole picture as the map, so the image is the same flat artwork again with painted detail worked into it."
+        },
+        {
+          "value": "tile_ttplanet_guided",
+          "control_type": "tile_ttplanet_guided",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_guided holds the flat shapes tightly and lets the prompt add shading. The image is the same picture with modelling on it."
+        },
+        {
+          "value": "tile_ttplanet_simple",
+          "control_type": "tile_ttplanet_simple",
+          "control_group": "colour",
+          "caption": "tile_ttplanet_simple holds the picture just as tightly with a plainer reading of it. The image stays very close to the flat source."
+        }
+      ],
+      "subject": "flat"
     },
     {
       "kind": "strip",

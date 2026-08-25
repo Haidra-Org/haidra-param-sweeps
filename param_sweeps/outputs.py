@@ -50,6 +50,7 @@ from param_sweeps.spec import (
     StripPresentation,
     SweepParameter,
     SweepSpec,
+    SweepSubject,
     resolve_preview_indices,
 )
 
@@ -266,6 +267,14 @@ class IndexStrip(BaseModel):
     source_height: int | None = None
     """The source image's height in pixels, or None when the strip starts from noise."""
 
+    subject: SweepSubject | None = None
+    """Which kind of source picture this strip runs on, where several strips share a lesson.
+
+    The ControlNet gallery runs every detector on a world's anchor picture, on a building and on
+    a flat-colour drawing, and this is what lets a consumer offer the three as alternatives to
+    each other. None on a strip that has no such companions.
+    """
+
     control_map: str | None = None
     """The map the detector drew from the strip's source, on strips held to one control type.
 
@@ -448,6 +457,7 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                 varying=_varying_field_names(strip),
                 stops=stops,
                 source_image=strip.published_source_image,
+                subject=strip.subject,
                 source_width=source_width,
                 source_height=source_height,
                 control_map=_published_strip_control_map(strip=strip, output_root=output_root),

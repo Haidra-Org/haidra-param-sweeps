@@ -268,6 +268,21 @@ class StripPresentation(StrEnum):
     TRIPTYCH = "triptych"
 
 
+class SweepSubject(StrEnum):
+    """Which kind of picture a sweep starts from, where one sweep runs on several.
+
+    The ControlNet gallery renders every detector three times per world: on the world's anchor
+    picture, on a building with straight edges and perspective, and on a flat-colour drawing with
+    no shading in it. A detector that leans on shading has nothing to read in the flat picture and
+    a great deal to read in the building, and the subject is what a consumer needs in order to
+    offer those as alternatives to each other rather than as unrelated strips.
+    """
+
+    ANCHOR = "anchor"
+    BUILDING = "building"
+    FLAT = "flat"
+
+
 PREVIEWABLE_PRESENTATIONS = frozenset({StripPresentation.STRIP, StripPresentation.TRIPTYCH})
 """The presentations whose collapsed card shows two stops under a wipe handle.
 
@@ -665,6 +680,13 @@ class SweepBase(BaseModel):
     Set it where the difference the strip teaches lives in detail the reader cannot see at the
     size a page draws the frame: an upscaler's invented texture, or what a second pass adds to a
     face. Left unset where the lesson is composition, which reads at any size.
+    """
+
+    subject: SweepSubject | None = None
+    """Which kind of source picture this sweep runs on, where several sweeps run on a set of them.
+
+    Unset on a sweep that stands alone, which is every sweep that has only one source to be read
+    against. See [`SweepSubject`][param_sweeps.spec.SweepSubject].
     """
 
     directory_override: str | None = None
@@ -1392,6 +1414,9 @@ class RenderStrip(BaseModel):
     batch_section: BatchSection | None = None
     """Which review-batch section this strip's single job belongs to, when it came from a batch."""
 
+    subject: SweepSubject | None = None
+    """Which kind of source picture this strip runs on, carried from the sweep that built it."""
+
     directory_override: str | None = None
     """Where this strip's files go instead of the parameter/model/scene layout."""
 
@@ -1750,6 +1775,7 @@ class SweepSpec(BaseModel):
             scene=scene,
             jobs=jobs,
             source_image=sweep.source_image,
+            subject=sweep.subject,
             grid_rows=sweep.rows if isinstance(sweep, GridSweep) else None,
             grid_columns=sweep.columns if isinstance(sweep, GridSweep) else None,
             directory_override=sweep.directory_override,
