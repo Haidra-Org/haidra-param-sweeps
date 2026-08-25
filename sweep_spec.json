@@ -355,8 +355,8 @@
     {
       "kind": "strip",
       "parameter": "cfg_scale",
-      "rationale": "SDXL burns out at a lower guidance than SD1.5, so the two baselines diverge; the anime model tracks SDXL closely enough that a third strip teaches nothing new.",
-      "caption": "How hard the model is pushed to follow your prompt. Too low and it ignores you; too high and it overcooks the image.",
+      "rationale": "CFG scale controls how strongly the prompt guides the model. SDXL starts to show high-guidance damage sooner than SD1.5, so both baselines are included; the anime model behaves close enough to SDXL here that a third strip would mostly repeat the same lesson.",
+      "caption": "How strongly the model is pushed to follow your prompt. Low values give the model more freedom and may miss details you asked for. High values do not mean better prompt-following forever: they can force harsh contrast, clipped colour and brittle edges.",
       "model_slugs": [
         "icbinp",
         "albedobase-xl"
@@ -370,17 +370,17 @@
         {
           "value": 1,
           "cfg_scale": 1.0,
-          "caption": "Guidance as good as off, and the lowest the horde accepts. The model paints what it likes and your prompt barely reaches it."
+          "caption": "Guidance is almost off, and this is the lowest value the horde accepts. The model mostly follows its own habits, so the prompt has only a weak effect."
         },
         {
           "value": 2,
           "cfg_scale": 2.0,
-          "caption": "Barely steered. The prompt is a suggestion the model may take."
+          "caption": "Very light guidance. The prompt can influence the image, but the model still has a lot of room to choose for itself."
         },
         {
           "value": 3,
           "cfg_scale": 3.0,
-          "caption": "Loose adherence and soft colour, with room for the model's own ideas."
+          "caption": "Loose prompt-following with soft colour. Useful when you want the model to interpret the prompt rather than obey every detail."
         },
         {
           "value": 4,
@@ -415,17 +415,17 @@
         {
           "value": 13,
           "cfg_scale": 13.0,
-          "caption": "Hardening: edges crisp up past the point of looking natural."
+          "caption": "Too much guidance is starting to show: edges become unnaturally crisp and the image looks less natural."
         },
         {
           "value": 15,
           "cfg_scale": 15.0,
-          "caption": "Overcooked: harsh contrast, burnt colour and crunchy edges."
+          "caption": "Over-guided: contrast is harsh, colours look burned or clipped, and edges become brittle."
         },
         {
           "value": 20,
           "cfg_scale": 20.0,
-          "caption": "Far past useful. The image is being forced, and no part of that is better prompt-following."
+          "caption": "Far past the useful range. The prompt is being forced so hard that the image gets worse rather than more accurate."
         }
       ]
     },
@@ -503,8 +503,8 @@
     {
       "kind": "strip",
       "parameter": "hires_fix",
-      "rationale": "The failure hires-fix repairs only appears above a model's native size, so the strip must render above it; at native size the flag does nothing at all. It runs on a figure rather than on the compact object it used to, because what goes wrong at oversize is that the model repeats what it knows, and on a person that reads as a second head or a third arm rather than as a general softness a reader has to be told to see. The frame is tall for the same reason: an SD1.5 model stacks a subject up a long frame rather than enlarging it. It runs on the default SD1.5 model rather than the photoreal one, which holds together at oversize well enough to hide the lesson.",
-      "caption": "Above a model's native size, one pass repeats what it knows. Hires-fix generates small first, then enlarges and refines.",
+      "rationale": "This strip is rendered above the model's native size because hires-fix only matters when a one-pass render is being asked to go larger than the model handles comfortably. A person makes the failure easy to see: repeated knowledge becomes a second head or extra limb, not just vague softness. The tall frame is intentional because SD1.5 often stacks a subject through a long image instead of enlarging one clean subject. The default SD1.5 model is used because the photoreal model holds together well enough to hide the lesson.",
+      "caption": "When you ask for more pixels than a model comfortably generates in one pass, it may repeat subjects or stretch shapes instead of making a larger coherent scene. Hires-fix composes a smaller image first, then enlarges it and redraws detail at the requested size.",
       "model_slugs": [
         "stable-diffusion"
       ],
@@ -520,20 +520,20 @@
         {
           "value": false,
           "hires_fix": false,
-          "caption": "One pass at the full size. Above what the model knows you get duplicated details and stretched shapes."
+          "caption": "Generated in one pass at the full requested size. Past the model's comfortable size, this can duplicate details, stretch anatomy, or split one subject into several."
         },
         {
           "value": true,
           "hires_fix": true,
-          "caption": "Generated small, then enlarged and re-diffused, so the composition stays coherent."
+          "caption": "Generated smaller first, then enlarged and redrawn. The first pass decides the composition, so the final image is more likely to stay coherent."
         }
       ]
     },
     {
       "kind": "strip",
       "parameter": "hires_fix",
-      "rationale": "The same reading on a model trained at 1024, and it breaks on a different shape of ask. SD1.5 stacks a subject up a long frame, so its pair renders tall; SDXL does not. At 1152x2048 and again at 1536x3072, three times its training height, one pass still composed a single clean figure and the pair had nothing to teach. What breaks SDXL is square area: at 2048x2048 it puts two heads on one body, and the pair runs at 2304x2304 so it is clearly past that edge rather than sitting on it. That the two baselines fail on different shapes is why both carry a pair.",
-      "caption": "Above a model's native size, one pass repeats what it knows. Hires-fix generates small first, then enlarges and refines.",
+      "rationale": "The same lesson on an SDXL model, which was trained at a larger native size and fails later. SDXL did not show the problem clearly on the tall sizes used for SD1.5, so this pair uses a very large square request where one-pass generation produces duplicated anatomy. Showing both baselines matters because the failure appears at different shapes and sizes.",
+      "caption": "When you ask for more pixels than a model comfortably generates in one pass, it may repeat subjects or stretch shapes instead of making a larger coherent scene. Hires-fix composes a smaller image first, then enlarges it and redraws detail at the requested size.",
       "model_slugs": [
         "albedobase-xl"
       ],
@@ -545,12 +545,12 @@
         {
           "value": false,
           "hires_fix": false,
-          "caption": "One pass at the full size. Above what the model knows you get duplicated details and stretched shapes."
+          "caption": "Generated in one pass at the full requested size. Past the model's comfortable size, this can duplicate details, stretch anatomy, or split one subject into several."
         },
         {
           "value": true,
           "hires_fix": true,
-          "caption": "Generated small, then enlarged and re-diffused, so the composition stays coherent."
+          "caption": "Generated smaller first, then enlarged and redrawn. The first pass decides the composition, so the final image is more likely to stay coherent."
         }
       ],
       "holds": {
@@ -862,8 +862,8 @@
     {
       "kind": "strip",
       "parameter": "denoising_strength",
-      "rationale": "Denoising strength only means anything when there is a source image, so this is the one sweep that renders image-to-image. Both baselines run it because the usable bands sit slightly differently on SD1.5 and on SDXL. The source is the signed-off render of this world's deck scene, and the prompt is the same scene in different weather, so a reader is watching one picture they have already met being restyled rather than meeting two strangers at once.",
-      "caption": "Image-to-image starts from a picture instead of from noise. Denoising strength is how much of that picture is redrawn: near 0 the source is left almost untouched, and at 1 it is ignored entirely.",
+      "rationale": "Denoising strength only applies when a source image is supplied. It controls how much of that starting image is redrawn during image-to-image: low values preserve the source, middle values restyle it, and high values leave only a loose layout or ignore it entirely. Both baselines are included because SD1.5 and SDXL keep the source through slightly different ranges.",
+      "caption": "Image-to-image starts from an existing picture. Denoising strength controls how much of that picture is replaced: near 0, the source is mostly kept; around the middle, the prompt can restyle it while the subject survives; near 1, the source has little or no practical influence.",
       "model_slugs": [
         "icbinp",
         "albedobase-xl"
@@ -891,7 +891,7 @@
         {
           "value": 0.45,
           "denoising_strength": 0.45,
-          "caption": "The restyling band starts here: the prompt reaches the light and the colour."
+          "caption": "Restyling starts to take over here: the prompt now changes the lighting and colour in visible ways."
         },
         {
           "value": 0.6,
@@ -901,7 +901,7 @@
         {
           "value": 0.65,
           "denoising_strength": 0.65,
-          "caption": "The top of the restyling band, and about as far as the source's subject reliably survives."
+          "caption": "Near the upper end for restyling. The original subject still survives, but pushing higher makes it less reliable."
         },
         {
           "value": 0.75,
@@ -931,15 +931,15 @@
         {
           "value": 1.0,
           "denoising_strength": 1.0,
-          "caption": "The source is ignored entirely. This is text-to-image with a picture attached that does nothing."
+          "caption": "The source image no longer has a practical effect. The result behaves like text-to-image even though a picture was attached."
         }
       ]
     },
     {
       "kind": "strip",
       "parameter": "denoising_strength",
-      "rationale": "The other half of what image-to-image is for: turning a sketch into a render, where the source is the composition rather than the picture. The sketch is checked in under inputs/ and is deliberately crude, flat blocks of colour with no shading at all, so that nothing in it can be mistaken for detail the model kept. Both baselines run it because the strength at which a flat sketch stops reading as a sketch differs between them.",
-      "caption": "The same control, starting from a drawing instead of a photograph. Low strengths leave you with a tidied drawing, because there is nothing in the source to refine into a render; the drawing only becomes a picture once enough of it is redrawn.",
+      "rationale": "This uses denoising strength for the other common image-to-image job: turning a sketch into a rendered image. Here the source is mainly a layout guide, not a finished picture. The sketch is deliberately simple and flat, so readers can see when the model is still preserving the drawing and when it has redrawn enough for the result to become a scene.",
+      "caption": "The same control, but starting from a drawing instead of a photograph. Low values mostly clean up the sketch. Middle values redraw enough for materials and lighting to appear. High values treat the sketch as only a loose layout, or ignore it entirely.",
       "model_slugs": [
         "icbinp",
         "albedobase-xl"
@@ -1014,8 +1014,8 @@
     {
       "kind": "strip",
       "parameter": "denoising_strength_converging",
-      "rationale": "The same denoising strip on a sampler that settles (k_dpmpp_2m) instead of the ancestral anchor. An ancestral sampler re-rolls detail as the strength rises, so part of what a reader sees change along the ancestral strip is the sampler rather than the strength; this pair lets them tell the two apart, which is the same lesson the converging steps strips teach for step count. Denoising strength only means anything when there is a source image, so this is the one sweep that renders image-to-image. Both baselines run it because the usable bands sit slightly differently on SD1.5 and on SDXL. The source is the signed-off render of this world's deck scene, and the prompt is the same scene in different weather, so a reader is watching one picture they have already met being restyled rather than meeting two strangers at once.",
-      "caption": "Image-to-image starts from a picture instead of from noise. Denoising strength is how much of that picture is redrawn: near 0 the source is left almost untouched, and at 1 it is ignored entirely. This strip uses a sampler that settles, so what changes from stop to stop is the strength alone.",
+      "rationale": "The same image-to-image denoising strip, but on a sampler that settles instead of an ancestral sampler. An ancestral sampler adds variation as strength rises, so some visible changes come from the sampler rather than from denoising strength itself. This version helps isolate the denoising setting: low values preserve the source, middle values restyle it, and high values largely replace it.",
+      "caption": "Image-to-image starts from an existing picture. Denoising strength controls how much of that picture is replaced: near 0, the source is mostly kept; around the middle, the prompt can restyle it while the subject survives; near 1, the source has little or no practical influence. This strip uses a sampler that settles, so changes between stops mostly come from the strength setting.",
       "model_slugs": [
         "icbinp",
         "albedobase-xl"
@@ -1043,7 +1043,7 @@
         {
           "value": 0.45,
           "denoising_strength": 0.45,
-          "caption": "The restyling band starts here: the prompt reaches the light and the colour."
+          "caption": "Restyling starts to take over here: the prompt now changes the lighting and colour in visible ways."
         },
         {
           "value": 0.6,
@@ -1053,7 +1053,7 @@
         {
           "value": 0.65,
           "denoising_strength": 0.65,
-          "caption": "The top of the restyling band, and about as far as the source's subject reliably survives."
+          "caption": "Near the upper end for restyling. The original subject still survives, but pushing higher makes it less reliable."
         },
         {
           "value": 0.75,
@@ -1083,7 +1083,7 @@
         {
           "value": 1.0,
           "denoising_strength": 1.0,
-          "caption": "The source is ignored entirely. This is text-to-image with a picture attached that does nothing."
+          "caption": "The source image no longer has a practical effect. The result behaves like text-to-image even though a picture was attached."
         }
       ],
       "holds": {
@@ -1093,8 +1093,8 @@
     {
       "kind": "strip",
       "parameter": "denoising_strength_converging",
-      "rationale": "The same denoising strip on a sampler that settles (k_dpmpp_2m) instead of the ancestral anchor. An ancestral sampler re-rolls detail as the strength rises, so part of what a reader sees change along the ancestral strip is the sampler rather than the strength; this pair lets them tell the two apart, which is the same lesson the converging steps strips teach for step count. The other half of what image-to-image is for: turning a sketch into a render, where the source is the composition rather than the picture. The sketch is checked in under inputs/ and is deliberately crude, flat blocks of colour with no shading at all, so that nothing in it can be mistaken for detail the model kept. Both baselines run it because the strength at which a flat sketch stops reading as a sketch differs between them.",
-      "caption": "The same control, starting from a drawing instead of a photograph. Low strengths leave you with a tidied drawing, because there is nothing in the source to refine into a render; the drawing only becomes a picture once enough of it is redrawn. This strip uses a sampler that settles, so what changes from stop to stop is the strength alone.",
+      "rationale": "The same sketch-to-render denoising strip, but on a sampler that settles. An ancestral sampler adds variation as strength rises, which can make sampler behavior look like denoising behavior. This version keeps the focus on the setting itself: low values preserve the sketch, middle values render it into a scene, and high values leave the model to rebuild most of it.",
+      "caption": "The same control, starting from a drawing instead of a photograph. Low values mostly clean up the sketch. Middle values redraw enough for materials and lighting to appear. High values treat the sketch as only a loose layout, or ignore it entirely. This strip uses a sampler that settles, so changes between stops mostly come from the strength setting.",
       "model_slugs": [
         "icbinp",
         "albedobase-xl"
@@ -1172,8 +1172,8 @@
     {
       "kind": "strip",
       "parameter": "negative_prompt",
-      "rationale": "Rendered on the close portrait because hands and anatomy are where a negative prompt does visible work, and the scene asks for bare fingers on purpose: gloves hide the very thing the strip is about. SDXL only, having tried the SD1.5 model: at 512 the hands are too small in frame for the repair to read, and a strip whose lesson needs pointing at is not worth the render.",
-      "caption": "A second prompt naming what to steer away from. It is not a quality switch: it conditions the other half of the guidance the model is already doing, and what it changes first is usually anatomy, hands most of all.",
+      "rationale": "This example uses a close portrait because negative prompts often show their effect first on fragile details such as hands and anatomy. The scene asks for bare fingers on purpose, so the improvement or failure is visible. SDXL is used because, at 512 pixels, the SD1.5 hands were too small for the lesson to read clearly.",
+      "caption": "A negative prompt names things you want the model to avoid. It is not a general quality switch: it changes the same guidance process as the main prompt, usually affecting fragile details such as hands and anatomy before anything else.",
       "model_slugs": [
         "albedobase-xl"
       ],
@@ -1186,20 +1186,20 @@
         {
           "value": false,
           "use_negative_prompt": false,
-          "caption": "No negative prompt: whatever the model does with the hands is what you get."
+          "caption": "No negative prompt: the hands are whatever the model naturally produces from the main prompt."
         },
         {
           "value": true,
           "use_negative_prompt": true,
-          "caption": "The same image with hand and anatomy terms steered away from."
+          "caption": "The same request with unwanted hand and anatomy problems named. The model is steered away from those failures, though it is not guaranteed to fix them perfectly."
         }
       ]
     },
     {
       "kind": "strip",
       "parameter": "negative_prompt",
-      "rationale": "The other thing a negative prompt does, and the one that is easiest to check: naming a thing that is in the picture and having it leave. The scene names its removable parts on purpose, so a reader can count them in the first stop and count them again in the second.",
-      "caption": "The same control used to take something out rather than to fix something. What you name is steered away from, which is why a negative prompt is worth reading as a list of things you do not want in frame rather than as a quality setting.",
+      "rationale": "This shows the other common use of a negative prompt: removing visible things from the scene. The prompt names countable objects on purpose, so readers can compare the version with airships and birds against the version where those words are listed as unwanted.",
+      "caption": "The same control used to remove content rather than repair details. A negative prompt is best read as a list of things you do not want in the frame, not as a universal quality setting.",
       "model_slugs": [
         "albedobase-xl"
       ],
@@ -1217,7 +1217,7 @@
         {
           "value": true,
           "use_negative_prompt": true,
-          "caption": "Airships and birds named as unwanted. The airships are gone and the skyharbor they were moored in is still there."
+          "caption": "Airships and birds are named as unwanted. They are removed, while the skyharbor they were attached to remains."
         }
       ]
     },
@@ -1423,8 +1423,8 @@
     {
       "kind": "strip",
       "parameter": "cfg_scale",
-      "rationale": "A second guidance strip on a deliberately saturated scene, where the top of the range clips colour instead of merely hardening contrast. The photoreal scene shows the burn late and politely; this one shows it early and plainly.",
-      "caption": "The same guidance range on a scene built out of strong colour. Pushed high, the model does not follow your prompt any better, it just clips the colour and hardens every edge.",
+      "rationale": "A second CFG scale strip uses a deliberately saturated scene so high-guidance damage is easier to see. In the photoreal scene, the problem appears later and more subtly. Here, high values clip colour and harden edges early enough that the tradeoff is obvious.",
+      "caption": "The same guidance range on a scene built from strong colour. High values do not make the model follow the prompt better; they make the colour clip and the edges turn harsh.",
       "model_slugs": [
         "icbinp"
       ],
@@ -1602,8 +1602,8 @@
     {
       "kind": "strip",
       "parameter": "sampler_eta",
-      "rationale": "eta is the first solver knob the horde exposes and the only one with a code-level claim attached: at zero an SDE sampler has no noise left to inject, so it should land where its deterministic twin does. The ladder exists so that can be seen rather than asserted.",
-      "caption": "Stochastic samplers add fresh noise back on every step, and eta scales how much. At zero none is added and the sampler follows the same deterministic path its non-SDE twin does. Above one it puts back more than the step removed, and the image moves further from that path as the run goes on.",
+      "rationale": "eta changes how much randomness an SDE sampler is allowed to add back during the run. Practically, low eta keeps the image closer to the deterministic version of the sampler, while higher eta lets the image wander more. The technical point being shown is that eta 0 should match the sampler's deterministic twin because no SDE noise is injected.",
+      "caption": "eta controls how much fresh noise an SDE sampler injects as it steps. At 0, no extra noise is injected and the sampler follows the same path as its deterministic twin. As eta rises, the sampler has more randomness to work with, so the image can move further from that path.",
       "model_slugs": [
         "icbinp"
       ],
@@ -1620,7 +1620,7 @@
           "value": 0.0,
           "sampler_eta": 0.0,
           "label": "eta0_0",
-          "caption": "eta 0: nothing injected. The SDE sampler is running as its deterministic twin."
+          "caption": "eta 0: no SDE noise is injected, so this should behave like the sampler's deterministic twin."
         },
         {
           "value": 0.25,
@@ -1651,8 +1651,8 @@
     {
       "kind": "strip",
       "parameter": "sampler_s_churn",
-      "rationale": "Churn is the other direction: it adds noise to a sampler that has none of its own. Rendered on euler, which is deterministic at every other setting in this library, so whatever moves is the churn.",
-      "caption": "Churn adds noise back into a deterministic sampler between steps and removes it again, which lets the solver revisit detail it had already settled. At zero the sampler behaves exactly as it always has.",
+      "rationale": "Churn adds temporary noise to a sampler that is otherwise deterministic. Practically, it can make settled details move again. This strip uses Euler because Euler is deterministic everywhere else in the library, so visible movement here comes from churn rather than from the sampler itself.",
+      "caption": "Churn deliberately adds noise between steps, then lets the sampler remove it again. At 0, the sampler behaves normally. Higher values give the solver another chance to revisit detail, but too much can make the image less stable rather than better.",
       "model_slugs": [
         "icbinp"
       ],
@@ -1669,7 +1669,7 @@
           "value": 0.0,
           "sampler_s_churn": 0.0,
           "label": "churn0_0",
-          "caption": "No churn: the sampler as the rest of the library runs it."
+          "caption": "No churn: the sampler runs normally, with no extra temporary noise added between steps."
         },
         {
           "value": 0.25,
@@ -2584,8 +2584,8 @@
     {
       "kind": "strip",
       "parameter": "sampler_s_noise",
-      "rationale": "s_noise scales the fresh noise an ancestral or SDE sampler adds back on each step; eta decides whether noise is added, s_noise how loud it is. The ladder is on the ancestral Euler so the effect is not confounded with a solver correction.",
-      "caption": "Ancestral and SDE samplers put some noise back after every step, and noise scale multiplies how much. The sampler's steps are sized on the assumption that the default amount comes back: with less, the run over-settles and the picture comes out dim and flat; with more than the steps can absorb, it breaks up into grain. One is the backend's default, and the useful room around it is narrow.",
+      "rationale": "s_noise controls the volume of fresh noise added by ancestral and SDE samplers. eta decides whether this kind of noise is added; s_noise decides how strong it is. The strip uses ancestral Euler so the effect is not mixed with a separate solver correction.",
+      "caption": "Noise scale controls how strongly an ancestral or SDE sampler adds fresh noise back after each step. Too little can make the image settle too early and look dim or flat. Too much gives the sampler more noise than the remaining steps can clean up, so grain starts to take over. The useful range is narrow around the backend default of 1.",
       "model_slugs": [
         "icbinp"
       ],
@@ -2602,7 +2602,7 @@
           "value": 0.0,
           "sampler_s_noise": 0.0,
           "label": "snoise0_0",
-          "caption": "Noise scale 0: nothing is put back. The picture comes out dark and flat, because each step settled more than the sampler expected."
+          "caption": "Noise scale 0: no fresh noise is put back. The picture comes out dark and flat because each step settles more than this sampler expects."
         },
         {
           "value": 0.5,
@@ -2614,7 +2614,7 @@
           "value": 1.0,
           "sampler_s_noise": 1.0,
           "label": "snoise1_0",
-          "caption": "The backend's default, which every other ancestral render in this library used."
+          "caption": "The backend default. This is the amount of fresh noise used by the other ancestral renders in this library."
         },
         {
           "value": 1.25,
@@ -2633,8 +2633,8 @@
     {
       "kind": "strip",
       "parameter": "flow_shift",
-      "rationale": "flow shift only exists for flow-matching models, so the strip runs on Flux Schnell rather than the SD1.5 anchor, on the four-step schedule its model reference requires and the prose prompt the world signed off for Flux. The horde only accepts the field when every model in the request is a Flux or Qwen baseline.",
-      "caption": "Flow-matching models such as Flux time their steps along a shifted curve, and flow shift moves where along the curve the steps are spent. Low values keep the steps near the fine-detail end; high values push them toward the broad layout, and the composition itself starts to move. Leave it unset to use the worker's default for the model.",
+      "rationale": "flow_shift only applies to flow-matching models such as Flux and Qwen. Practically, it changes where the model spends its limited steps: lower values spend more effort near fine detail, while higher values spend more effort on broad layout and can move the composition. The strip uses Flux Schnell with its four-step schedule so that shift changes are visible.",
+      "caption": "Flow shift changes where a flow-matching model spends its steps. Lower values keep more effort near fine detail and stay closer to the unshifted result. Higher values push effort toward broad layout, so the composition itself can change. Leave it unset to use the worker default for the model.",
       "model_slugs": [
         "flux-schnell"
       ],
@@ -2653,31 +2653,31 @@
           "value": 0.5,
           "flow_shift": 0.5,
           "label": "shift0_5",
-          "caption": "Below one: the steps crowd toward the fine-detail end of the run, and the picture stays close to the unshifted result."
+          "caption": "Below 1: more of the run stays near fine detail, and the image remains close to the unshifted result."
         },
         {
           "value": 1.15,
           "flow_shift": 1.15,
           "label": "shift1_15",
-          "caption": "Near the shift Schnell is distilled with."
+          "caption": "Near the shift value Flux Schnell was distilled with. This is the closest stop to its expected operating point."
         },
         {
           "value": 2.0,
           "flow_shift": 2.0,
           "label": "shift2_0",
-          "caption": "A moderate shift toward the layout end."
+          "caption": "A moderate shift toward broad layout. The image starts changing structure more than surface detail."
         },
         {
           "value": 3.15,
           "flow_shift": 3.15,
           "label": "shift3_15",
-          "caption": "The shift Flux Dev is usually run at, applied to Schnell."
+          "caption": "The shift value commonly used with Flux Dev, shown here on Schnell for comparison."
         },
         {
           "value": 6.0,
           "flow_shift": 6.0,
           "label": "shift6_0",
-          "caption": "A large shift: most of the four steps go on the broad layout, and the composition changes more than the detail does."
+          "caption": "A large shift: most of the four steps are spent on broad layout, so composition changes more than detail."
         }
       ]
     },
@@ -2897,7 +2897,7 @@
         "values": [
           0.4,
           0.7,
-          1.0
+          1
         ],
         "caption": "The strength asked for, top to bottom. Only the left column can act on it."
       },
@@ -2958,8 +2958,8 @@
       "kind": "strip",
       "parameter": "controlnet_gallery",
       "presentation": "triptych",
-      "rationale": "One example for each control type, on the same photograph the ControlNet tutorial uses: a person with a face, hands, a horizon and a lot of straight ironwork, which is the scene most of the detectors have something to find in. Each example shows three pictures together: the photograph, the map the detector drew from it, and the image the worker made from that map. The map is the thing a reader is choosing between, and the image on its own cannot show it. Everything except the control type is the same across the set: one model, one seed, one prompt, one control strength, the same photograph at 512 by 512. Deliberate and 512 because the horde serves ControlNet on SD1.5 alone. The maps come from horde-image-utilities, the same detector code an alchemist worker runs, rather than an approximation of it.",
-      "caption": "",
+      "rationale": "One example for each ControlNet type, all using the same source photograph. Each example shows the source image, the control map made from it, and the final image made from that map. The map is the important middle step: it shows what the model is being asked to preserve. Everything else is held constant so readers can compare what each control type keeps, what it drops, and what the model has to invent.",
+      "caption": "ControlNet works by turning the source image into a control map first. Different control types keep different information: edges, pose, depth, regions, colour, or surface direction. The final image shows what happens when the same prompt is guided by each kind of map.",
       "model_slugs": [
         "deliberate"
       ],
@@ -2977,7 +2977,7 @@
           "value": "canny",
           "control_type": "canny",
           "control_group": "edges",
-          "caption": "Canny drew a single clean outline of everything it could find: the wires of the railing, the fittings on the mast, the folds of the coat and the line of the hills. The image the worker made keeps all of that in place and changes only what an outline cannot say, so the coat comes back brown instead of teal and the goggles become spectacles."
+          "caption": "Canny makes a clean outline map of the visible edges: railing wires, mast fittings, coat folds, and the line of the hills. The final image follows those shapes closely, but it still chooses its own colour and small details, so the coat turns brown and the goggles become spectacles."
         },
         {
           "value": "hed",
@@ -3061,13 +3061,13 @@
           "value": "mlsd",
           "control_type": "mlsd",
           "control_group": "lines",
-          "caption": "mlsd finds straight lines and nothing else: the mast, the rails and the edges of the deck. The woman is missing from the map entirely, so the ironwork comes back exactly and she is drawn again from the prompt."
+          "caption": "mlsd keeps straight lines and drops almost everything else. The mast, rails, and deck edges are preserved, but the woman is not in the map, so the final image redraws her from the prompt."
         },
         {
           "value": "depth",
           "control_type": "depth",
           "control_group": "depth",
-          "caption": "depth reports how far away things are and says nothing about what they are. The figure and the railing keep their distances, and the sea of clouds is rebuilt as water with a pale hull lying in it."
+          "caption": "Depth maps describe distance, not object identity. The figure and railing keep their relative positions, but the model decides what those shapes become, so the sea of clouds is rebuilt as water with a pale hull in it."
         },
         {
           "value": "midas_depth",
@@ -3109,13 +3109,13 @@
           "value": "openpose",
           "control_type": "openpose",
           "control_group": "pose",
-          "caption": "openpose keeps the body and drops everything around it, leaving shoulders, arms, hips and a few points of the face on black. The stance survives and everything else changes, so the open deck becomes the inside of a cabin."
+          "caption": "OpenPose keeps the body pose and drops the surrounding scene. The stance survives, but the model has to invent the setting, so the open deck becomes the inside of a cabin."
         },
         {
           "value": "seg",
           "control_type": "seg",
           "control_group": "regions",
-          "caption": "seg paints the picture into labelled regions, with the figure as one block and the sky, the water and the deck as others. The image respects the blocks and fills them freely, turning the envelope into a balloon and a drum."
+          "caption": "seg turns the picture into labelled regions: figure, sky, water, deck, and so on. The final image respects those broad blocks, but the model is free to decide what appears inside them."
         },
         {
           "value": "oneformer_ade20k",
@@ -3133,7 +3133,7 @@
           "value": "color",
           "control_type": "color",
           "control_group": "colour",
-          "caption": "color reduces the photograph to a grid of its colours and keeps none of its shapes: cream sky at the top, the teal of the coat, a band of dark below. The image builds a fresh picture out of that palette, and the courier comes back seated beside a cabin window with a box of flowers next to her."
+          "caption": "color keeps the source palette but not the source shapes. The final image uses those colours to build a new scene, so the courier returns seated beside a cabin window with a box of flowers nearby."
         },
         {
           "value": "shuffle",
@@ -3145,7 +3145,7 @@
           "value": "recolor_luminance",
           "control_type": "recolor_luminance",
           "control_group": "colour",
-          "caption": "recolor_luminance is the photograph in grey with every tone kept, which leaves almost nothing to invent. The image is the photograph again with new colour in it, and the ink and watercolour the prompt asked for barely shows."
+          "caption": "recolor_luminance keeps the light and dark values of the source image. Because so much structure is preserved, the final image stays very close to the photograph and the requested ink-and-watercolour style barely appears."
         },
         {
           "value": "recolor_intensity",
@@ -3157,7 +3157,7 @@
           "value": "tile",
           "control_type": "tile",
           "control_group": "colour",
-          "caption": "tile hands the worker a blurred copy of the picture itself. Every shape is already there and the work left is to sharpen it, which the image does in the prompt's own brush and wash."
+          "caption": "tile gives the worker a blurred copy of the source image. The main shapes are already present, so the model mostly sharpens and repaints them in the requested style."
         },
         {
           "value": "tile_ttplanet_guided",
@@ -3177,8 +3177,8 @@
       "kind": "strip",
       "parameter": "controlnet_gallery",
       "presentation": "triptych",
-      "rationale": "The same set of control types on a drawing instead of a photograph. Several of the detectors were trained on drawings and several were not. The anime line detectors have something to find here that the photograph never gave them, and the depth and surface detectors have much less. Anything Diffusion at clip skip 2, because ControlNet runs on SD1.5 alone and the booru tag style of prompt needs the anime model.",
-      "caption": "",
+      "rationale": "The same ControlNet types are shown on a drawing instead of a photograph. Some detectors are better suited to drawings than others: anime line detectors can find clean artwork lines here, while depth and surface detectors have less real-world volume to read. Anything Diffusion is used at clip skip 2 because ControlNet runs on SD1.5, and this prompt uses the anime tag style that model expects.",
+      "caption": "The source is a drawing, so the control maps behave differently than they did on the photograph. Line-based maps have cleaner artwork to follow; depth and surface maps have less physical scene information to extract.",
       "model_slugs": [
         "anything-diffusion"
       ],
@@ -3396,8 +3396,8 @@
       "kind": "strip",
       "parameter": "controlnet_gallery",
       "presentation": "triptych",
-      "rationale": "This third picture shows the detectors failing honestly. Nothing in it has a human body, so the pose detector returns nothing. The scene is close, soft and shallow, so the depth detectors have much less to separate than the airship deck gave them. Someone deciding whether a control type suits their own picture learns more from seeing an empty map than from reading that one is possible.",
-      "caption": "",
+      "rationale": "This third source image shows what happens when a control type has little or nothing to detect. There is no human body, so the pose detector returns an empty map. The scene is close, soft, and shallow, so depth detectors have less distance to separate than they had in the airship deck example. For readers choosing a control type, seeing a weak or empty map is more useful than only seeing successful cases.",
+      "caption": "Not every control type can read every source image. This example shows the failure cases directly: pose has no body to find, and depth has only a shallow close-up scene to work from.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3616,7 +3616,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/canny/deliberate",
       "rationale": "Canny draws a single clean outline of everything in your photograph, from the wires of the railing to the folds of the coat. An outline says where every shape sits and says nothing about colour or material. Raising the control strength replaces the image's own composition with your picture's, and leaves the colour free to disagree with the prompt.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give, a woman at a window with a harbour behind her. The deck and the railing appear at 0.25, and by 0.375 the image has your picture's whole composition. Above 0.5 the composition stops changing and only the colour moves, so the coat becomes brown and the hair takes on teal. From 1.75 the colours drain toward olive and cream. By 2.5 the sky is a flat band and the cloud sea is gone. At 3 the drawing matches your picture exactly and there is almost no colour left.",
+      "caption": "At control_strength values up to 0.15, the control map has very little influence: the result looks much like a normal prompt-only image, with a woman near a window and a harbour behind her. At 0.25 the deck and railing begin to show, and by 0.375 the overall composition from the source picture is in place. Past 0.5, the layout is mostly fixed, but the model still changes the colours, turning the coat brown and adding teal to the hair. From 1.75 upward, the image loses more colour and shifts toward olive and cream. By 2.5 the sky has flattened into a simple band and the cloud sea is gone. At 3 the source drawing is followed very closely, but almost all colour has been pushed out.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3738,7 +3738,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/hed/deliberate",
       "rationale": "hed draws softer, thicker strokes and drops the small detail, so its map has the pose, the railing and the horizon in it and very little of the face. There is less in the map to follow, so the layout is in place at a low strength and the rest of the range only changes the colour.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give, a woman at a window above a harbour. The deck and the railing appear at 0.375, and by 0.5 the image has your picture's layout. Above 0.5 the pose and the horizon stay put while the colour keeps moving: by 0.625 the sky is orange and the hair mint green. From 1.75 the picture darkens. By 2.5 the deck is a muddy dark mass and the sea is black. At 3 the layout is still right and the colour has broken.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect: the image is close to what the prompt alone would produce, with a woman by a window above a harbour. At 0.375 the deck and railing start to appear, and by 0.5 the source picture's layout is established. Above 0.5, the pose and horizon stay in place, but the colours continue to change; by 0.625 the sky is orange and the hair is mint green. From 1.75 upward, the image darkens. By 2.5 the deck has become a muddy dark shape and the sea is black. At 3 the layout is still being followed, but the colour is no longer useful.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3860,7 +3860,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/pidinet/deliberate",
       "rationale": "pidinet keeps the heavy boundaries and empties the interiors, so the head, the coat and the railing reach the map as flat shapes with nothing inside them. Those shapes fix the composition. Whatever fills them is the model's own invention at every strength.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give, a woman at a window with a harbour behind her. The deck and the railing appear at 0.375, and by 0.5 the shapes are in place. Above 0.5 the composition stays put and the filling keeps changing: the sky bands orange and the coat moves between tan and brown. From 1.75 the picture darkens. By 2.5 the deck and the sea are close to black and the coat is a flat orange-brown. At 3 the outline of the scene survives and little else does.",
+      "caption": "At control_strength values up to 0.25, the control map has little influence: the result looks close to a prompt-only image of a woman at a window with a harbour behind her. At 0.375 the deck and railing begin to show, and by 0.5 the major shapes from the source picture are in place. Above 0.5, those shapes stay put, but the model keeps choosing new colours and surface details inside them. The sky turns into orange bands and the coat shifts between tan and brown. From 1.75 upward, the whole image darkens. By 2.5 the deck and sea are nearly black, and at 3 mostly the outline remains.",
       "model_slugs": [
         "deliberate"
       ],
@@ -3982,7 +3982,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/teed/deliberate",
       "rationale": "teed finds fine line everywhere, including the edges of the clouds and the panels of the envelope, so its map describes almost the whole picture. A map that complete leaves only the medium to the model, and the upper half of the range shows in the colour rather than in the drawing.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck appears at 0.375, and by 0.5 the whole scene is there, envelope and railing included. Above 0.5 the drawing stays put and the colour keeps moving: from 0.625 the envelope comes back gold and ribbed. From 1.75 the sea darkens to olive and the sky flattens. By 2.5 the cloud sea is gone and the picture is a dark olive drawing. At 3 nothing of the composition has slipped and the colour has.",
+      "caption": "At control_strength values up to 0.25, the control map barely changes the result. At 0.375 the deck begins to appear, and by 0.5 the full scene from the source picture is present, including the airship envelope and railing. Above 0.5, the drawing stays stable while the colours keep changing. From 0.625, the envelope becomes gold and ribbed. From 1.75 upward, the sea darkens toward olive and the sky becomes flatter. By 2.5 the cloud sea is gone. At 3 the composition is still intact, but the image has become a dark olive drawing.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4104,7 +4104,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/pyracanny/deliberate",
       "rationale": "pyracanny outlines as completely as canny with a softer edge to it, so the whole scene down to the wires of the railing is in the map. The composition is in place at a low strength, and everything the setting does above that goes on draining the colour.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give, a woman at a window above a harbour. The deck and the railing appear at 0.375, and by 0.5 the scene is in place. Above 0.5 the drawing stays put and the colour drains steadily: by 1.375 the sky has lost its blue. From 1.75 the picture is close to a tinted drawing in tan and grey. By 2.5 the cloud sea and the teal of the coat are both gone. At 3 the outline matches your picture exactly and hardly any colour is left in it.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect: the image is close to a prompt-only result of a woman by a window above a harbour. At 0.375 the deck and railing appear, and by 0.5 the source scene is in place. Above 0.5, the drawing remains steady while colour drains away. By 1.375 the sky has lost its blue. From 1.75 upward, the image reads more like a tan and grey tinted drawing. By 2.5 the cloud sea and the coat's teal are both gone. At 3 the outline matches the source picture closely, but almost no colour remains.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4226,7 +4226,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/binary/deliberate",
       "rationale": "binary reduces your photograph to black and white with no grey between, so the coat becomes one mass and the face is missing from the map. There is little in it for the model to follow, so the strength has to go much higher before anything takes effect, and what takes effect is a shape with no face in it.",
-      "caption": "Up to 0.5 the map barely matters: the image is what the prompt alone would give, a seated woman in a cabin above a harbour. The deck and the railing appear at 0.625, and by 0.75 the standing pose is in place. Above 1 the layout stays put and the figure is drawn again at each strength, because the map gives no face to work from. From 1.75 the colour drains toward sepia. At 2.25 the invented face gains a dark band across the eyes, and it stays there to the end. At 3 the deck is bleached pale and the figure is masked.",
+      "caption": "At control_strength values up to 0.5, the control map has little visible effect: the result looks like a prompt-only image of a seated woman in a cabin above a harbour. At 0.625 the deck and railing begin to appear, and by 0.75 the standing pose from the source picture is in place. Above 1, the layout stays put, but the figure is redrawn at each strength because this map does not provide a face for the model to follow. From 1.75 upward, the colours drain toward sepia. At 2.25 the model adds a dark band across the invented face, and that remains through 3.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4348,7 +4348,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble/deliberate",
       "rationale": "scribble reduces your picture to a few coarse strokes. They name the standing figure and the railing and nothing smaller. A map that sparse takes effect late and only loosely, so the model draws the detail again at every strength.",
-      "caption": "Up to 0.5 the map barely matters: the image is what the prompt alone would give, a woman at a window with a harbour behind her. The deck and the railing appear at 0.625, and by 0.75 the standing pose is in place. Above 1 the pose and the railing stay put while the coat, the face and the background keep changing at every strength. From 2.25 a dark band appears across the eyes and the colour flattens to grey-green. At 3 the scene is easy to read and the face is no longer drawn.",
+      "caption": "At control_strength values up to 0.5, the control map has little influence: the image is close to a prompt-only result of a woman at a window with a harbour behind her. At 0.625 the deck and railing appear, and by 0.75 the standing pose is established. Above 1, the pose and railing stay in place, but the coat, face, and background keep changing because the map only gives the model coarse guidance. From 2.25, a dark band appears across the eyes and the colour flattens toward grey-green. At 3 the scene is readable, but the face is no longer properly drawn.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4470,7 +4470,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/fakescribbles/deliberate",
       "rationale": "fakescribbles traces the main shapes in thick rounded strokes and puts nothing inside them. The outer shapes are firm enough to fix the composition at a low strength. The interiors stay the model's own work however high you go.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the scene is in place. Above 0.5 the pose and the railing stay put and the contents keep moving: the coat drifts from tan toward olive. From 1.75 the colour drains and the hands at the railing collapse into a dark blob. At 3 the sky is bleached and the coat is khaki, with the composition unchanged since 0.5.",
+      "caption": "At control_strength values up to 0.25, the control map barely affects the image. At 0.375 the deck and railing appear, and by 0.5 the source scene is in place. Above 0.5, the pose and railing stay fixed, but the model still changes the details inside that structure. The coat shifts from tan toward olive. From 1.75 upward, colour drains from the image and the hands at the railing collapse into a dark blob. At 3 the sky is bleached and the coat is khaki, while the composition remains the one reached at 0.5.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4592,7 +4592,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble-xdog/deliberate",
       "rationale": "scribble_xdog keeps more than the other scribble modes: an inked, grainy line that still carries the folds of the coat and the rails. That extra detail lets the composition take effect as early as it does for the edge modes, and it stays in place through the whole upper half of the range.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the scene is in place. Above 0.5 the pose and the drawing stay put and only the colour and the face keep moving. From 1.75 the colours drain to olive and cream and the goggles are no longer drawn. At 3 the picture is a pale olive drawing of the scene it reached at 0.5.",
+      "caption": "At control_strength values up to 0.25, the control map has very little effect. At 0.375 the deck and railing begin to appear, and by 0.5 the source scene is in place. Above 0.5, the pose and drawing stay steady, while the colour and face continue to change. From 1.75 upward, the colours drain toward olive and cream, and the goggles stop being clearly drawn. At 3 the image is a pale olive version of the composition established at 0.5.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4714,7 +4714,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/scribble-pidinet/deliberate",
       "rationale": "scribble_pidinet is the loosest map of the edge modes: a few beaded strokes with the interiors gone. The model invents most of what it shows at every strength, and the beads themselves start to print into the picture once you push the setting hard.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the standing pose is in place. Above 0.5 the pose stays put and everything inside it keeps changing, because the map has no interior to give. From 1.75 the sea flattens to grey-green and the beads of the map show up as white specks scattered across the water. At 3 the picture is a grey-olive scene speckled with those marks.",
+      "caption": "At control_strength values up to 0.25, the control map barely changes the result. At 0.375 the deck and railing appear, and by 0.5 the standing pose is in place. Above 0.5, the pose stays fixed, but the model keeps inventing the details inside it because this map does not describe the figure's interior. From 1.75 upward, the sea flattens toward grey-green, and small marks from the map start showing up as white specks on the water. At 3 the image is a grey-olive scene marked by those specks.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4836,7 +4836,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/standard-lineart/deliberate",
       "rationale": "standard_lineart carries tone as well as line, so the clouds, the hills and the folds of the coat all reach the map as shading. A map that describes the light as well as the shapes leaves the model very little to decide. Above a low strength the setting can only take colour away.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck appears at 0.375, and by 0.5 the whole scene is in place. Above 0.5 the drawing and the shading stay put and the colour leaves quickly: the coat is white by 1.25. From 1.75 the picture is a shaded pen drawing tinted cream and grey. At 3 there is effectively no colour in it, and the ink and watercolour the prompt asked for is gone.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck appears, and by 0.5 the whole source scene is in place. Above 0.5, both the drawing and shading stay fixed, while the colour drains quickly; by 1.25 the coat is white. From 1.75 upward, the result looks more like a shaded pen drawing tinted cream and grey. At 3 there is effectively no colour left, and the requested ink-and-watercolour feel has been lost.",
       "model_slugs": [
         "deliberate"
       ],
@@ -4958,7 +4958,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart/deliberate",
       "rationale": "lineart draws a thin, even outline and leaves the shading out, so the map fixes the shapes and says nothing about the light. The composition is in place at a low strength, and the extra strength goes on flattening the image toward the bare line it was given.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the scene is in place. Above 0.5 the outline stays put and the colour drains: the coat is cream by 1.125. From 1.75 the sea is a beige band and the picture reads as pen with a light wash. At 3 the drawing matches your picture exactly and is almost colourless.",
+      "caption": "At control_strength values up to 0.25, the control map barely affects the image. At 0.375 the deck and railing appear, and by 0.5 the source scene is in place. Above 0.5, the outline stays fixed while colour drains away; by 1.125 the coat is cream. From 1.75 upward, the sea becomes a beige band and the image reads like pen with a light wash. At 3 the drawing follows the source picture very closely, but is almost colourless.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5080,7 +5080,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart-anime/deliberate",
       "rationale": "lineart_anime draws a clean line and hatches the large flat areas, so the map carries a texture as well as an outline. The hatching is drawing too, and at high strengths the model copies it as ruled marks across the sky and the sea.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck appears at 0.375, and by 0.5 the scene is in place. Above 0.5 the drawing stays put and the colour drains: the coat is cream by 1.125. From 1.75 the hatching of the map prints into the picture as ruled lines over the sky and the water. At 3 the image is a hatched pen drawing with orange streaks along the deck.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck appears, and by 0.5 the source scene is in place. Above 0.5, the drawing stays fixed while colour drains away; by 1.125 the coat is cream. From 1.75 upward, the map's hatching becomes visible in the final image as ruled lines over the sky and water. At 3 the result is mostly a hatched pen drawing, with orange streaks along the deck.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5202,7 +5202,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/lineart-anime-denoise/deliberate",
       "rationale": "lineart_anime_denoise clears the faint lines away and keeps the confident ones, so the face is barely in the map at all. The pose and the horizon stay put from a low strength, and the face is drawn afresh at every one. That is what fails first as you push the setting.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the scene is in place. Above 0.5 the pose and the horizon stay put and the face is drawn again each time. From 1.75 the colour washes out and the picture loses its weight. At 2.5 the figure is a pale smudge against a bare railing, and 3 is no better.",
+      "caption": "At control_strength values up to 0.25, the control map barely changes the result. At 0.375 the deck and railing appear, and by 0.5 the source scene is in place. Above 0.5, the pose and horizon stay fixed, but the face is still redrawn at each strength. From 1.75 upward, the colour washes out and the image loses contrast and weight. At 2.5 the figure becomes a pale smudge against a bare railing, and 3 does not recover it.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5324,7 +5324,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/mlsd/deliberate",
       "rationale": "mlsd finds straight lines and nothing else, so the mast, the rails and the edges of the deck are in the map and the woman is missing from it entirely. The ironwork is in place at a low strength and stays there. The figure is drawn from the prompt at every strength, however high you go.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The railing and the deck appear at 0.375 and stay put from 0.5 up. The woman never stops changing: her coat, her stance and her face are different at every strength from one end of the range to the other. From 2 the model fills the empty part of the map with things of its own, including a red mass at the deck and a barred structure out at sea. At 3 the ironwork still matches your picture and everything around it is still moving.",
+      "caption": "At control_strength values up to 0.25, the control map has little influence. At 0.375 the railing and deck appear, and from 0.5 upward they stay in place. The woman does not settle in the same way: her coat, stance, and face keep changing across the range. From 2 upward, the model starts filling parts of the map that gave it little guidance, adding things such as a red mass on the deck and a barred structure out at sea. At 3 the ironwork still matches the source picture, but much of the rest is still model invention.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5446,7 +5446,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/depth/deliberate",
       "rationale": "depth reports how far away things are and says nothing about what they are. Distances fix the silhouette and the layers of the scene. What everything is made of stays the model's decision, which is where the upper half of the range shows.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.25, and by 0.375 the silhouette and the distances are in place. Above 0.5 the figure and the railing keep their places while the scene behind them is built again at each strength. From 1.75 the sky flattens to a cream band and the colour drains; the coat is grey-green by 2. At 3 the cloud sea is gone and the background is a flat pale plain with a repeating arch of ironwork in it.",
+      "caption": "At control_strength values up to 0.15, the control map has little visible effect. At 0.25 the deck and railing appear, and by 0.375 the silhouette and sense of distance from the source picture are in place. Above 0.5, the figure and railing keep their positions, but the background is rebuilt at each strength. From 1.75 upward, the sky flattens into a cream band and the colour drains; by 2 the coat is grey-green. At 3 the cloud sea is gone, replaced by a flat pale background with a repeating ironwork arch.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5568,7 +5568,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/midas-depth/deliberate",
       "rationale": "midas_depth reads the sky as empty and cuts the figure sharply out of it, so the map gives a strong silhouette against nothing. The silhouette takes effect at a low strength, and the whole view behind it stays invented at every strength.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the silhouette is in place. Above 0.5 the figure and the railing stay put and the view is invented again each time, with headlands and small boats coming and going. From 1.75 the sky flattens to cream and the colour drains. At 2.5 the coat is a dark olive shape carrying teal patches that belong to nothing, and 3 is the same.",
+      "caption": "At control_strength values up to 0.25, the control map barely affects the image. At 0.375 the deck and railing appear, and by 0.5 the source silhouette is in place. Above 0.5, the figure and railing stay fixed, but the view behind them is invented again at each strength, with headlands and small boats appearing and disappearing. From 1.75 upward, the sky flattens to cream and the colour drains. At 2.5 the coat becomes a dark olive shape with stray teal patches, and 3 keeps that same problem.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5690,7 +5690,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/zoe-depth/deliberate",
       "rationale": "zoe_depth gives a flatter reading, with less distance between the figure and everything behind her. The silhouette still stays put, and the weaker separation lets the background collapse into the foreground as you push the setting.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the silhouette is in place. Above 0.5 the pose stays put and the background keeps changing: hills and floating ice give way to open water. From 1.5 the colour drains faster than in the other depth modes and the sky becomes a flat cream band. At 2.5 the sea is gone, the hands are ill-formed and the picture is close to monochrome.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck and railing appear, and by 0.5 the source silhouette is in place. Above 0.5, the pose stays fixed, but the background keeps changing as hills and floating ice give way to open water. From 1.5 upward, colour drains faster than in the other depth modes and the sky becomes a flat cream band. At 2.5 the sea is gone, the hands are poorly formed, and the picture is nearly monochrome.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5812,7 +5812,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything/deliberate",
       "rationale": "depth_anything cuts the figure out crisply and leaves the background dark, so the map is a clean silhouette on almost nothing. The silhouette appears at a low strength and stays exact. The emptiness behind it is the model's own invention at every strength.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck appears at 0.25, and by 0.375 the silhouette is in place. Above 0.5 the figure matches your picture exactly while the model fills the emptiness behind her; from 0.875 it chooses a ribbed hull out over the clouds. From 1.75 the colour drains and the coat darkens toward one olive mass. At 3 the folds of the coat are gone and the background is a flat pale plain.",
+      "caption": "At control_strength values up to 0.15, the control map barely changes the result. At 0.25 the deck appears, and by 0.375 the source silhouette is in place. Above 0.5, the figure closely follows the source picture, while the model fills in the empty background on its own. From 0.875 it adds a ribbed hull over the clouds. From 1.75 upward, the colour drains and the coat darkens into a single olive mass. At 3 the coat folds are gone and the background has become a flat pale plain.",
       "model_slugs": [
         "deliberate"
       ],
@@ -5934,7 +5934,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/depth-anything-v2/deliberate",
       "rationale": "depth_anything_v2 models the folds of the coat and the curve of the envelope instead of cutting a flat shape out of the background. That extra modelling keeps more of your picture than the other depth modes do, and the upper half of the range spends itself flattening what it keeps.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck appears at 0.25, and by 0.375 the figure and the envelope are in place. Above 0.5 the modelling stays put and the background keeps changing, with the clouds giving way to hills. From 1.5 the colour drains to olive and tan and the folds of the coat flatten out. At 2.5 the sea and the clouds are gone, replaced by bare brown ground under an empty sky.",
+      "caption": "At control_strength values up to 0.15, the control map has little influence. At 0.25 the deck appears, and by 0.375 the figure and airship envelope are in place. Above 0.5, the form of the figure stays steady, but the background keeps changing as clouds give way to hills. From 1.5 upward, the colour drains toward olive and tan and the coat folds flatten out. At 2.5 the sea and clouds are gone, replaced by bare brown ground under an empty sky.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6056,7 +6056,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/normal/deliberate",
       "rationale": "normal reports which way each surface faces. On this photograph it comes back noisy, with the sky flattened to a single colour. The figure and the railing are described well enough to take effect at a low strength, and the noisy sky is licence the model keeps at every strength.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.25, and by 0.375 the scene is in place. Above 0.5 the figure and the railing stay put and the view behind them is built again each time. From 1.75 the colour drains and the deck goes grey-brown; the coat is olive by 2.5. At 3 the picture is flat olive and brown with little contrast left.",
+      "caption": "At control_strength values up to 0.15, the control map barely affects the result. At 0.25 the deck and railing appear, and by 0.375 the source scene is in place. Above 0.5, the figure and railing stay fixed while the view behind them is rebuilt at each strength. From 1.75 upward, colour drains from the image and the deck turns grey-brown; by 2.5 the coat is olive. At 3 the picture is mostly flat olive and brown, with little contrast left.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6178,7 +6178,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/normal-bae/deliberate",
       "rationale": "normal_bae reads the same surfaces cleanly, so the shoulders, the sleeves and the folds face the way they do in your picture. That modelling keeps the figure in place from a low strength, and the range above it takes colour out instead of following your picture more closely.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.25, and by 0.375 the scene is in place. Above 0.5 the pose and the modelling of the coat stay put, with very little movement between strengths. From 1.75 the colour drains, and the sea is a pale band by 2.25. At 3 the picture is cream and tan throughout, with the teal gone from the hair.",
+      "caption": "At control_strength values up to 0.15, the control map has little visible effect. At 0.25 the deck and railing appear, and by 0.375 the source scene is in place. Above 0.5, the pose and coat shape stay steady, with very little movement between strengths. From 1.75 upward, colour drains from the image, and by 2.25 the sea has become a pale band. At 3 the image is cream and tan throughout, with the teal gone from the hair.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6300,7 +6300,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/openpose/deliberate",
       "rationale": "openpose keeps the body and drops everything around it, leaving shoulders, arms, hips and a few points of the face on black. The stance is all the map has, so raising the strength fixes a pose and leaves the setting free at every value.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The stance appears at 0.375 and stays put from 0.5 up. Everything around it keeps changing at every strength, so the open deck becomes a cabin with a window, and the view through that window is different each time. From 2 the model furnishes the empty map with things of its own, and a table of cups and a teapot grows across the picture. At 3 the pose is the only part of your picture still in the image.",
+      "caption": "At control_strength values up to 0.25, the control map, which is only the character's pose in this example, barely affects the result. The image is close to what the prompt would produce without ControlNet. At 0.375 the pose from the annotator map starts to take effect, and from 0.5 upward that stance stays in place. Everything around the pose is still left for the model to invent, so the open deck can turn into a cabin with a window, and the view outside changes from one strength to the next. From 2 upward, the model fills the empty parts of the map with its own objects, including cups, a table, and a teapot. At 3 the pose is the only part of the source picture still clearly guiding the image.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6422,7 +6422,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/seg/deliberate",
       "rationale": "seg paints your picture into labelled regions, with the figure as one block and the sky, the water and the deck as others. Blocks fix the layout and say nothing about what fills them, so raising the strength fixes an arrangement and leaves the contents open.",
-      "caption": "Up to 0.15 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.25, and by 0.375 the bands of sky, water and deck are in place. Above 0.5 the arrangement stays put and what sits inside each band keeps changing. From 1.75 the colour drains and the water band turns into flat sand-coloured ground. At 3 the bands are exactly where they were and the sea is no longer water.",
+      "caption": "At control_strength values up to 0.15, the control map has little influence. At 0.25 the deck and railing appear, and by 0.375 the broad bands of sky, water, and deck from the source picture are in place. Above 0.5, that arrangement stays fixed, but the model keeps changing what appears inside each band. From 1.75 upward, colour drains from the image and the water band turns into flat sand-coloured ground. At 3 the bands are still in the same places, but the sea no longer reads as water.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6544,7 +6544,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-ade20k/deliberate",
       "rationale": "oneformer_ade20k gives cleaner regions than seg and separates the sky, the land, the water and the deck. Cleaner edges between the bands fix the layout harder, and once you push the setting the model decorates those edges with inventions of its own.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the bands are in place. Above 0.5 the layout stays put band for band and the contents keep changing. From 1.75 the water band becomes a flat green field and the railing turns into a repeating row of arches that was never in your picture. At 3 the picture is a green plain behind an ornamental railing, with the coat gone olive.",
+      "caption": "At control_strength values up to 0.25, the control map barely changes the result. At 0.375 the deck and railing appear, and by 0.5 the broad bands of the source picture are in place. Above 0.5, the layout stays fixed band by band, while the contents continue to change. From 1.75 upward, the water band becomes a flat green field, and the railing turns into a repeating row of arches that was not in the source picture. At 3 the image is a green plain behind an ornamental railing, with the coat shifted to olive.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6666,7 +6666,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/oneformer-coco/deliberate",
       "rationale": "oneformer_coco works from coarser labels and merges what ade20k separates, so the map gives a rough arrangement and little else. The layout is still in place at a low strength, and inside it the model keeps its freedom at every strength.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 the arrangement is in place. Above 0.5 the layout stays put and the land beyond the railing is drawn again as scrub, water or bare ground. From 1.75 the colour drains and the background flattens to brown. At 3 the picture is a pale figure against a flat brown plain, and the arrangement has not changed.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck and railing appear, and by 0.5 the broad arrangement from the source picture is in place. Above 0.5, the layout stays fixed, but the area beyond the railing is redrawn as scrub, water, or bare ground. From 1.75 upward, colour drains from the image and the background flattens to brown. At 3 the result is a pale figure against a flat brown plain, with the same arrangement established earlier.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6788,7 +6788,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/color/deliberate",
       "rationale": "color reduces your photograph to a grid of its colours and keeps none of its shapes. There is no composition in the map to follow, so raising the strength fixes a palette. Push it hard and the image goes toward colour alone, until it stops being a picture.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give, in your picture's own composition. The palette takes over at 0.375, and by 0.625 the courier is seated beside a cabin window with a box of flowers next to her, a scene your picture never had. Above 1 that arrangement stays put and the painting loosens at every strength. From 1.75 the edges smear. At 2.25 the face and the hands dissolve into blotches of paint. At 3 there is colour with no drawing under it.",
+      "caption": "At control_strength values up to 0.25, the colour map has little effect; the result is close to a prompt-only image, although it still begins from the source picture's composition. At 0.375 the source colours start to dominate. By 0.625 the model has built a different scene, with the courier seated beside a cabin window and a box of flowers nearby. Above 1, that new arrangement stays mostly fixed while the painting becomes looser. From 1.75 upward, edges smear. At 2.25 the face and hands dissolve into paint-like blotches. At 3 the image is mostly colour without a clear drawing underneath.",
       "model_slugs": [
         "deliberate"
       ],
@@ -6910,7 +6910,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/shuffle/deliberate",
       "rationale": "shuffle stirs your picture into loops of itself, so the map carries its colours and round shapes with none of its arrangement. Raising the strength fixes a palette and a mood, and the model builds a fresh picture out of them at every strength.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. From 0.375 your picture's colours take over: the coat goes deep teal-green and the goggles come back round and dark. There is no arrangement to reach, so the picture is a different one at every strength from 0.5 to 3. From 1.75 the ink and watercolour gives way to a smooth painted finish. At 2.75 the view has closed to a tight portrait and the brush work the prompt asked for is gone.",
+      "caption": "At control_strength values up to 0.25, the shuffled map has little visible effect. From 0.375, the source picture's colours become much stronger: the coat turns deep teal-green and the goggles become round and dark again. Because this map does not preserve the source layout, there is no specific arrangement for the model to lock onto, so the picture keeps changing from 0.5 through 3. From 1.75 upward, the requested ink-and-watercolour look gives way to a smoother painted finish. At 2.75 the view has tightened into a close portrait, and the requested brush work is gone.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7031,8 +7031,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/recolor-luminance/deliberate",
-      "rationale": "recolor_luminance is your picture in grey with every tone kept, which leaves the model almost nothing to invent. The whole picture is already in the map, so the setting stops doing useful work very early and the strengths above that repeat one another.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 your picture is fully in place. From 0.625 the image stops changing in any useful way, and every strength up to 3 shows the same standing figure, the same dark hillside and the same bright band of sky. The tones are followed so closely that the ink and watercolour the prompt asked for never appears, and the image is a smooth painting instead. Nothing breaks at the top of the range because nothing moves there.",
+      "rationale": "recolor_luminance turns the source picture into greyscale while keeping the light and dark values. Because that preserves most of the picture's structure, the model has very little left to decide. Once the source composition is established, higher control_strength values mostly repeat the same result.",
+      "caption": "At control_strength values up to 0.25, the control map barely affects the image. At 0.375 the deck and railing appear, and by 0.5 the source picture is fully in place. From 0.625 upward, increasing the strength stops making useful changes: the same standing figure, dark hillside, and bright band of sky repeat through 3. The map carries tonal information so strongly that the requested ink-and-watercolour style never really appears; the image stays closer to a smooth painting. The top of the range does not visibly break the image because there is little left for the setting to change.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7153,8 +7153,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/recolor-intensity/deliberate",
-      "rationale": "recolor_intensity measures brightness differently and follows your picture just as closely as recolor_luminance does. The tone of every part of it is in the map, so the setting stops doing useful work almost as soon as you start raising it.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 your picture is fully in place. From 0.625 the image stops changing in any useful way, and the strengths up to 3 repeat it. Your picture's tones are followed closely enough that the coat keeps them, and the loose brush work of the prompt never appears. The top of the range adds nothing and takes nothing away.",
+      "rationale": "recolor_intensity measures brightness differently from recolor_luminance, but it still preserves the source picture very closely. Since the brightness of each area is already in the control map, higher control_strength values have little room to add anything useful once the image is in place.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck and railing appear, and by 0.5 the source picture is fully in place. From 0.625 upward, higher strengths stop making useful changes and the image mostly repeats through 3. The source picture's tones are followed closely enough that the coat keeps them, while the loose brush work requested in the prompt never appears. At the top of the range, the setting adds little and removes little.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7276,7 +7276,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/tile/deliberate",
       "rationale": "tile hands the model a blurred copy of your picture itself, so every shape is already there and the work left is to sharpen it. With the whole picture in the map the setting finishes early, and the range above that changes nothing.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 your picture is in place. From 1 the image stops changing, and every strength up to 3 shows the same figure in the same blue coat at the same railing. The map takes the medium with it, so from 0.5 up the image is a smooth painting rather than the ink and watercolour asked for. Nothing breaks at the top of the range because nothing moves there.",
+      "caption": "At control_strength values up to 0.25, the control map barely changes the result. At 0.375 the deck and railing appear, and by 0.5 the source picture is in place. From 1 upward, the image stops changing in a meaningful way: each strength through 3 shows the same figure in the same blue coat at the same railing. Because this map is close to the source image itself, it also carries over the source image's smooth finish, so the requested ink-and-watercolour style does not take over. The top of the range does not visibly break the image because the composition has already settled.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7398,7 +7398,7 @@
       "parameter": "control_strength",
       "directory_override": "control-strength/tile-ttplanet-guided/deliberate",
       "rationale": "tile_ttplanet_guided passes your picture through almost untouched, so the map is very nearly the picture itself. The model has only the medium left to choose, and the setting runs out of work as soon as the composition is in place.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 your picture is in place. From 1 the image stops changing, and the strengths up to 3 repeat it line for line. The medium goes with the composition, so the image is a smooth painting rather than ink and watercolour. The top of the range shows nothing new.",
+      "caption": "At control_strength values up to 0.25, the control map has little visible effect. At 0.375 the deck and railing appear, and by 0.5 the source picture is in place. From 1 upward, the image stops changing and the strengths through 3 repeat it almost line for line. Because the map carries the source composition so directly, it also carries much of the source image's smooth finish. The result is a smooth painting rather than the requested ink-and-watercolour look, and the top of the range shows nothing new.",
       "model_slugs": [
         "deliberate"
       ],
@@ -7519,8 +7519,8 @@
       "kind": "strip",
       "parameter": "control_strength",
       "directory_override": "control-strength/tile-ttplanet-simple/deliberate",
-      "rationale": "tile_ttplanet_simple hands over your picture with no blur at all, which follows it more closely than any other mode here. The whole picture is in the map, so the setting stops doing useful work as soon as the composition is in place.",
-      "caption": "Up to 0.25 the map barely matters: the image is what the prompt alone would give. The deck and the railing appear at 0.375, and by 0.5 your picture is in place. From 1 the image stops changing, and the strengths up to 3 repeat it. The map covers the light and the surfaces as well as the shapes, so the image is a smooth painting rather than the ink and watercolour asked for. Above 1 the setting has nothing left to do.",
+      "rationale": "tile_ttplanet_simple gives the model an almost direct copy of the source picture. It follows the photograph more closely than any other mode here. Because the whole picture is already present in the control map, increasing control_strength has little useful effect after the composition is established.",
+      "caption": "At control_strength values up to 0.25, the control map barely affects the image. At 0.375 the deck and railing appear, and by 0.5 the source picture is in place. From 1 upward, the image stops changing and the strengths through 3 mostly repeat it. This map carries the light and surfaces as well as the shapes, so the result stays close to a smooth painting instead of becoming the requested ink-and-watercolour illustration. Above 1, the setting has little useful work left to do.",
       "model_slugs": [
         "deliberate"
       ],
