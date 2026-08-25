@@ -67,6 +67,8 @@ FIRST_STOP_SIDECAR = f"{STRIP_DIRECTORY}/001_4.json"
 SECOND_STOP_IMAGE = f"{STRIP_DIRECTORY}/002_8.webp"
 SECOND_STOP_SIDECAR = f"{STRIP_DIRECTORY}/002_8.json"
 SOURCE_IMAGE = "denoising-strength/deliberate/place/source.webp"
+FIRST_STOP_CROP = f"{STRIP_DIRECTORY}/001_4_crop.webp"
+FIRST_STOP_FIT = f"{STRIP_DIRECTORY}/001_4_fit.webp"
 
 TUTORIAL_FILES = ["tutorials/txt2img/meta.json", "tutorials/txt2img/request.json", "tutorials/txt2img/result.webp"]
 ALCHEMY_FILES = [
@@ -74,6 +76,7 @@ ALCHEMY_FILES = [
     "alchemy/describe/caption/result.txt",
     "alchemy/enlarge/vectorize/result.svg",
 ]
+ALCHEMY_CROP_FILES = ["alchemy/enlarge/vectorize/source_crop.webp"]
 
 TEST_SETTINGS = S3Settings(
     endpoint_url="https://accountid.r2.cloudflarestorage.com",
@@ -83,7 +86,7 @@ TEST_SETTINGS = S3Settings(
 )
 
 
-def _index_document(*, with_source_image: bool = True) -> dict[str, Any]:
+def _index_document(*, with_source_image: bool = True, with_derivatives: bool = False) -> dict[str, Any]:
     """Return a minimal but structurally real index: one strip, two stops, one source image."""
     return {
         "schema_version": 1,
@@ -126,6 +129,14 @@ def _index_document(*, with_source_image: bool = True) -> dict[str, Any]:
                         "caption": "Four steps.",
                         "file": FIRST_STOP_IMAGE,
                         "sidecar": FIRST_STOP_SIDECAR,
+                        "width": 2048,
+                        "height": 2048,
+                        "crop": (
+                            {"file": FIRST_STOP_CROP, "width": 512, "height": 512, "x": 1024, "y": 256}
+                            if with_derivatives
+                            else None
+                        ),
+                        "fit": FIRST_STOP_FIT if with_derivatives else None,
                     },
                     {
                         "value": 8,
@@ -133,6 +144,8 @@ def _index_document(*, with_source_image: bool = True) -> dict[str, Any]:
                         "caption": "Eight steps.",
                         "file": SECOND_STOP_IMAGE,
                         "sidecar": SECOND_STOP_SIDECAR,
+                        "width": 512,
+                        "height": 512,
                     },
                 ],
                 "source_image": SOURCE_IMAGE if with_source_image else None,
@@ -141,13 +154,16 @@ def _index_document(*, with_source_image: bool = True) -> dict[str, Any]:
     }
 
 
-def _write_library(root: Path, *, with_source_image: bool = True) -> list[str]:
+def _write_library(root: Path, *, with_source_image: bool = True, with_derivatives: bool = False) -> list[str]:
     """Write an index and every file it references, and return those paths in the index's order."""
-    document = _index_document(with_source_image=with_source_image)
+    document = _index_document(with_source_image=with_source_image, with_derivatives=with_derivatives)
     (root / INDEX_FILENAME).parent.mkdir(parents=True, exist_ok=True)
     (root / INDEX_FILENAME).write_text(json.dumps(document, indent=2), encoding="utf-8")
 
-    referenced = [FIRST_STOP_IMAGE, FIRST_STOP_SIDECAR, SECOND_STOP_IMAGE, SECOND_STOP_SIDECAR]
+    referenced = [FIRST_STOP_IMAGE, FIRST_STOP_SIDECAR]
+    if with_derivatives:
+        referenced += [FIRST_STOP_CROP, FIRST_STOP_FIT]
+    referenced += [SECOND_STOP_IMAGE, SECOND_STOP_SIDECAR]
     if with_source_image:
         referenced.insert(0, SOURCE_IMAGE)
 
@@ -159,7 +175,7 @@ def _write_library(root: Path, *, with_source_image: bool = True) -> list[str]:
     return [INDEX_FILENAME, *referenced]
 
 
-def _write_manifests(root: Path) -> list[str]:
+def _write_manifests(root: Path, *, with_derivatives: bool = False) -> list[str]:
     """Write a tutorial and an alchemy manifest beside the index, with every file they name.
 
     The two alchemy entries share one source, so the closure lists it once.
@@ -191,6 +207,11 @@ def _write_manifests(root: Path) -> list[str]:
                 "form": "vectorize",
                 "title": "Vectorize",
                 "files": {"source": "sources/anchor.webp", "result": "enlarge/vectorize/result.svg"},
+                "source_crop": (
+                    {"file": "enlarge/vectorize/source_crop.webp", "width": 128, "height": 128, "x": 256, "y": 48}
+                    if with_derivatives
+                    else None
+                ),
             },
         ],
     }
@@ -202,12 +223,13 @@ def _write_manifests(root: Path) -> list[str]:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(document, indent=2), encoding="utf-8")
 
-    for relative_path in [*TUTORIAL_FILES, *ALCHEMY_FILES]:
+    alchemy_files = [*ALCHEMY_FILES, *(ALCHEMY_CROP_FILES if with_derivatives else [])]
+    for relative_path in [*TUTORIAL_FILES, *alchemy_files]:
         file_path = root / relative_path
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_bytes(relative_path.encode("utf-8"))
 
-    return [TUTORIAL_MANIFEST_PATH, *TUTORIAL_FILES, ALCHEMY_MANIFEST_PATH, *ALCHEMY_FILES]
+    return [TUTORIAL_MANIFEST_PATH, *TUTORIAL_FILES, ALCHEMY_MANIFEST_PATH, *alchemy_files]
 
 
 def _remote_mirror(root: Path, relative_paths: list[str], *, prefix: str = "") -> dict[str, RemoteObject]:
@@ -223,6 +245,22 @@ def _remote_mirror(root: Path, relative_paths: list[str], *, prefix: str = "") -
         )
 
     return listing
+
+
+def test_the_closure_carries_the_crops_and_the_bounded_copies(tmp_path: Path) -> None:
+    """Assert what a page draws is published, and not only the frames the index names.
+
+    The closure once missed the control maps, which published an index whose own references
+    404ed. Every derived file the index or a manifest names belongs to it for the same reason.
+    """
+    _write_library(tmp_path, with_derivatives=True)
+    _write_manifests(tmp_path, with_derivatives=True)
+
+    published = [library_file.relative_path for library_file in enumerate_library(output_root=tmp_path)]
+
+    assert FIRST_STOP_CROP in published
+    assert FIRST_STOP_FIT in published
+    assert "alchemy/enlarge/vectorize/source_crop.webp" in published
 
 
 def test_enumerate_library_covers_index_stops_sidecars_and_source(tmp_path: Path) -> None:

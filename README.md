@@ -19,6 +19,8 @@ assets/param-sweeps/
   index.json                                  everything a web app needs to draw every strip
   steps/icbinp/person/001_4.webp              the image
   steps/icbinp/person/001_4.json              its sidecar: full params, model, seed, runner, timings
+  upscaler-form/albedobase-xl/courier/001_realesrgan_x4plus_crop.webp   the region worth reading at its own pixels
+  upscaler-form/albedobase-xl/courier/001_realesrgan_x4plus_fit.webp    the same frame bounded to 1024 on its long edge
   denoising-strength/icbinp/garden/source.webp       the image that strip starts from
   alchemy/manifest.json                       every alchemy form, its use case and its result
   alchemy/sources/tutorial-anchor-512.webp    a source the forms in one use case share
@@ -31,6 +33,19 @@ assets/param-sweeps/
 `index.json` is self-sufficient. Each strip carries its model, scene, presentation, the parameters
 held constant, which of them vary, and its stops in order, each with a value, a filename and a
 caption. A consumer that has `index.json` never has to open a sidecar or parse a filename.
+
+Every stop states the pixel size of its own frame, read from the file rather than from what was
+asked for, and a strip that starts from a source image states that image's size too. A frame whose
+long edge is over 1024 also carries `fit`, a bounded copy for a consumer to draw in place of the
+full frame; a frame already within the bound carries none and is drawn as it is.
+
+Where the difference a strip teaches lives in detail nobody can see at the size a page draws a
+picture, the sweep or the stop declares a `crop`: a region in fractions of the frame, cut at the
+frame's own pixels into `<stem>_crop.webp` and reported in the index as a file with its pixel box.
+Fractions rather than pixels, so one region serves stops published at different sizes: the
+upscaler strip's stops are 1024 and 2048 and the region is the same face in both. Alchemy entries
+declare one the same way and it is cut from the source and the result alike, which is what makes a
+before and after comparable when the result is four times the size.
 
 A stop does not repeat its own resolved parameters: the strip already states what it holds and
 what varies, and the full set is in the sidecar beside every image for anyone who wants it. A
@@ -257,6 +272,10 @@ uv run param-sweeps local --gpu-backend cuda
 
 # The whole library through the horde, one job at a time
 uv run param-sweeps horde
+
+# Cut the crops and write the bounded copies for whatever images are already on disk, which
+# `index` then reports; it answers to `crops` as well, which is what it used to be called
+uv run param-sweeps derivatives
 
 # Rebuild index.json from whatever images are already on disk
 uv run param-sweeps index

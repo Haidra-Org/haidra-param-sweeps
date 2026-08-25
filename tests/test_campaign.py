@@ -217,6 +217,10 @@ def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, t
         "caption",
         "file",
         "sidecar",
+        "width",
+        "height",
+        "crop",
+        "fit",
         "prompt_fragment",
         "batch_size",
         "chosen_candidate",
@@ -226,6 +230,7 @@ def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, t
     }
     assert stop["prompt_fragment"] is None
     assert stop["batch_size"] == 1
+    assert (stop["width"], stop["height"]) == (16, 16)
 
     sidecar = json.loads((tmp_path / stop["sidecar"]).read_text(encoding="utf-8"))
     assert sidecar["params"]["clip_skip"] == 1

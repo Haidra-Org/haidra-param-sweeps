@@ -19,6 +19,8 @@ Critical public members:
 - [`save_render`][param_sweeps.outputs.save_render]: write one image and its sidecar.
 - [`build_index`][param_sweeps.outputs.build_index]: build the index from the specification and
   the files actually present on disk.
+- [`image_size`][param_sweeps.outputs.image_size]: the pixel size of a published file, which is
+  what lets the index say how big a picture is without decoding it.
 - [`write_index`][param_sweeps.outputs.write_index]: write that index deterministically.
 - [`publish_source_images`][param_sweeps.outputs.publish_source_images]: copy the images the
   image-to-image strips start from into the library, so it stays self-contained.
@@ -39,8 +41,10 @@ from param_sweeps.spec import (
     PREVIEWABLE_PRESENTATIONS,
     TOOL_ROOT,
     BatchSection,
+    CropRegion,
     GenerationParameters,
     JobFeatures,
+    PublishedCrop,
     RenderJob,
     RenderStrip,
     StripPresentation,
@@ -70,6 +74,14 @@ class WebpEncoding:
 
     QUALITY = 92
     METHOD = 6
+
+    CROP_QUALITY = 98
+    """What a hundred-percent crop is encoded at.
+
+    A crop exists to be read at its own pixels, so the encoder is given far less room to decide
+    what counts as texture than it has on a frame nobody is looking that closely at. The crops
+    are a small part of the library by area, so the higher quality costs little.
+    """
 
 
 class ImageSidecar(BaseModel):
@@ -138,6 +150,17 @@ class IndexStop(BaseModel):
     caption: str
     file: str
     sidecar: str
+    width: int
+    """The published frame's width in pixels, read from the file itself.
+
+    A consumer that knows the size can say what it is showing and can reserve the space before
+    the picture arrives. It is read rather than taken from the request, because a backend can
+    hand back a frame at a size nobody asked for and the file is what a reader is looking at.
+    """
+
+    height: int
+    """The published frame's height in pixels, read from the file itself."""
+
     prompt_fragment: str | None = None
     """What this stop added to the scene's prompt, on the strips that vary the prompt itself."""
 
@@ -164,6 +187,20 @@ class IndexStop(BaseModel):
     None on a stop that has a control type is the honest report of a detector that would not
     draw: the render is still here, guided by whatever the backend derived internally, and the
     missing map is the thing a consumer says out loud rather than hides.
+    """
+
+    crop: PublishedCrop | None = None
+    """The part of this frame published at its own pixels, or None where none is.
+
+    Present only where the file is on disk, so a consumer that has the record can fetch it.
+    """
+
+    fit: str | None = None
+    """A copy of this frame bounded to a page-sized long edge, or None where the frame is already
+    within it.
+
+    A consumer drawing the strip fetches this and leaves the full frame to the reader who asks
+    for it, which is the difference between a strip that loads and one that does not.
     """
 
 
@@ -218,6 +255,16 @@ class IndexStrip(BaseModel):
     stops: list[IndexStop]
     source_image: str | None = None
     """The image the strip starts from, relative to this index, for a consumer to show beside it."""
+
+    source_width: int | None = None
+    """The source image's width in pixels, or None when the strip starts from noise.
+
+    Read from the published copy, which is what makes an image-to-image strip able to say that
+    its stops are four times the size of what they started from.
+    """
+
+    source_height: int | None = None
+    """The source image's height in pixels, or None when the strip starts from noise."""
 
     control_map: str | None = None
     """The map the detector drew from the strip's source, on strips held to one control type.
@@ -348,10 +395,12 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
         missing_count = 0
 
         for job in strip.jobs:
-            if not (output_root / job.relative_image_path).is_file():
+            frame_path = output_root / job.relative_image_path
+            if not frame_path.is_file():
                 missing_count += 1
                 continue
 
+            frame_width, frame_height = image_size(frame_path)
             stops.append(
                 IndexStop(
                     value=job.stop_value,
@@ -359,6 +408,10 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                     caption=job.caption,
                     file=job.relative_image_path,
                     sidecar=job.relative_sidecar_path,
+                    width=frame_width,
+                    height=frame_height,
+                    crop=_published_stop_crop(job=job, output_root=output_root),
+                    fit=_published_fit(job=job, output_root=output_root),
                     prompt_fragment=job.prompt_fragment,
                     batch_size=job.batch_size,
                     chosen_candidate=job.chosen_candidate,
@@ -371,6 +424,7 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
         if not stops:
             continue
 
+        source_width, source_height = _published_source_size(strip=strip, output_root=output_root)
         index_strips.append(
             IndexStrip(
                 strip_id=strip.strip_id,
@@ -394,6 +448,8 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                 varying=_varying_field_names(strip),
                 stops=stops,
                 source_image=strip.published_source_image,
+                source_width=source_width,
+                source_height=source_height,
                 control_map=_published_strip_control_map(strip=strip, output_root=output_root),
                 grid=_index_grid(strip),
                 preview=_index_preview(strip=strip, stops=stops),
@@ -462,6 +518,71 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
         published.append(destination)
 
     return published
+
+
+def image_size(path: Path) -> tuple[int, int]:
+    """Return an image's pixel size, read from its header rather than by decoding it.
+
+    Raises:
+        OSError: If the file is missing, or is not an image this build of Pillow can read.
+    """
+    with Image.open(path) as opened:
+        return opened.width, opened.height
+
+
+def published_crop(*, file: str, root: Path, region: CropRegion, frame_relative_path: str) -> PublishedCrop | None:
+    """Return the record of a crop on disk, or None when the crop or its frame is not there.
+
+    Read from the files rather than computed from the specification alone, so what the index and
+    the manifest report is the crop that exists rather than the one a run meant to write.
+
+    Args:
+        file: How the index or manifest names the crop, relative to itself.
+        root: What both paths are relative to.
+        region: The region the crop was cut from.
+        frame_relative_path: The frame it was cut from, whose pixels the box is stated in.
+
+    Returns:
+        The record, or None when either file is missing.
+    """
+    crop_path = root / file
+    frame_path = root / frame_relative_path
+    if not crop_path.is_file() or not frame_path.is_file():
+        return None
+
+    frame_width, frame_height = image_size(frame_path)
+    left, upper, _right, _lower = region.pixel_box(width=frame_width, height=frame_height)
+    crop_width, crop_height = image_size(crop_path)
+    return PublishedCrop(file=file, width=crop_width, height=crop_height, x=left, y=upper)
+
+
+def _published_stop_crop(*, job: RenderJob, output_root: Path) -> PublishedCrop | None:
+    """Return the stop's crop record when the crop is on disk, and None when it is not."""
+    relative_path = job.relative_crop_path
+    if relative_path is None or job.crop is None:
+        return None
+
+    return published_crop(
+        file=relative_path,
+        root=output_root,
+        region=job.crop,
+        frame_relative_path=job.relative_image_path,
+    )
+
+
+def _published_fit(*, job: RenderJob, output_root: Path) -> str | None:
+    """Return the stop's bounded copy when it is on disk, and None when the frame needed none."""
+    relative_path = job.relative_fit_path
+    return relative_path if (output_root / relative_path).is_file() else None
+
+
+def _published_source_size(*, strip: RenderStrip, output_root: Path) -> tuple[int | None, int | None]:
+    """Return the published source image's size, or a pair of Nones when there is no source."""
+    relative_path = strip.published_source_image
+    if relative_path is None or not (output_root / relative_path).is_file():
+        return None, None
+
+    return image_size(output_root / relative_path)
 
 
 def _published_control_map(*, job: RenderJob, output_root: Path) -> str | None:

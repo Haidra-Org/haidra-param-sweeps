@@ -75,8 +75,16 @@ from strenum import StrEnum
 
 from param_sweeps.checkpoint import CampaignCheckpoint
 from param_sweeps.horde_client import FormRefusedError, HordeApiClient
-from param_sweeps.outputs import WebpEncoding, save_render, write_index
-from param_sweeps.spec import TOOL_ROOT, RenderStrip, SweepParameter, SweepSpec, value_label
+from param_sweeps.outputs import WebpEncoding, image_size, published_crop, save_render, write_index
+from param_sweeps.spec import (
+    TOOL_ROOT,
+    CropRegion,
+    PublishedCrop,
+    RenderStrip,
+    SweepParameter,
+    SweepSpec,
+    value_label,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +99,16 @@ RESULT_IMAGE_FILENAME = "result.webp"
 RESULT_TEXT_FILENAME = "result.txt"
 RESULT_JSON_FILENAME = "result.json"
 RESULT_SVG_FILENAME = "result.svg"
+
+SOURCE_CROP_FILENAME = "source_crop.webp"
+"""Where an entry's source crop lands, inside the entry's own directory.
+
+Inside the entry rather than beside the shared source, because two entries can crop the same
+source at different regions and one file beside the source could only hold one of them.
+"""
+
+RESULT_CROP_FILENAME = "result_crop.webp"
+"""Where an entry's result crop lands, inside the entry's own directory."""
 
 RESULT_URL_SCHEME_PREFIX = "http"
 """What an answer that is a picture starts with: the API returns a URL rather than the bytes."""
@@ -258,6 +276,13 @@ class AlchemyEntrySpec(BaseModel):
     Every other form names its own answer, so this is unset for them.
     """
 
+    crop: CropRegion | None = None
+    """The region published at its own pixels, cut from both the source and the result.
+
+    Set it where what the form did lives in detail a page cannot show at the size it draws the
+    picture: a face a restorer redrew, or the texture an upscaler invented.
+    """
+
     notes: str | None = None
     """What the consumer should be told about this entry beyond its result.
 
@@ -370,6 +395,28 @@ class ManifestEntry(BaseModel):
 
     model: str | None = None
     """The weights the form ran on, when the backend can name them."""
+
+    source_width: int | None = None
+    """The source image's width in pixels, read from the published file."""
+
+    source_height: int | None = None
+    """The source image's height in pixels, read from the published file."""
+
+    result_width: int | None = None
+    """The result's width in pixels, or None where the form answered in words or in vectors.
+
+    An upscaler's whole answer is this number against the source's, and a page that cannot say
+    it is showing four times the pixels is showing the reader the same picture twice.
+    """
+
+    result_height: int | None = None
+    """The result's height in pixels, or None where there is no raster result to measure."""
+
+    source_crop: PublishedCrop | None = None
+    """The part of the source published at its own pixels, or None where none is."""
+
+    result_crop: PublishedCrop | None = None
+    """The part of the result published at its own pixels, or None where none is."""
 
     notes: str | None = None
 
@@ -773,6 +820,16 @@ def published_source_name(entry: AlchemyEntrySpec) -> str:
     return f"{SOURCES_DIRECTORY_NAME}/{PurePosixPath(entry.source).name}"
 
 
+def published_source_crop_name(entry: AlchemyEntrySpec) -> str:
+    """Return where this entry's source crop is published, relative to the alchemy tree."""
+    return f"{entry.relative_directory}/{SOURCE_CROP_FILENAME}"
+
+
+def published_result_crop_name(entry: AlchemyEntrySpec) -> str:
+    """Return where this entry's result crop is published, relative to the alchemy tree."""
+    return f"{entry.relative_directory}/{RESULT_CROP_FILENAME}"
+
+
 def build_manifest(*, spec: AlchemySpec, output_root: Path) -> AlchemyManifest:
     """Build the manifest from the specification and the files actually on disk.
 
@@ -799,19 +856,40 @@ def build_manifest(*, spec: AlchemySpec, output_root: Path) -> AlchemyManifest:
         text_name = f"{entry.relative_directory}/{RESULT_TEXT_FILENAME}"
         json_name = f"{entry.relative_directory}/{RESULT_JSON_FILENAME}"
 
+        source_name = published_source_name(entry)
+        published_result = result_name if (root / result_name).is_file() else None
+        source_width, source_height = _published_size(root / source_name)
+        result_width, result_height = _published_size(root / result_name)
+
         entries.append(
             ManifestEntry(
                 use_case=entry.use_case,
                 form=entry.form,
                 title=entry.title,
                 files=ManifestFiles(
-                    source=published_source_name(entry),
-                    result=result_name if (root / result_name).is_file() else None,
+                    source=source_name,
+                    result=published_result,
                     result_text=text_name if (root / text_name).is_file() else None,
                     result_json=json_name if (root / json_name).is_file() else None,
                 ),
                 control_type=entry.control_type,
                 model=record.model if record is not None else None,
+                source_width=source_width,
+                source_height=source_height,
+                result_width=result_width,
+                result_height=result_height,
+                source_crop=_published_entry_crop(
+                    region=entry.crop,
+                    root=root,
+                    file=published_source_crop_name(entry),
+                    frame_name=source_name,
+                ),
+                result_crop=_published_entry_crop(
+                    region=entry.crop,
+                    root=root,
+                    file=published_result_crop_name(entry),
+                    frame_name=result_name,
+                ),
                 notes=_manifest_notes(entry=entry, record=record),
             ),
         )
@@ -1091,6 +1169,36 @@ def _read_entry_record(*, root: Path, entry: AlchemyEntrySpec) -> _EntryRecord |
         return None
 
     return _EntryRecord.model_validate_json(record_path.read_text(encoding="utf-8"))
+
+
+def _published_size(path: Path) -> tuple[int | None, int | None]:
+    """Return a published file's pixel size, or a pair of Nones when it is not a picture.
+
+    A form can answer in words or in vectors, and an entry can carry no result at all, so this
+    reports the absence of a size rather than treating it as a fault.
+    """
+    if not path.is_file():
+        return None, None
+
+    try:
+        return image_size(path)
+    except OSError as unreadable:
+        logger.debug("No pixel size for %s: %s", path, unreadable)
+        return None, None
+
+
+def _published_entry_crop(
+    *,
+    region: CropRegion | None,
+    root: Path,
+    file: str,
+    frame_name: str,
+) -> PublishedCrop | None:
+    """Return one side's crop record when it is on disk, and None when the entry declares none."""
+    if region is None:
+        return None
+
+    return published_crop(file=file, root=root, region=region, frame_relative_path=frame_name)
 
 
 def _manifest_notes(*, entry: AlchemyEntrySpec, record: _EntryRecord | None) -> str | None:

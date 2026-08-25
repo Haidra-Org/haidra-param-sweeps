@@ -313,106 +313,202 @@
       "use_case": "enlarge",
       "title": "RealESRGAN x4plus",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "The horde's general-purpose four-times upscaler, and the one to reach for without a reason to reach for another."
+      "notes": "The horde's general-purpose four-times upscaler, and the one to reach for without a reason to reach for another.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "RealESRGAN_x2plus",
       "use_case": "enlarge",
       "title": "RealESRGAN x2plus",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "The same family at two times rather than four, for when four is more picture than you want to pay for."
+      "notes": "The same family at two times rather than four, for when four is more picture than you want to pay for.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "RealESRGAN_x4plus_anime_6B",
       "use_case": "enlarge",
       "title": "RealESRGAN x4plus anime",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "Trained on flat colour and line rather than photography. On a photographic source it is the wrong tool, which is exactly what a shared source makes visible."
+      "notes": "Trained on flat colour and line rather than photography. On a photographic source it is the wrong tool, which is exactly what a shared source makes visible.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "NMKD_Siax",
       "use_case": "enlarge",
       "title": "NMKD Siax",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "A photographic four-times upscaler with a different idea of texture than the RealESRGAN pair."
+      "notes": "A photographic four-times upscaler with a different idea of texture than the RealESRGAN pair.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4x_AnimeSharp",
       "use_case": "enlarge",
       "title": "4x AnimeSharp",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "Sharpens hard edges aggressively, which suits line art and overstates itself on skin."
+      "notes": "Sharpens hard edges aggressively, which suits line art and overstates itself on skin.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4xNomos8kSC",
       "use_case": "enlarge",
       "title": "4x Nomos8kSC",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4xLSDIRplus",
       "use_case": "enlarge",
       "title": "4x LSDIRplus",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4xNomosWebPhoto_RealPLKSR",
       "use_case": "enlarge",
       "title": "4x NomosWebPhoto RealPLKSR",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4xNomos2_realplksr_dysample",
       "use_case": "enlarge",
       "title": "4x Nomos2 RealPLKSR dysample",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "4xNomos2_hq_dat2",
       "use_case": "enlarge",
       "title": "4x Nomos2 HQ DAT2",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "2xModernSpanimationV1",
       "use_case": "enlarge",
       "title": "2x ModernSpanimation",
-      "source": "inputs/tutorial-anchor-512.webp"
+      "source": "inputs/tutorial-anchor-512.webp",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "vectorize",
       "use_case": "enlarge",
       "title": "Vectorize",
       "source": "inputs/tutorial-anchor-512.webp",
-      "notes": "Filed under enlarge because it is the other answer to the same question: an SVG has no resolution to run out of. It redraws the picture in shapes rather than making the pixels bigger, so the fit is approximate."
+      "notes": "Filed under enlarge because it is the other answer to the same question: an SVG has no resolution to run out of. It redraws the picture in shapes rather than making the pixels bigger, so the fit is approximate.",
+      "crop": {
+        "x": 0.52,
+        "y": 0.09,
+        "w": 0.26,
+        "h": 0.26
+      }
     },
     {
       "form": "GFPGAN",
       "use_case": "fix_faces",
       "title": "GFPGAN",
       "source": "inputs/alchemy-facefix-source.webp",
-      "notes": "The source is the degraded portrait hordelib's face fix tests run on, the kind of blurred, compressed photograph the blind face restoration line the GFPGAN and CodeFormer weights come from was built to answer, because a face that is already sharp shows nothing."
+      "notes": "The source is the degraded portrait hordelib's face fix tests run on, the kind of blurred, compressed photograph the blind face restoration line the GFPGAN and CodeFormer weights come from was built to answer, because a face that is already sharp shows nothing.",
+      "crop": {
+        "x": 0.2,
+        "y": 0.3,
+        "w": 0.56,
+        "h": 0.42
+      }
     },
     {
       "form": "CodeFormers",
       "use_case": "fix_faces",
       "title": "CodeFormer",
       "source": "inputs/alchemy-facefix-source.webp",
-      "notes": "The same degraded portrait as the GFPGAN entry. CodeFormer trades identity for fidelity differently, which is the comparison the shared source is here to make."
+      "notes": "The same degraded portrait as the GFPGAN entry. CodeFormer trades identity for fidelity differently, which is the comparison the shared source is here to make.",
+      "crop": {
+        "x": 0.2,
+        "y": 0.3,
+        "w": 0.56,
+        "h": 0.42
+      }
     },
     {
       "form": "GFPGANv1.3",
       "use_case": "fix_faces",
       "title": "GFPGAN v1.3",
       "source": "inputs/alchemy-facefix-source.webp",
-      "notes": "The predecessor GFPGAN weight, more faithful to the face it was given than the default."
+      "notes": "The predecessor GFPGAN weight, more faithful to the face it was given than the default.",
+      "crop": {
+        "x": 0.2,
+        "y": 0.3,
+        "w": 0.56,
+        "h": 0.42
+      }
     },
     {
       "form": "RestoreFormer",
       "use_case": "fix_faces",
       "title": "RestoreFormer",
       "source": "inputs/alchemy-facefix-source.webp",
-      "notes": "A transformer-based restorer that leans towards realism rather than towards smoothing."
+      "notes": "A transformer-based restorer that leans towards realism rather than towards smoothing.",
+      "crop": {
+        "x": 0.2,
+        "y": 0.3,
+        "w": 0.56,
+        "h": 0.42
+      }
     },
     {
       "form": "strip_background",

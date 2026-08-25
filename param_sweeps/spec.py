@@ -20,6 +20,8 @@ Critical public members:
   the batch shows, each one pointing at the images that decide it.
 - [`FeatureOverrides`][param_sweeps.spec.FeatureOverrides]: the generation features beyond the
   plain sampler parameters, statable per stop, per sweep and per batch job.
+- [`CropRegion`][param_sweeps.spec.CropRegion]: the part of a frame worth publishing at its own
+  pixels, stated per sweep or per stop.
 - [`load_spec`][param_sweeps.spec.load_spec]: read and validate a specification file.
 """
 
@@ -538,12 +540,94 @@ class ParameterOverrides(FeatureOverrides):
     height: int | None = None
 
 
+class CropRegion(BaseModel):
+    """Represents the part of a published frame worth showing at its own pixels.
+
+    Stated in fractions of the frame rather than in pixels, because one region has to serve
+    frames of different sizes: an upscaler strip publishes the same picture at 1024 and at 2048,
+    and a reader comparing them has to be looking at the same part of it in both. The field
+    names are the short geometric ones because that is what the published shape reads as.
+    """
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    x: float = Field(ge=0.0, lt=1.0)
+    """The region's left edge, as a fraction of the frame's width."""
+
+    y: float = Field(ge=0.0, lt=1.0)
+    """The region's top edge, as a fraction of the frame's height."""
+
+    w: float = Field(gt=0.0, le=1.0)
+    """The region's width, as a fraction of the frame's width."""
+
+    h: float = Field(gt=0.0, le=1.0)
+    """The region's height, as a fraction of the frame's height."""
+
+    even_when_small: bool = False
+    """Cut this region from frames below the size a crop is normally worth cutting from.
+
+    A crop exists because a picture is shown smaller than it was rendered. Below
+    [`MINIMUM_CROPPABLE_PIXELS`][param_sweeps.derivatives.MINIMUM_CROPPABLE_PIXELS] a frame is already
+    shown at or near its own pixels, so a crop of it teaches nothing and is not cut unless the
+    specification says the region carries something anyway.
+    """
+
+    @model_validator(mode="after")
+    def _check_the_region_is_inside_the_frame(self) -> CropRegion:
+        """Validate that the region does not run off the right or bottom edge.
+
+        Raises:
+            ValueError: If the region extends past the frame.
+        """
+        if self.x + self.w > 1.0 or self.y + self.h > 1.0:
+            raise ValueError(
+                f"a crop region has to sit inside the frame, and {self.x}+{self.w} by {self.y}+{self.h} runs off it",
+            )
+        return self
+
+    def pixel_box(self, *, width: int, height: int) -> tuple[int, int, int, int]:
+        """Return this region as a left, upper, right, lower pixel box in a frame of this size.
+
+        Args:
+            width: The frame's width in pixels.
+            height: The frame's height in pixels.
+
+        Returns:
+            The box, clamped to the frame and at least one pixel on each side.
+        """
+        left = min(round(self.x * width), width - 1)
+        upper = min(round(self.y * height), height - 1)
+        right = min(width, left + max(1, round(self.w * width)))
+        lower = min(height, upper + max(1, round(self.h * height)))
+        return left, upper, right, lower
+
+
+class PublishedCrop(BaseModel):
+    """Represents a crop that was cut: where it landed, and the box it holds in its frame."""
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    file: str
+    """Where the crop is published, relative to the index or manifest that names it."""
+
+    width: int
+    height: int
+    x: int
+    """The box's left edge in the frame's own pixels, for a consumer that draws the region on it."""
+
+    y: int
+    """The box's top edge in the frame's own pixels."""
+
+
 class SweepStop(ParameterOverrides):
     """Represents one stop of a strip: the value that changes, and what it teaches."""
 
     value: bool | int | float | str
     caption: str
     label: str | None = None
+
+    crop: CropRegion | None = None
+    """The region this stop publishes at its own pixels, in place of the sweep's."""
 
     control_group: str | None = None
     """Which family this stop's control type belongs to, on the strips that walk a vocabulary."""
@@ -574,6 +658,14 @@ class SweepBase(BaseModel):
 
     holds: ParameterOverrides = Field(default_factory=ParameterOverrides)
     """What this sweep holds differently from the anchor, for every stop that does not say."""
+
+    crop: CropRegion | None = None
+    """The region every stop of this sweep publishes at its own pixels, unless a stop says otherwise.
+
+    Set it where the difference the strip teaches lives in detail the reader cannot see at the
+    size a page draws the frame: an upscaler's invented texture, or what a second pass adds to a
+    face. Left unset where the lesson is composition, which reads at any size.
+    """
 
     directory_override: str | None = None
     """Where this sweep's strips are filed, in place of the parameter and model directories.
@@ -1085,6 +1177,9 @@ class RenderJob(BaseModel):
     of what each detector is for and the backend has no opinion about it.
     """
 
+    crop: CropRegion | None = None
+    """The region of this render published at its own pixels, or None where none is."""
+
     @model_validator(mode="after")
     def _check_feature_combinations(self) -> RenderJob:
         """Validate that the features this job turns on are ones the backends can act on."""
@@ -1195,6 +1290,26 @@ class RenderJob(BaseModel):
         if self.control_type is None:
             return None
         return f"{self.relative_directory}/{self.candidate_stem(1)}_map.webp"
+
+    @property
+    def relative_crop_path(self) -> str | None:
+        """Return where this render's crop is published, or None when it declares no region.
+
+        Beside the render and under its stem, for the same reason a control map is: the pair is
+        only meaningful together, and the published stem is the one the index already names.
+        """
+        if self.crop is None:
+            return None
+        return f"{self.relative_directory}/{self.candidate_stem(self.chosen_candidate_number)}_crop.webp"
+
+    @property
+    def relative_fit_path(self) -> str:
+        """Return where this render's bounded copy is published, beside the render itself.
+
+        Every render names one whether or not it has one: a frame small enough to be drawn
+        whole needs no bounded copy, and whether the file exists is what the index reports.
+        """
+        return f"{self.relative_directory}/{self.candidate_stem(self.chosen_candidate_number)}_fit.webp"
 
     @property
     def checkpoint_key(self) -> str:
@@ -1722,6 +1837,7 @@ class SweepSpec(BaseModel):
             scheduler=_resolved(stop.scheduler, held.scheduler, self.anchor.scheduler),
             negative_prompt=sweep.negative_prompt if uses_negative_prompt else "",
             source_image=_resolved(stop.source_image, held.source_image, sweep.source_image),
+            crop=_resolved(stop.crop, sweep.crop, None),
             directory_override=sweep.directory_override,
             **resolved_solver_parameters(stop=stop, held=held),
             **resolved_features(stop=stop, held=held),

@@ -360,6 +360,10 @@ def indexed_relative_paths(index: SweepIndex) -> list[str]:
             take(stop.file)
             take(stop.sidecar)
             take(stop.control_map)
+            # The crop and the bounded copy are what a page actually draws for a frame it cannot
+            # show whole, so they belong to the closure exactly as the frame itself does.
+            take(stop.crop.file if stop.crop is not None else None)
+            take(stop.fit)
 
     return paths
 
@@ -385,7 +389,14 @@ def alchemy_manifest_relative_paths(manifest: AlchemyManifest) -> list[str]:
     paths: list[str] = [ALCHEMY_MANIFEST_PATH]
     seen: set[str] = set(paths)
     for entry in manifest.entries:
-        for file_name in (entry.files.source, entry.files.result, entry.files.result_text, entry.files.result_json):
+        crop_names = [crop.file for crop in (entry.source_crop, entry.result_crop) if crop is not None]
+        for file_name in (
+            entry.files.source,
+            entry.files.result,
+            entry.files.result_text,
+            entry.files.result_json,
+            *crop_names,
+        ):
             if file_name is None:
                 continue
             path = f"{ALCHEMY_DIRECTORY_NAME}/{file_name}"

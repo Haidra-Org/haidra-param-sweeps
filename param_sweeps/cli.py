@@ -47,6 +47,7 @@ from param_sweeps.alchemy import (
 )
 from param_sweeps.campaign import CampaignResult, JobFilter, run_campaign
 from param_sweeps.control_maps import draw_control_maps
+from param_sweeps.derivatives import DerivativeKind, write_alchemy_crops, write_sweep_derivatives
 from param_sweeps.flows import (
     FlowResult,
     FlowsSpec,
@@ -117,6 +118,12 @@ DEFAULT_FLOWS_OUTPUT_ROOT = DEFAULT_OUTPUT_ROOT / "tutorials"
 
 PUBLISHING_COMMANDS = frozenset({"manifest", "upload", "verify"})
 """The subcommands that work from the rendered library and never read the specification."""
+
+DERIVATIVES_LEGACY_COMMAND = "crops"
+"""What the derivatives command was called when it only cut crops, kept so scripts keep working."""
+
+DERIVATIVES_COMMANDS = frozenset({"derivatives", DERIVATIVES_LEGACY_COMMAND})
+"""Both names the derivatives command answers to."""
 
 
 class AlchemyBackendChoice(StrEnum):
@@ -436,6 +443,43 @@ def build_parser() -> argparse.ArgumentParser:
     )
     control_maps_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
+    derivatives_parser = subparsers.add_parser(
+        "derivatives",
+        aliases=[DERIVATIVES_LEGACY_COMMAND],
+        help="cut the hundred-percent crops and write the page-sized copies of the published renders",
+    )
+    derivatives_parser.add_argument(
+        "--spec",
+        type=Path,
+        default=DEFAULT_SPEC_PATH,
+        help="the sweep specification to read",
+    )
+    derivatives_parser.add_argument(
+        "--alchemy-spec",
+        type=Path,
+        default=DEFAULT_ALCHEMY_SPEC_PATH,
+        help="the alchemy specification, whose entries can declare a region of their own",
+    )
+    derivatives_parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=DEFAULT_OUTPUT_ROOT,
+        help="the output tree's root; every file lands beside the frame it came from",
+    )
+    derivatives_parser.add_argument(
+        "--parameter",
+        action="append",
+        default=[],
+        choices=[str(parameter) for parameter in SweepParameter],
+        help="restrict the run to this parameter (repeatable)",
+    )
+    derivatives_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="rewrite files that are already on disk",
+    )
+    derivatives_parser.add_argument("--verbose", action="store_true", help="log at debug level")
+
     index_parser = subparsers.add_parser("index", help="rebuild index.json from the images already on disk")
     index_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     index_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
@@ -584,6 +628,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "control-maps":
         return _run_control_maps(arguments, spec=spec, output_root=output_root)
+
+    if arguments.command in DERIVATIVES_COMMANDS:
+        return _run_derivatives(arguments, spec=spec, output_root=output_root)
 
     if arguments.command == "index":
         index_path = write_index(spec=spec, output_root=output_root)
@@ -849,6 +896,47 @@ def _run_control_maps(arguments: argparse.Namespace, *, spec: SweepSpec, output_
     print(f"Drew {len(outcomes) - len(reused) - len(missing)}, reused {len(reused)}, undrawn {len(missing)}.")
     for outcome in missing:
         print(f"  {outcome.strip_id} {outcome.control_type}: {outcome.unavailable_reason}", file=sys.stderr)
+    return 0
+
+
+def _run_derivatives(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
+    """Cut the crops and write the bounded copies, and return the process exit code.
+
+    The alchemy specification is read when it is there and passed over when it is not, so a
+    library rendered without the alchemy campaign still gets the sweeps' own files.
+    """
+    parameters = [SweepParameter(parameter) for parameter in arguments.parameter]
+
+    try:
+        outcomes = write_sweep_derivatives(
+            spec=spec,
+            output_root=output_root,
+            parameters=parameters,
+            force=arguments.force,
+        )
+        alchemy_spec_path: Path = arguments.alchemy_spec
+        if alchemy_spec_path.is_file():
+            outcomes.extend(
+                write_alchemy_crops(
+                    spec=load_alchemy_spec(alchemy_spec_path),
+                    output_root=output_root,
+                    force=arguments.force,
+                ),
+            )
+    except (OSError, ValueError) as derivative_error:
+        print(f"error: {derivative_error}", file=sys.stderr)
+        return 1
+
+    for kind in DerivativeKind:
+        of_kind = [outcome for outcome in outcomes if outcome.kind is kind]
+        written = [outcome for outcome in of_kind if outcome.written]
+        reused = [outcome for outcome in of_kind if outcome.reused]
+        written_bytes = sum(outcome.size_bytes for outcome in written)
+        print(
+            f"{kind}: wrote {len(written)} ({written_bytes / 1_000_000:.1f} MB),"
+            f" reused {len(reused)}, passed over {len(of_kind) - len(written) - len(reused)}.",
+        )
+
     return 0
 
 
