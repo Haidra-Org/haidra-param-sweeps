@@ -28,6 +28,8 @@ Critical public members:
   bounded copies every published render needs.
 - [`write_alchemy_crops`][param_sweeps.derivatives.write_alchemy_crops]: the crops the alchemy
   entries that declare a region need, cut from both the source and the result.
+- [`write_alchemy_result_fits`][param_sweeps.derivatives.write_alchemy_result_fits]: the bounded
+  copies the alchemy results over the bound need.
 """
 
 from __future__ import annotations
@@ -45,6 +47,7 @@ from param_sweeps.alchemy import (
     AlchemySpec,
     alchemy_root,
     published_result_crop_name,
+    published_result_fit_name,
     published_source_crop_name,
     published_source_name,
 )
@@ -200,6 +203,49 @@ def write_alchemy_crops(
                     force=force,
                 ),
             )
+
+    return outcomes
+
+
+def write_alchemy_result_fits(
+    *,
+    spec: AlchemySpec,
+    output_root: Path,
+    force: bool = False,
+) -> list[DerivativeOutcome]:
+    """Write the bounded copy of every raster alchemy result over the bound, and return the outcomes.
+
+    Only the raster result is considered: the forms that answer in words or in vectors have
+    nothing to bound, and are passed over rather than reported.
+
+    Args:
+        spec: The alchemy specification.
+        output_root: The root of the sweep library, which the alchemy tree sits inside.
+        force: Rewrite copies that are already on disk.
+
+    Returns:
+        One outcome per result considered, in specification order.
+
+    Side Effects:
+        Writes a WebP beside each raster result that exceeds the bound.
+    """
+    root = alchemy_root(output_root)
+    outcomes: list[DerivativeOutcome] = []
+
+    for entry in spec.entries:
+        result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
+        if not result_path.is_file():
+            continue
+
+        fit_name = published_result_fit_name(entry)
+        outcomes.append(
+            _write_one_bounded_copy(
+                frame_path=result_path,
+                destination=root / fit_name,
+                relative_path=fit_name,
+                force=force,
+            ),
+        )
 
     return outcomes
 

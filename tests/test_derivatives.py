@@ -20,10 +20,12 @@ from PIL import Image
 
 from param_sweeps.alchemy import (
     RESULT_IMAGE_FILENAME,
+    RESULT_TEXT_FILENAME,
     AlchemySpec,
     alchemy_root,
     build_manifest,
     published_result_crop_name,
+    published_result_fit_name,
     published_source_crop_name,
     published_source_name,
 )
@@ -32,6 +34,7 @@ from param_sweeps.derivatives import (
     MINIMUM_CROPPABLE_PIXELS,
     DerivativeKind,
     write_alchemy_crops,
+    write_alchemy_result_fits,
     write_sweep_derivatives,
 )
 from param_sweeps.outputs import build_index
@@ -349,3 +352,74 @@ def test_an_alchemy_entry_without_a_result_carries_no_result_crop(tmp_path: Path
     assert manifest_entry.source_crop is not None
     assert manifest_entry.result_crop is None
     assert manifest_entry.result_width is None
+
+
+def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_the_manifest_names(tmp_path: Path) -> None:
+    """Assert the enlarge use case, whose whole point is more pixels, publishes a page-sized copy."""
+    spec = alchemy_spec_with_a_cropped_entry()
+    entry = next(entry for entry in spec.entries if entry.crop is not None)
+    root = alchemy_root(tmp_path)
+
+    source_path = root / published_source_name(entry)
+    source_path.parent.mkdir(parents=True, exist_ok=True)
+    marked_frame((512, 512), region=entry.crop).save(source_path, format="WEBP")
+    result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
+    result_path.parent.mkdir(parents=True, exist_ok=True)
+    marked_frame((2048, 1024), region=entry.crop).save(result_path, format="WEBP")
+
+    (written,) = [outcome for outcome in write_alchemy_result_fits(spec=spec, output_root=tmp_path) if outcome.written]
+
+    assert written.kind is DerivativeKind.FIT
+    assert written.relative_path == published_result_fit_name(entry)
+    assert (written.width, written.height) == (FIT_LONG_EDGE_PIXELS, FIT_LONG_EDGE_PIXELS // 2)
+
+    manifest_entry = next(
+        listed for listed in build_manifest(spec=spec, output_root=tmp_path).entries if listed.form == entry.form
+    )
+    assert manifest_entry.result_fit == published_result_fit_name(entry)
+    assert (root / manifest_entry.result_fit).is_file()
+
+
+def test_an_alchemy_result_within_the_bound_gets_no_copy_and_the_copy_is_written_once(tmp_path: Path) -> None:
+    """Assert the skip and force rules are the sweeps' own, applied to the alchemy results."""
+    spec = alchemy_spec_with_a_cropped_entry()
+    entry = next(entry for entry in spec.entries if entry.crop is not None)
+    root = alchemy_root(tmp_path)
+
+    result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
+    result_path.parent.mkdir(parents=True, exist_ok=True)
+    marked_frame((FIT_LONG_EDGE_PIXELS, FIT_LONG_EDGE_PIXELS), region=entry.crop).save(result_path, format="WEBP")
+
+    (within,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path)
+
+    assert not within.written
+    assert "already within" in str(within.skipped_reason)
+    manifest_entry = next(
+        listed for listed in build_manifest(spec=spec, output_root=tmp_path).entries if listed.form == entry.form
+    )
+    assert manifest_entry.result_fit is None
+
+    marked_frame((2048, 2048), region=entry.crop).save(result_path, format="WEBP")
+    write_alchemy_result_fits(spec=spec, output_root=tmp_path)
+    (reused,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path)
+    (forced,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path, force=True)
+
+    assert reused.reused
+    assert forced.written
+
+
+def test_an_alchemy_entry_answering_in_words_carries_no_bounded_copy(tmp_path: Path) -> None:
+    """Assert a form with no raster result is passed over rather than reported as a gap."""
+    spec = alchemy_spec_with_a_cropped_entry()
+    entry = spec.entries[0]
+    root = alchemy_root(tmp_path)
+
+    text_path = root / entry.relative_directory / RESULT_TEXT_FILENAME
+    text_path.parent.mkdir(parents=True, exist_ok=True)
+    text_path.write_text("a thing on a table\n", encoding="utf-8")
+
+    assert write_alchemy_result_fits(spec=spec, output_root=tmp_path) == []
+
+    manifest_entry = build_manifest(spec=spec, output_root=tmp_path).entries[0]
+    assert manifest_entry.files.result_text is not None
+    assert manifest_entry.result_fit is None

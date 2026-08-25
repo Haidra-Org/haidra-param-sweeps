@@ -396,6 +396,7 @@ def alchemy_manifest_relative_paths(manifest: AlchemyManifest) -> list[str]:
             entry.files.result_text,
             entry.files.result_json,
             *crop_names,
+            entry.result_fit,
         ):
             if file_name is None:
                 continue

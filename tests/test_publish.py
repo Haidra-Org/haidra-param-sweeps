@@ -75,8 +75,12 @@ ALCHEMY_FILES = [
     "alchemy/sources/anchor.webp",
     "alchemy/describe/caption/result.txt",
     "alchemy/enlarge/vectorize/result.svg",
+    "alchemy/enlarge/upscale/result.webp",
 ]
-ALCHEMY_CROP_FILES = ["alchemy/enlarge/vectorize/source_crop.webp"]
+ALCHEMY_DERIVATIVE_FILES = [
+    "alchemy/enlarge/vectorize/source_crop.webp",
+    "alchemy/enlarge/upscale/result_fit.webp",
+]
 
 TEST_SETTINGS = S3Settings(
     endpoint_url="https://accountid.r2.cloudflarestorage.com",
@@ -213,6 +217,13 @@ def _write_manifests(root: Path, *, with_derivatives: bool = False) -> list[str]
                     else None
                 ),
             },
+            {
+                "use_case": "enlarge",
+                "form": "upscale",
+                "title": "Upscale",
+                "files": {"source": "sources/anchor.webp", "result": "enlarge/upscale/result.webp"},
+                "result_fit": "enlarge/upscale/result_fit.webp" if with_derivatives else None,
+            },
         ],
     }
     for manifest_path, document in (
@@ -223,7 +234,7 @@ def _write_manifests(root: Path, *, with_derivatives: bool = False) -> list[str]
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(document, indent=2), encoding="utf-8")
 
-    alchemy_files = [*ALCHEMY_FILES, *(ALCHEMY_CROP_FILES if with_derivatives else [])]
+    alchemy_files = [*ALCHEMY_FILES, *(ALCHEMY_DERIVATIVE_FILES if with_derivatives else [])]
     for relative_path in [*TUTORIAL_FILES, *alchemy_files]:
         file_path = root / relative_path
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -261,6 +272,7 @@ def test_the_closure_carries_the_crops_and_the_bounded_copies(tmp_path: Path) ->
     assert FIRST_STOP_CROP in published
     assert FIRST_STOP_FIT in published
     assert "alchemy/enlarge/vectorize/source_crop.webp" in published
+    assert "alchemy/enlarge/upscale/result_fit.webp" in published
 
 
 def test_enumerate_library_covers_index_stops_sidecars_and_source(tmp_path: Path) -> None:

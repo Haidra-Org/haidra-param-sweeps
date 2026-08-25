@@ -47,7 +47,12 @@ from param_sweeps.alchemy import (
 )
 from param_sweeps.campaign import CampaignResult, JobFilter, run_campaign
 from param_sweeps.control_maps import draw_control_maps
-from param_sweeps.derivatives import DerivativeKind, write_alchemy_crops, write_sweep_derivatives
+from param_sweeps.derivatives import (
+    DerivativeKind,
+    write_alchemy_crops,
+    write_alchemy_result_fits,
+    write_sweep_derivatives,
+)
 from param_sweeps.flows import (
     FlowResult,
     FlowsSpec,
@@ -916,12 +921,12 @@ def _run_derivatives(arguments: argparse.Namespace, *, spec: SweepSpec, output_r
         )
         alchemy_spec_path: Path = arguments.alchemy_spec
         if alchemy_spec_path.is_file():
+            alchemy_spec = load_alchemy_spec(alchemy_spec_path)
             outcomes.extend(
-                write_alchemy_crops(
-                    spec=load_alchemy_spec(alchemy_spec_path),
-                    output_root=output_root,
-                    force=arguments.force,
-                ),
+                write_alchemy_crops(spec=alchemy_spec, output_root=output_root, force=arguments.force),
+            )
+            outcomes.extend(
+                write_alchemy_result_fits(spec=alchemy_spec, output_root=output_root, force=arguments.force),
             )
     except (OSError, ValueError) as derivative_error:
         print(f"error: {derivative_error}", file=sys.stderr)

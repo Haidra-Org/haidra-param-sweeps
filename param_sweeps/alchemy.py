@@ -110,6 +110,13 @@ source at different regions and one file beside the source could only hold one o
 RESULT_CROP_FILENAME = "result_crop.webp"
 """Where an entry's result crop lands, inside the entry's own directory."""
 
+RESULT_FIT_FILENAME = "result_fit.webp"
+"""Where an entry's bounded copy of its result lands, inside the entry's own directory.
+
+An enlarger answers at four times the source, and a page drawing that whole file spends several
+megabytes to throw most of them away. The full result stays published beside this copy.
+"""
+
 RESULT_URL_SCHEME_PREFIX = "http"
 """What an answer that is a picture starts with: the API returns a URL rather than the bytes."""
 
@@ -417,6 +424,13 @@ class ManifestEntry(BaseModel):
 
     result_crop: PublishedCrop | None = None
     """The part of the result published at its own pixels, or None where none is."""
+
+    result_fit: str | None = None
+    """The result brought down to the page-sized bound, or None where there is none to draw.
+
+    A result already within the bound needs no copy, and a form answering in words or in vectors
+    has no raster to bound, so the absence of this file is the usual case rather than a fault.
+    """
 
     notes: str | None = None
 
@@ -830,6 +844,11 @@ def published_result_crop_name(entry: AlchemyEntrySpec) -> str:
     return f"{entry.relative_directory}/{RESULT_CROP_FILENAME}"
 
 
+def published_result_fit_name(entry: AlchemyEntrySpec) -> str:
+    """Return where this entry's bounded copy of its result is published, relative to the alchemy tree."""
+    return f"{entry.relative_directory}/{RESULT_FIT_FILENAME}"
+
+
 def build_manifest(*, spec: AlchemySpec, output_root: Path) -> AlchemyManifest:
     """Build the manifest from the specification and the files actually on disk.
 
@@ -890,6 +909,7 @@ def build_manifest(*, spec: AlchemySpec, output_root: Path) -> AlchemyManifest:
                     file=published_result_crop_name(entry),
                     frame_name=result_name,
                 ),
+                result_fit=_published_result_fit(root=root, entry=entry, result_name=published_result),
                 notes=_manifest_notes(entry=entry, record=record),
             ),
         )
@@ -1199,6 +1219,19 @@ def _published_entry_crop(
         return None
 
     return published_crop(file=file, root=root, region=region, frame_relative_path=frame_name)
+
+
+def _published_result_fit(*, root: Path, entry: AlchemyEntrySpec, result_name: str | None) -> str | None:
+    """Return the bounded copy of the result when it is on disk, and None when there is none.
+
+    Only a raster result has one: a copy of an SVG or of a line of text would bound nothing.
+    """
+    raster_name = f"{entry.relative_directory}/{RESULT_IMAGE_FILENAME}"
+    if result_name != raster_name:
+        return None
+
+    fit_name = published_result_fit_name(entry)
+    return fit_name if (root / fit_name).is_file() else None
 
 
 def _manifest_notes(*, entry: AlchemyEntrySpec, record: _EntryRecord | None) -> str | None:
