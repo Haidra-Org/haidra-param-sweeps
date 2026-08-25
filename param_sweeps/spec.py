@@ -26,7 +26,9 @@ Critical public members:
 from __future__ import annotations
 
 import json
+import math
 import re
+from collections.abc import Sequence
 from pathlib import Path, PurePosixPath
 from typing import Annotated, Any, Literal
 
@@ -34,7 +36,7 @@ from horde_sdk.generation_parameters.image.consts import (
     KNOWN_IMAGE_SAMPLERS,
     KNOWN_IMAGE_SCHEDULERS,
 )
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from strenum import StrEnum
 
 type SamplerName = KNOWN_IMAGE_SAMPLERS | str
@@ -195,6 +197,39 @@ GRID_AXIS_STOP_FIELDS: dict[SweepParameter, tuple[str, ...]] = {
 they pick a resolution, and a grid axis holds one value per row.
 """
 
+PREVIEW_DEFAULT_SOURCE_FIELDS: dict[SweepParameter, str] = {
+    SweepParameter.STEPS: "steps",
+    SweepParameter.STEPS_CONVERGING: "steps",
+    SweepParameter.CFG_SCALE: "cfg_scale",
+    SweepParameter.SAMPLER: "sampler_name",
+    SweepParameter.SAMPLER_GALLERY: "sampler_name",
+    SweepParameter.CLIP_SKIP: "clip_skip",
+    SweepParameter.HIRES_FIX: "hires_fix",
+    SweepParameter.TILING: "tiling",
+    SweepParameter.KARRAS: "karras",
+    SweepParameter.SCHEDULER: "scheduler",
+    SweepParameter.DENOISING_STRENGTH: "denoising_strength",
+    SweepParameter.DENOISING_STRENGTH_CONVERGING: "denoising_strength",
+    SweepParameter.MASKED_DENOISING_STRENGTH: "denoising_strength",
+    SweepParameter.CONTROL_STRENGTH: "control_strength",
+}
+"""Which field carries the value a strip's stops are read against, per parameter swept.
+
+Nothing in this tool records what a worker would do with a parameter nobody sends, so the value a
+preview calls the default is the one the strip itself holds: the sweep's own hold if it states
+one, then the anchor (or the model, for clip skip). A parameter absent from this table has no
+such value at all, and a preview that asks for the default there falls back to the first stop.
+"""
+
+PREVIEW_BACKEND_DEFAULT_VALUES: dict[SweepParameter, bool | int | float | str] = {
+    SweepParameter.CONTROL_STRENGTH: 1.0,
+}
+"""What the backend applies for a parameter the anchor does not carry and no sweep holds.
+
+Only the ControlNet strength is here: the anchor has nothing to say about it, and a strip that
+sweeps it is read against the strength a job gets when it sends none, which is 1.
+"""
+
 GRID_AXIS_LABEL_PREFIXES: dict[SweepParameter, str] = {
     SweepParameter.STEPS: "s",
     SweepParameter.CFG_SCALE: "c",
@@ -229,6 +264,54 @@ class StripPresentation(StrEnum):
     GRID = "grid"
     TILE_REPEAT_3X3 = "tile_repeat_3x3"
     TRIPTYCH = "triptych"
+
+
+PREVIEWABLE_PRESENTATIONS = frozenset({StripPresentation.STRIP, StripPresentation.TRIPTYCH})
+"""The presentations whose collapsed card shows two stops under a wipe handle.
+
+A grid is read as a plane and the tiling pair is read as a tiled square, so neither has a pair of
+stops a wipe would mean anything between.
+"""
+
+
+class PreviewAnchor(StrEnum):
+    """A stop named by where it sits on the ladder rather than by its value."""
+
+    DEFAULT = "default"
+    """The stop nearest the value the strip is read against, which is the left side's default."""
+
+    FIRST = "first"
+    LAST = "last"
+
+
+PREVIEW_ANCHOR_NAMES = frozenset(str(anchor) for anchor in PreviewAnchor)
+"""The names a preview side can carry instead of a stop value."""
+
+
+class StripPreview(BaseModel):
+    """Represents the two stops a strip's collapsed card puts either side of the wipe handle.
+
+    ``left`` may be ``default``, ``first``, or the value of one of the strip's stops; ``right``
+    may be ``last`` or a stop's value. Stating one is how a strip whose lesson does not live
+    between its held value and its top stop says where it does live.
+    """
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    left: PreviewAnchor | bool | int | float | str = PreviewAnchor.DEFAULT
+    right: PreviewAnchor | bool | int | float | str = PreviewAnchor.LAST
+
+    @field_validator("left", "right", mode="before")
+    @classmethod
+    def _read_anchor_names(cls, value: Any) -> Any:
+        """Convert an anchor's name into the anchor itself, and leave any stop value alone.
+
+        A side is read as a stop value first otherwise, because the union prefers the plain string
+        and the three names would arrive as strings no ladder carries.
+        """
+        if isinstance(value, str) and value in PREVIEW_ANCHOR_NAMES:
+            return PreviewAnchor(value)
+        return value
 
 
 class AnchorParameters(BaseModel):
@@ -509,6 +592,43 @@ class StripSweep(SweepBase):
     presentation: StripPresentation = StripPresentation.STRIP
     resolution_multiplier: float = 1.0
     stops: list[SweepStop]
+
+    preview: StripPreview | None = None
+    """Which two stops the collapsed card previews. Unset means the held value against the top.
+
+    Only a strip carries one: see
+    [`PREVIEWABLE_PRESENTATIONS`][param_sweeps.spec.PREVIEWABLE_PRESENTATIONS].
+    """
+
+    @model_validator(mode="after")
+    def _check_preview_names_stops_it_has(self) -> StripSweep:
+        """Validate that a stated preview names stops this sweep actually renders.
+
+        Raises:
+            ValueError: If a side names a value no stop carries, or an anchor the side cannot
+                take (the left side cannot be the last stop, and the right side cannot be the
+                held value or the first).
+        """
+        if self.preview is None:
+            return self
+
+        stop_values = [stop.value for stop in self.stops]
+        for side, value, allowed_anchors in (
+            ("left", self.preview.left, (PreviewAnchor.DEFAULT, PreviewAnchor.FIRST)),
+            ("right", self.preview.right, (PreviewAnchor.LAST,)),
+        ):
+            if isinstance(value, PreviewAnchor):
+                if value not in allowed_anchors:
+                    allowed = ", ".join(str(anchor) for anchor in allowed_anchors)
+                    raise ValueError(f"a preview's {side} side cannot be {value}; it can be: {allowed}")
+                continue
+
+            if not any(same_stop_value(value, stop_value) for stop_value in stop_values):
+                raise ValueError(
+                    f"the {self.parameter} preview's {side} side names {value!r}, which is not one of its stops",
+                )
+
+        return self
 
 
 class GridAxis(BaseModel):
@@ -1160,6 +1280,16 @@ class RenderStrip(BaseModel):
     directory_override: str | None = None
     """Where this strip's files go instead of the parameter/model/scene layout."""
 
+    preview: StripPreview | None = None
+    """Which two stops the collapsed card previews, as the sweep stated it, or None if it did not."""
+
+    default_value: bool | int | float | str | None = None
+    """The value this strip's stops are read against, when the specification carries one.
+
+    Resolved per strip rather than per sweep because clip skip's comes from the model. None means
+    the parameter has no such value here, and a preview asking for the default falls back.
+    """
+
     @property
     def strip_id(self) -> str:
         """Return the stable identifier a consumer can key this strip by."""
@@ -1508,7 +1638,38 @@ class SweepSpec(BaseModel):
             grid_rows=sweep.rows if isinstance(sweep, GridSweep) else None,
             grid_columns=sweep.columns if isinstance(sweep, GridSweep) else None,
             directory_override=sweep.directory_override,
+            preview=sweep.preview if isinstance(sweep, StripSweep) else None,
+            default_value=self._default_value_for(sweep=sweep, image_model=image_model),
         )
+
+    def _default_value_for(
+        self,
+        *,
+        sweep: StripSweep | GridSweep,
+        image_model: ModelSpec,
+    ) -> bool | int | float | str | None:
+        """Return the value this sweep's stops are read against, or None when there is none.
+
+        The sweep's own hold wins, then the model for clip skip, then the anchor, then the value
+        the backend applies when a job sends nothing. See
+        [`PREVIEW_DEFAULT_SOURCE_FIELDS`][param_sweeps.spec.PREVIEW_DEFAULT_SOURCE_FIELDS].
+        """
+        field_name = PREVIEW_DEFAULT_SOURCE_FIELDS.get(sweep.parameter)
+        if field_name is None:
+            return None
+
+        held_value: bool | int | float | str | None = getattr(sweep.holds, field_name)
+        if held_value is not None:
+            return held_value
+
+        if field_name == "clip_skip":
+            return image_model.anchor_clip_skip
+
+        anchor_value: bool | int | float | str | None = getattr(self.anchor, field_name, None)
+        if anchor_value is not None:
+            return anchor_value
+
+        return PREVIEW_BACKEND_DEFAULT_VALUES.get(sweep.parameter)
 
     def _build_job(
         self,
@@ -1631,6 +1792,109 @@ def _resolved[ValueT](stop_value: ValueT | None, held_value: ValueT | None, inhe
     if held_value is not None:
         return held_value
     return inherited
+
+
+def same_stop_value(left: bool | int | float | str, right: bool | int | float | str) -> bool:
+    """Return whether two stop values name the same stop.
+
+    Numbers compare within a tolerance, because a ladder written as ``1`` in one place and ``1.0``
+    in another is one ladder, and a strength written to three decimals should not miss its stop by
+    a representation. Flags never compare equal to numbers, which plain Python equality would.
+    """
+    left_is_flag = isinstance(left, bool)
+    right_is_flag = isinstance(right, bool)
+    if left_is_flag or right_is_flag:
+        return left_is_flag and right_is_flag and left is right
+
+    if isinstance(left, int | float) and isinstance(right, int | float):
+        return math.isclose(left, right, rel_tol=1e-9, abs_tol=1e-9)
+
+    return left == right
+
+
+def resolve_preview_indices(
+    *,
+    preview: StripPreview | None,
+    stop_values: Sequence[bool | int | float | str],
+    default_value: bool | int | float | str | None,
+) -> tuple[int, int]:
+    """Return the two stop positions a collapsed card previews, as indices into ``stop_values``.
+
+    An unstated preview reads the strip the way a reader meets it: the stop nearest the value
+    everything else is held at, against the top of the ladder. A stated one is honoured, except
+    that a side naming a stop no image was published for falls back to what an unstated preview
+    would have chosen, so a partly rendered strip still previews two pictures it has.
+
+    Args:
+        preview: What the sweep stated, or None if it stated nothing.
+        stop_values: The values of the stops actually being published, in order.
+        default_value: The value the strip is read against, or None when there is none.
+
+    Returns:
+        The left and right positions, zero-based.
+
+    Raises:
+        ValueError: If there are no stops to choose between.
+    """
+    if not stop_values:
+        raise ValueError("a preview needs at least one stop to choose between")
+
+    last_index = len(stop_values) - 1
+    left_request = PreviewAnchor.DEFAULT if preview is None else preview.left
+    right_request = PreviewAnchor.LAST if preview is None else preview.right
+
+    if left_request is PreviewAnchor.FIRST:
+        left_index = 0
+    elif left_request is PreviewAnchor.DEFAULT:
+        left_index = _nearest_stop_index(stop_values=stop_values, wanted=default_value)
+    else:
+        left_index = _stated_stop_index(stop_values=stop_values, wanted=left_request, fallback=0)
+
+    right_index = (
+        last_index
+        if right_request is PreviewAnchor.LAST
+        else _stated_stop_index(stop_values=stop_values, wanted=right_request, fallback=last_index)
+    )
+
+    return left_index, right_index
+
+
+def _stated_stop_index(
+    *,
+    stop_values: Sequence[bool | int | float | str],
+    wanted: bool | int | float | str,
+    fallback: int,
+) -> int:
+    """Return the position of the stop carrying this value, or the fallback when none does."""
+    for index, stop_value in enumerate(stop_values):
+        if same_stop_value(wanted, stop_value):
+            return index
+    return fallback
+
+
+def _nearest_stop_index(
+    *,
+    stop_values: Sequence[bool | int | float | str],
+    wanted: bool | int | float | str | None,
+) -> int:
+    """Return the position of the stop closest to this value, or the first when none is.
+
+    Numeric ladders measure distance; everything else can only match exactly, and a value off the
+    ladder or unknown falls back to the first stop rather than to an arbitrary neighbour.
+    """
+    if wanted is None:
+        return 0
+
+    if isinstance(wanted, int | float) and not isinstance(wanted, bool):
+        numeric_stops = [
+            (index, stop_value)
+            for index, stop_value in enumerate(stop_values)
+            if isinstance(stop_value, int | float) and not isinstance(stop_value, bool)
+        ]
+        if numeric_stops:
+            return min(numeric_stops, key=lambda stop: abs(stop[1] - wanted))[0]
+
+    return _stated_stop_index(stop_values=stop_values, wanted=wanted, fallback=0)
 
 
 def value_label(value: bool | int | float | str) -> str:

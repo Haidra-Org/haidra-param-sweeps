@@ -12,12 +12,14 @@ import pytest
 from PIL import Image
 
 from param_sweeps.spec import (
+    PREVIEWABLE_PRESENTATIONS,
     RenderJob,
     StripPresentation,
     SweepParameter,
     SweepSpec,
     WorkflowName,
     load_spec,
+    resolve_preview_indices,
     value_label,
 )
 
@@ -879,3 +881,170 @@ def test_a_stop_may_start_from_its_own_picture() -> None:
         "inputs/skyharbor-deck-sunset.webp",
         "inputs/rooftop-garden-sketch.webp",
     ]
+
+
+def steps_sweep(*, preview: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return a step sweep whose ladder straddles the anchor's own step count."""
+    sweep: dict[str, Any] = {
+        "kind": "strip",
+        "parameter": "steps",
+        "rationale": "A ladder for a preview to be resolved against.",
+        "caption": "More steps each time.",
+        "model_slugs": ["small"],
+        "scene_ids": ["thing"],
+        "stops": [
+            {"value": 4, "caption": "Barely started."},
+            {"value": 28, "caption": "Almost the held count."},
+            {"value": 50, "caption": "Past where it helps."},
+        ],
+    }
+    if preview is not None:
+        sweep["preview"] = preview
+    return sweep
+
+
+def preview_of(sweep: dict[str, Any]) -> tuple[int, int]:
+    """Return the preview positions the only strip of a specification built from this sweep resolves to."""
+    (strip,) = SweepSpec.model_validate(one_sweep_spec(sweep)).expand_strips()
+    return resolve_preview_indices(
+        preview=strip.preview,
+        stop_values=[job.stop_value for job in strip.jobs],
+        default_value=strip.default_value,
+    )
+
+
+def test_an_unstated_preview_reads_the_held_value_against_the_top() -> None:
+    """Assert the pair a strip previews by default is the value it is read against, then the top.
+
+    The anchor holds 30 steps and the ladder does not carry it, so the stop nearest it is the
+    one a reader is being shown a departure from.
+    """
+    assert preview_of(steps_sweep()) == (1, 2)
+
+
+def test_a_preview_may_name_its_stops_by_value() -> None:
+    assert preview_of(steps_sweep(preview={"left": 4, "right": 28})) == (0, 1)
+    assert preview_of(steps_sweep(preview={"left": "first", "right": "last"})) == (0, 2)
+
+
+def test_a_default_off_the_ladder_previews_the_first_stop() -> None:
+    """Assert a strip whose held value is not on its ladder previews from the beginning.
+
+    A sampler cannot be nearer to one name than another, so a held value no stop carries leaves
+    the strip read from its first stop rather than from an arbitrary neighbour.
+    """
+    sampler_sweep = {
+        "kind": "strip",
+        "parameter": "sampler",
+        "rationale": "A ladder the held sampler is not on.",
+        "caption": "One sampler each.",
+        "model_slugs": ["small"],
+        "scene_ids": ["thing"],
+        "stops": [
+            {"value": "k_euler", "caption": "The plain one."},
+            {"value": "k_dpmpp_2m", "caption": "A converging one."},
+        ],
+    }
+    assert preview_of(sampler_sweep) == (0, 1)
+
+
+def test_a_parameter_with_no_held_value_previews_from_the_first_stop() -> None:
+    """Assert a strip sweeping something the specification holds nothing for reads end to end."""
+    seed_sweep = {
+        "kind": "strip",
+        "parameter": "seed",
+        "rationale": "Nothing in the specification says what a seed defaults to.",
+        "caption": "One seed each.",
+        "model_slugs": ["small"],
+        "scene_ids": ["thing"],
+        "stops": [
+            {"value": "Seed A", "caption": "One.", "seed": 1},
+            {"value": "Seed B", "caption": "Another.", "seed": 2},
+            {"value": "Seed C", "caption": "A third.", "seed": 3},
+        ],
+    }
+    (strip,) = SweepSpec.model_validate(one_sweep_spec(seed_sweep)).expand_strips()
+    assert strip.default_value is None
+    assert preview_of(seed_sweep) == (0, 2)
+
+
+def test_a_preview_naming_a_stop_the_strip_does_not_render_is_rejected() -> None:
+    """Assert a preview cannot point at a value no stop carries, on either side."""
+    with pytest.raises(ValueError, match="right side names 33"):
+        SweepSpec.model_validate(one_sweep_spec(steps_sweep(preview={"left": 4, "right": 33})))
+
+    with pytest.raises(ValueError, match="left side names 33"):
+        SweepSpec.model_validate(one_sweep_spec(steps_sweep(preview={"left": 33, "right": "last"})))
+
+
+def test_a_preview_side_cannot_take_the_other_side_s_anchor() -> None:
+    """Assert the two sides keep their own vocabulary, so a preview cannot wipe a stop onto itself."""
+    with pytest.raises(ValueError, match="left side cannot be last"):
+        SweepSpec.model_validate(one_sweep_spec(steps_sweep(preview={"left": "last", "right": "last"})))
+
+    with pytest.raises(ValueError, match="right side cannot be first"):
+        SweepSpec.model_validate(one_sweep_spec(steps_sweep(preview={"left": "first", "right": "first"})))
+
+
+def test_a_grid_states_no_preview(spec: SweepSpec) -> None:
+    """Assert a two-dimensional sweep cannot carry a preview: it is not read by wiping."""
+    grid = {
+        "kind": "grid",
+        "parameter": "karras_grid",
+        "rationale": "A grid to try a preview on.",
+        "caption": "Two axes.",
+        "model_slugs": ["small"],
+        "scene_ids": ["thing"],
+        "rows": {"parameter": "steps", "values": [8, 30], "caption": "Steps"},
+        "columns": {"parameter": "karras", "values": [False, True], "caption": "Karras"},
+        "cell_caption": "{row} steps, karras {column}.",
+        "preview": {"left": "first", "right": "last"},
+    }
+    with pytest.raises(ValueError, match="preview"):
+        SweepSpec.model_validate(one_sweep_spec(grid))
+
+    assert all(strip.preview is None for strip in spec.expand_strips() if strip.grid_rows is not None)
+
+
+def test_every_strip_in_the_library_previews_two_different_stops(spec: SweepSpec) -> None:
+    """Assert no strip's collapsed card would wipe a picture onto itself.
+
+    A pair that resolves to one stop twice is a card that teaches nothing, and it happens
+    silently: a ladder whose top is also the value the strip is read against resolves both sides
+    to the same place unless the sweep says otherwise.
+    """
+    for strip in spec.expand_strips():
+        if strip.presentation not in PREVIEWABLE_PRESENTATIONS or len(strip.jobs) < 2:
+            continue
+
+        left_index, right_index = resolve_preview_indices(
+            preview=strip.preview,
+            stop_values=[job.stop_value for job in strip.jobs],
+            default_value=strip.default_value,
+        )
+        assert left_index != right_index, f"{strip.strip_id} previews one stop against itself"
+
+
+def test_the_control_strength_strips_read_the_dial_against_the_strength_a_job_gets_by_default(
+    spec: SweepSpec,
+) -> None:
+    """Assert a strength strip previews the strength a job gets when it sends none, against the top.
+
+    Nothing in the specification holds a ControlNet strength, so the value the ladder is read
+    against is the one the backend applies on its own.
+    """
+    strength_strips = [
+        strip
+        for strip in spec.expand_strips()
+        if strip.parameter is SweepParameter.CONTROL_STRENGTH and strip.directory_override is not None
+    ]
+    assert len(strength_strips) == 33
+
+    for strip in strength_strips:
+        stop_values = [job.stop_value for job in strip.jobs]
+        left_index, right_index = resolve_preview_indices(
+            preview=strip.preview,
+            stop_values=stop_values,
+            default_value=strip.default_value,
+        )
+        assert (stop_values[left_index], stop_values[right_index]) == (1, 3)

@@ -362,3 +362,54 @@ def test_a_missing_api_key_names_only_the_location(tmp_path: Path, monkeypatch: 
         read_api_key(env_file=env_file)
 
     assert str(env_file) in str(raised.value)
+
+
+def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert every strip the index publishes names two stops to wipe between, and the grids none.
+
+    The pair is resolved here rather than by the consumer, because it depends on the value the
+    strip is read against, which the index does not otherwise carry.
+    """
+    run_campaign(
+        spec=spec,
+        runner=CountingRunner(),
+        output_root=tmp_path,
+        job_filter=JobFilter(parameters=("clip_skip", "karras_grid", "tiling"), model_slugs=("icbinp",)),
+    )
+
+    index = SweepIndex.model_validate_json((tmp_path / INDEX_FILENAME).read_text(encoding="utf-8"))
+    previews = {strip.presentation: strip.preview for strip in index.strips}
+    assert set(previews) == {StripPresentation.STRIP, StripPresentation.GRID, StripPresentation.TILE_REPEAT_3X3}
+
+    assert previews[StripPresentation.GRID] is None
+    assert previews[StripPresentation.TILE_REPEAT_3X3] is None
+
+    (clip_skip,) = [strip for strip in index.strips if strip.parameter is SweepParameter.CLIP_SKIP]
+    assert clip_skip.preview is not None
+    assert clip_skip.stops[clip_skip.preview.left_index].value == 1, "the layer count this model was trained for"
+    assert clip_skip.stops[clip_skip.preview.right_index].value == 3
+
+
+def test_a_preview_falls_back_to_the_stops_that_were_actually_rendered(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert a strip missing its top stop still previews two pictures the index carries.
+
+    The index leaves out a stop whose image is not on disk, so a preview resolved against the
+    declared ladder could point past the end of a partly rendered strip.
+    """
+    strip = next(
+        candidate
+        for candidate in spec.expand_strips()
+        if candidate.parameter is SweepParameter.CLIP_SKIP and candidate.image_model.slug == "icbinp"
+    )
+    for job in strip.jobs[:-1]:
+        image_path = tmp_path / job.relative_image_path
+        image_path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (16, 16), color=(0, 0, 0)).save(image_path, format="WEBP")
+
+    (built,) = [
+        entry for entry in build_index(spec=spec, output_root=tmp_path).strips if entry.strip_id == strip.strip_id
+    ]
+    assert not built.complete
+    assert built.preview is not None
+    assert built.preview.right_index == len(built.stops) - 1
+    assert built.stops[built.preview.right_index].value == 2

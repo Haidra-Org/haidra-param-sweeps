@@ -201,6 +201,10 @@
         "place"
       ],
       "presentation": "strip",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 2,
@@ -280,6 +284,10 @@
       "presentation": "strip",
       "holds": {
         "sampler_name": "k_dpmpp_2m"
+      },
+      "preview": {
+        "left": "first",
+        "right": "last"
       },
       "stops": [
         {
@@ -865,6 +873,10 @@
       ],
       "presentation": "strip",
       "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 0.15,
@@ -937,6 +949,10 @@
       ],
       "presentation": "strip",
       "source_image": "inputs/rooftop-garden-sketch.webp",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 0.15,
@@ -1009,6 +1025,10 @@
       ],
       "presentation": "strip",
       "source_image": "inputs/skyharbor-deck-sunset.webp",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 0.15,
@@ -1084,6 +1104,10 @@
       ],
       "presentation": "strip",
       "source_image": "inputs/rooftop-garden-sketch.webp",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 0.15,
@@ -1375,6 +1399,10 @@
         "person"
       ],
       "presentation": "strip",
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": false,
@@ -1714,6 +1742,10 @@
         "sampler_name": "euler_cfg_pp",
         "steps": 25
       },
+      "preview": {
+        "left": "first",
+        "right": "last"
+      },
       "stops": [
         {
           "value": 1.0,
@@ -1815,6 +1847,10 @@
             "reference": "qr_code"
           }
         ]
+      },
+      "preview": {
+        "left": 1.3,
+        "right": 1.6
       },
       "stops": [
         {
@@ -2775,6 +2811,10 @@
       "holds": {
         "source_processing": "img2img",
         "source_mask": "inputs/deck-coat-mask.png"
+      },
+      "preview": {
+        "left": "first",
+        "right": "last"
       },
       "stops": [
         {

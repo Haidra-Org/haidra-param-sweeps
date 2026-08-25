@@ -36,6 +36,7 @@ from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
 
 from param_sweeps.spec import (
+    PREVIEWABLE_PRESENTATIONS,
     TOOL_ROOT,
     BatchSection,
     GenerationParameters,
@@ -45,6 +46,7 @@ from param_sweeps.spec import (
     StripPresentation,
     SweepParameter,
     SweepSpec,
+    resolve_preview_indices,
 )
 
 logger = logging.getLogger(__name__)
@@ -184,6 +186,15 @@ class IndexGrid(BaseModel):
     columns: IndexGridAxis
 
 
+class IndexPreview(BaseModel):
+    """Represents the two stops a strip's collapsed card puts either side of the wipe handle."""
+
+    model_config = FROZEN_MODEL_CONFIG
+
+    left_index: int
+    right_index: int
+
+
 class IndexStrip(BaseModel):
     """Represents one strip: a parameter swept over one model and one scene.
 
@@ -216,6 +227,13 @@ class IndexStrip(BaseModel):
     """
 
     grid: IndexGrid | None = None
+    preview: IndexPreview | None = None
+    """Which two stops to preview, resolved to positions in ``stops``.
+
+    Present on every strip a consumer draws as a strip, and None on the grids and the tiling
+    pair, which are not read by wiping one stop across another.
+    """
+
     features: JobFeatures | None = None
     """The features the strip turns on, or None when it uses none of them."""
 
@@ -378,6 +396,7 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
                 source_image=strip.published_source_image,
                 control_map=_published_strip_control_map(strip=strip, output_root=output_root),
                 grid=_index_grid(strip),
+                preview=_index_preview(strip=strip, stops=stops),
                 features=_index_features(strip),
                 batch_section=strip.batch_section,
             ),
@@ -537,3 +556,20 @@ def _index_grid(strip: RenderStrip) -> IndexGrid | None:
             caption=strip.grid_columns.caption,
         ),
     )
+
+
+def _index_preview(*, strip: RenderStrip, stops: Sequence[IndexStop]) -> IndexPreview | None:
+    """Return the pair of stops the strip's collapsed card previews, or None where it has no pair.
+
+    Resolved against the stops that were actually published rather than the ladder the
+    specification declares, so a strip missing an image still names two pictures that exist.
+    """
+    if strip.presentation not in PREVIEWABLE_PRESENTATIONS:
+        return None
+
+    left_index, right_index = resolve_preview_indices(
+        preview=strip.preview,
+        stop_values=[stop.value for stop in stops],
+        default_value=strip.default_value,
+    )
+    return IndexPreview(left_index=left_index, right_index=right_index)
