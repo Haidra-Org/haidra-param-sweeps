@@ -17,6 +17,7 @@ from param_sweeps.spec import (
     StripPresentation,
     SweepParameter,
     SweepSpec,
+    SweepSubject,
     WorkflowName,
     load_spec,
     resolve_preview_indices,
@@ -574,9 +575,10 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
 
     A stop that reached its scan by changing seed as well as strength would be teaching two things
     at once, so each strip is pinned to the one seed that holds across the whole range it publishes.
-    Every control type the horde serves has a strip of its own on one model and one scene, all
-    walking one ladder, so the grip of each detector is readable against every other. The QR strip
-    walks a narrower ladder on the QR workflow, which conditions on no detector at all.
+    Every control type the horde serves has a strip of its own on each of world 1's three source
+    subjects, all walking one ladder, so the grip of each detector is readable against every other
+    and against what the same detector does to a different kind of picture. The QR strip walks a
+    narrower ladder on the QR workflow, which conditions on no detector at all.
     """
     detector_ladder = [
         0.01,
@@ -637,9 +639,15 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
         "tile_ttplanet_simple",
     ]
 
+    subject_scenes = {
+        SweepSubject.ANCHOR: "courier-ink",
+        SweepSubject.BUILDING: "skyharbor-tower-ink",
+        SweepSubject.FLAT: "skyharbor-poster-ink",
+    }
+
     strips = [strip for strip in spec.expand_strips() if strip.parameter is SweepParameter.CONTROL_STRENGTH]
 
-    assert len(strips) == len(detector_order) + 1
+    assert len(strips) == len(detector_order) * len(subject_scenes) + 1
 
     for strip in strips:
         assert len({job.seed for job in strip.jobs}) == 1
@@ -653,15 +661,17 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
     assert all(job.control_type is None for job in qr_strips[0].jobs)
     assert [job.control_strength for job in qr_strips[0].jobs] == qr_ladder
 
-    assert len(detector_strips) == len(detector_order)
+    assert len(detector_strips) == len(detector_order) * len(subject_scenes)
     for detector_strip in detector_strips:
         assert [job.control_strength for job in detector_strip.jobs] == detector_ladder
         assert len({job.model_slug for job in detector_strip.jobs}) == 1
         assert len({job.scene_id for job in detector_strip.jobs}) == 1
 
-    assert [strip.jobs[0].control_type for strip in detector_strips] == detector_order
     assert {strip.jobs[0].model_slug for strip in detector_strips} == {"deliberate"}
-    assert {strip.jobs[0].scene_id for strip in detector_strips} == {"courier-ink"}
+    for subject, scene_id in subject_scenes.items():
+        of_subject = [strip for strip in detector_strips if strip.subject is subject]
+        assert [strip.jobs[0].control_type for strip in of_subject] == detector_order
+        assert {strip.jobs[0].scene_id for strip in of_subject} == {scene_id}
 
 
 def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> None:
@@ -1044,7 +1054,7 @@ def test_the_control_strength_strips_read_the_dial_against_the_strength_a_job_ge
         for strip in spec.expand_strips()
         if strip.parameter is SweepParameter.CONTROL_STRENGTH and strip.directory_override is not None
     ]
-    assert len(strength_strips) == 33
+    assert len(strength_strips) == 99
 
     for strip in strength_strips:
         stop_values = [job.stop_value for job in strip.jobs]
