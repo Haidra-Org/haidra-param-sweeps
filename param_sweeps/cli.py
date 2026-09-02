@@ -68,10 +68,13 @@ from param_sweeps.horde_runner import HordeApiRunner, MissingApiKeyError, defaul
 from param_sweeps.image_utilities import DEFAULT_SERVICE_URL, HordeImageUtilitiesBackend, resolve_service_url
 from param_sweeps.local_runner import GpuBackend, LocalRunner, resolve_gpu_backend
 from param_sweeps.outputs import write_index
+from param_sweeps.promo import PROMO_DIRECTORY_NAME, load_promo_spec, write_cards
 from param_sweeps.publish import (
+    DEFAULT_TREE_PREFIXES,
     IncompleteLibraryError,
     MissingPublishDependencyError,
     MissingS3ConfigurationError,
+    PublishTree,
     S3Settings,
     SweepLibraryBucket,
     SyncPlan,
@@ -107,6 +110,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_SPEC_PATH = TOOL_ROOT / "sweep_spec.json"
 DEFAULT_OUTPUT_ROOT = TOOL_ROOT.parents[1] / "assets" / "param-sweeps"
 """``<haidra-assets>/assets/param-sweeps``: the library's home in this repository."""
+
+DEFAULT_PROMO_OUTPUT_ROOT = TOOL_ROOT.parents[1] / "assets" / PROMO_DIRECTORY_NAME
+"""``<haidra-assets>/assets/promo``: the share cards, beside the library rather than inside it."""
 
 DEFAULT_SAMPLER_COST_SPEC_PATH = TOOL_ROOT / "signoff_solver_knobs_spec.json"
 """The specification the sampler measurement takes its models, geometry, seed and cfg scale from."""
@@ -485,6 +491,37 @@ def build_parser() -> argparse.ArgumentParser:
     )
     derivatives_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
+    promo_parser = subparsers.add_parser(
+        "promo",
+        help="draw the share cards and posters a promo specification asks for, from the renders already on disk",
+    )
+    promo_parser.add_argument(
+        "--promo-spec",
+        type=Path,
+        required=True,
+        help="the promo specification: brand, fonts, palettes, jobs and sets; font and logo paths are relative to it",
+    )
+    promo_parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=DEFAULT_OUTPUT_ROOT,
+        help="the library's root, which the frames are read from",
+    )
+    promo_parser.add_argument(
+        "--promo-root",
+        type=Path,
+        default=DEFAULT_PROMO_OUTPUT_ROOT,
+        help="where the cards and their manifest are written",
+    )
+    promo_parser.add_argument(
+        "--job",
+        action="append",
+        default=[],
+        help="draw only this job or set key, such as sweep:steps (repeatable)",
+    )
+    promo_parser.add_argument("--force", action="store_true", help="redraw cards that are already on disk")
+    promo_parser.add_argument("--verbose", action="store_true", help="log at debug level")
+
     index_parser = subparsers.add_parser("index", help="rebuild index.json from the images already on disk")
     index_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     index_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
@@ -501,6 +538,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="list every file index.json references, with its size and total",
     )
     _add_library_arguments(manifest_parser)
+    _add_bucket_arguments(manifest_parser)
     manifest_parser.add_argument(
         "--keys",
         action="store_true",
@@ -556,8 +594,19 @@ def _add_common_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_library_arguments(parser: argparse.ArgumentParser) -> None:
-    """Add the arguments a subcommand that works from the rendered library alone needs."""
-    parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
+    """Add the arguments a subcommand that works from a published tree alone needs."""
+    parser.add_argument(
+        "--tree",
+        default=str(PublishTree.SWEEPS),
+        choices=[str(tree) for tree in PublishTree],
+        help="which tree to work on: the evidence library, or the promo cards published beside it",
+    )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=None,
+        help="the tree's root (default: the library's, or the promo tree's under --tree promo)",
+    )
     parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
 
@@ -621,6 +670,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "choose":
         return _run_choose(arguments)
+
+    if arguments.command == "promo":
+        return _run_promo(arguments)
 
     spec = load_spec(arguments.spec)
     output_root: Path = arguments.output_root
@@ -945,6 +997,32 @@ def _run_derivatives(arguments: argparse.Namespace, *, spec: SweepSpec, output_r
     return 0
 
 
+def _run_promo(arguments: argparse.Namespace) -> int:
+    """Draw the cards a promo specification asks for, and return the process exit code."""
+    promo_spec_path: Path = arguments.promo_spec
+    try:
+        promo_spec = load_promo_spec(promo_spec_path)
+        outcomes = write_cards(
+            promo_spec,
+            spec_root=promo_spec_path.resolve().parent,
+            library_root=arguments.output_root,
+            promo_root=arguments.promo_root,
+            only=list(arguments.job) or None,
+            force=arguments.force,
+        )
+    except (OSError, ValueError) as promo_error:
+        print(f"error: {promo_error}", file=sys.stderr)
+        return 1
+
+    written = [outcome for outcome in outcomes if outcome.written]
+    kept = len(outcomes) - len(written)
+    written_bytes = sum(outcome.size_bytes for outcome in written)
+    print(f"cards: wrote {len(written)} ({written_bytes / 1_000_000:.1f} MB), kept {kept}.")
+    for outcome in outcomes:
+        print(f"  {outcome.key}: {outcome.relative_path} ({outcome.width}x{outcome.height})")
+    return 0
+
+
 def _run_flows(arguments: argparse.Namespace) -> int:
     """Generate the selected tutorial flows, and return the process exit code.
 
@@ -1101,9 +1179,18 @@ def _run_publishing_command(arguments: argparse.Namespace) -> int:
         return 1
 
 
+def _publish_tree(arguments: argparse.Namespace) -> tuple[PublishTree, Path]:
+    """Return the tree a publishing command works on and its root, defaulted by the tree."""
+    tree = PublishTree(arguments.tree)
+    default_root = DEFAULT_PROMO_OUTPUT_ROOT if tree is PublishTree.PROMO else DEFAULT_OUTPUT_ROOT
+    root: Path = arguments.output_root if arguments.output_root is not None else default_root
+    return tree, root
+
+
 def _run_manifest(arguments: argparse.Namespace) -> int:
-    """List every file the index and the manifests reference, with sizes and a total, and return 0."""
-    files = enumerate_library(output_root=arguments.output_root)
+    """List every file the tree publishes, with sizes and a total, and return 0."""
+    tree, output_root = _publish_tree(arguments)
+    files = enumerate_library(output_root=output_root, tree=tree)
     prefix = _prefix_for_manifest(arguments)
 
     for library_file in files:
@@ -1120,8 +1207,9 @@ def _run_manifest(arguments: argparse.Namespace) -> int:
 
 
 def _run_upload(arguments: argparse.Namespace) -> int:
-    """Sync the library to the bucket, or print what a sync would do, and return the exit code."""
-    files = enumerate_library(output_root=arguments.output_root)
+    """Sync the tree to the bucket, or print what a sync would do, and return the exit code."""
+    tree, output_root = _publish_tree(arguments)
+    files = enumerate_library(output_root=output_root, tree=tree)
     bucket = SweepLibraryBucket(settings=_bucket_settings(arguments))
     plan = plan_sync(
         files=files,
@@ -1141,11 +1229,12 @@ def _run_upload(arguments: argparse.Namespace) -> int:
 
 def _run_verify(arguments: argparse.Namespace) -> int:
     """Check the library against its index, and return 0 only when nothing is missing or wrong."""
+    tree, output_root = _publish_tree(arguments)
     if arguments.local:
-        report = verify_local(output_root=arguments.output_root)
-        where = str(arguments.output_root)
+        report = verify_local(output_root=output_root, tree=tree)
+        where = str(output_root)
     else:
-        files = enumerate_library(output_root=arguments.output_root)
+        files = enumerate_library(output_root=output_root, tree=tree)
         bucket = SweepLibraryBucket(settings=_bucket_settings(arguments))
         report = verify_remote(
             files=files,
@@ -1170,7 +1259,12 @@ def _run_verify(arguments: argparse.Namespace) -> int:
 def _bucket_settings(arguments: argparse.Namespace) -> S3Settings:
     """Return the bucket settings for a subcommand, from its flags, the environment and a ``.env``."""
     env_file = arguments.env_file if arguments.env_file is not None else default_env_file()
-    return load_s3_settings(env_file=env_file, prefix_override=arguments.prefix)
+    # The promo tree publishes under its own prefix by default, so that the library's prefix on
+    # the bucket holds only what a page cites as evidence.
+    prefix_override = arguments.prefix
+    if prefix_override is None:
+        prefix_override = DEFAULT_TREE_PREFIXES[PublishTree(arguments.tree)]
+    return load_s3_settings(env_file=env_file, prefix_override=prefix_override)
 
 
 def _prefix_for_manifest(arguments: argparse.Namespace) -> str:

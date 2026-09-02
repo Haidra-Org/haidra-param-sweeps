@@ -676,6 +676,40 @@ settled; do not delete the lesson from `notes`.
   renders through the same worker software with nothing in between, and a run of seeds is a
   minute each.
 
+## Share cards and posters
+
+A link to a reference page unfurls as whatever its `og:image` names, and a page whose evidence is a
+strip of renders has a better picture to offer than a logo. The `promo` command draws cards from the
+renders already on disk: link previews, square and tall cards for feeds, large grids for a forum
+post. Everything on a card is a published frame.
+
+```sh
+uv run param-sweeps promo --promo-spec <promo_spec.json>          # draw what the spec asks for
+uv run param-sweeps promo --promo-spec <spec> --job sweep:steps    # one card by key
+uv run param-sweeps promo --promo-spec <spec> --force              # redraw cards already on disk
+```
+
+The specification belongs to the consumer (the frontpage keeps its own under `promo/cards/`), because
+it carries the brand: name, address, tagline, logo, the three faces, and the words each parameter
+goes by. Font and logo paths are relative to the specification file. With no `fonts` entry the cards
+are drawn in Pillow's bundled face, which is what the tests use.
+
+Two kinds of work:
+
+- **Sets** draw one card per parameter (`sweeps/<parameter>.jpg`, keyed `sweep:<parameter>`) or per
+  tutorial with a result (`tutorials/<flow>.jpg`, keyed `tutorial:<flow>`). A parameter published as
+  several strips takes the first complete one in index order unless `preferred_strips` names another;
+  `skip_parameters` leaves out the ones that are not a picture of a setting, such as the grids.
+- **Jobs** draw one card each: a `strip` id, a `parameter`, or a `tutorial`, with a template
+  (`strip`, `pair`, `grid`, `hero`), a format (`og` 1200×630, `square`, `wide`, `story`, `poster`
+  2048²), a theme (`dark`, `light`), a stop selection (`all`, `preview`, `spread:N`, `first:N`, or
+  indices), and optional title, subtitle, link, tagline (replacing the brand's on that card) and
+  output path.
+
+Cards are promotional material cut from the evidence rather than evidence, so they never go into the
+library. They land in `assets/promo/` beside it (`--promo-root`), with `cards.json` at the root naming
+every card by key, and publish as their own tree under their own prefix: see the runbook below.
+
 ## Publishing
 
 The library is around 70 MiB across 1400 files, so it is not committed: `assets/param-sweeps/` is
@@ -808,7 +842,8 @@ to a human.
 Uploads set `Content-Type` (`image/webp`, `application/json`) and `Cache-Control`:
 
 - Images, sidecars and everything else a manifest names: `public, max-age=604800, stale-while-revalidate=86400`.
-- `index.json`, `tutorials/manifest.json`, `alchemy/manifest.json`: `public, max-age=300, must-revalidate`.
+- `index.json`, `tutorials/manifest.json`, `alchemy/manifest.json`, and the promo tree's `cards.json`:
+  `public, max-age=300, must-revalidate`.
 
 Images are **not** immutable, so the long header is a considered trade rather than a `immutable`
 claim: inserting a stop renumbers the ones after it, and a path can come to hold a different image.
@@ -816,6 +851,21 @@ A week keeps consumers from refetching between publishes while letting a renumbe
 own. A publish that renumbers and must be visible at once wants a cache purge at the CDN, not a
 shorter header here. The index and the two manifests are the mutable entrypoints every consumer
 starts from, so they are held for five minutes and no longer.
+
+### The promo tree
+
+`manifest`, `upload` and `verify` take `--tree sweeps` (the default: the library, from `index.json`
+and the two manifests) or `--tree promo` (the share cards, from `cards.json`). The promo tree
+defaults to `assets/promo/` on disk and to the key prefix `promo` on the bucket, so the library's
+prefix holds only what a page cites as evidence; `--prefix` still overrides it. The runbook is the
+same shape:
+
+```sh
+uv run param-sweeps verify --tree promo --local
+uv run param-sweeps upload --tree promo --env-file ../../.env --dry-run
+uv run param-sweeps upload --tree promo --env-file ../../.env
+uv run param-sweeps verify --tree promo --env-file ../../.env
+```
 
 ## Checks
 

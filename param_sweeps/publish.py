@@ -43,13 +43,14 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import logging
 import os
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from enum import auto
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 from strenum import StrEnum
@@ -60,6 +61,7 @@ from param_sweeps.flows import MANIFEST_FILENAME as TUTORIAL_MANIFEST_FILENAME
 from param_sweeps.flows import TUTORIALS_DIRECTORY_NAME, TutorialManifest
 from param_sweeps.horde_client import ENV_ASSIGNMENT_PATTERN
 from param_sweeps.outputs import INDEX_FILENAME, SweepIndex
+from param_sweeps.promo import CARDS_MANIFEST_FILENAME, CardsManifest
 
 if TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
@@ -80,7 +82,15 @@ TUTORIAL_MANIFEST_PATH = f"{TUTORIALS_DIRECTORY_NAME}/{TUTORIAL_MANIFEST_FILENAM
 ALCHEMY_MANIFEST_PATH = f"{ALCHEMY_DIRECTORY_NAME}/{ALCHEMY_MANIFEST_FILENAME}"
 """Where the alchemy manifest sits, relative to the library root."""
 
-ENTRYPOINT_PATHS: frozenset[str] = frozenset({INDEX_FILENAME, TUTORIAL_MANIFEST_PATH, ALCHEMY_MANIFEST_PATH})
+PROMO_MANIFEST_PATH = CARDS_MANIFEST_FILENAME
+"""Where the share-card manifest sits, relative to the promo tree's root."""
+
+PROMO_GALLERY_MANIFEST_PATH = "gallery/gallery.json"
+"""Where the promo gallery's manifest sits, relative to the promo tree's root, when one was made."""
+
+ENTRYPOINT_PATHS: frozenset[str] = frozenset(
+    {INDEX_FILENAME, TUTORIAL_MANIFEST_PATH, ALCHEMY_MANIFEST_PATH, PROMO_MANIFEST_PATH, PROMO_GALLERY_MANIFEST_PATH},
+)
 """The files a consumer fetches first: held briefly by caches and uploaded after the files they name."""
 
 
@@ -117,17 +127,44 @@ class CacheControl:
     INDEX = "public, max-age=300, must-revalidate"
 
 
+class PublishTree(StrEnum):
+    """Which tree a publishing command works on.
+
+    The evidence library and the promotional cards cut from it are published apart, under
+    prefixes of their own, so that the library's prefix holds only what a page cites as evidence.
+    """
+
+    SWEEPS = "sweeps"
+    """The evidence library: the index's closure and the tutorial and alchemy manifests'."""
+
+    PROMO = "promo"
+    """The share cards and posters, and the manifest that names them."""
+
+
+DEFAULT_TREE_PREFIXES: dict[PublishTree, str | None] = {PublishTree.SWEEPS: None, PublishTree.PROMO: "promo"}
+"""The key prefix each tree publishes under when none is given; None reads the configured one."""
+
+
 class ContentType:
     """The ``Content-Type`` written with each kind of object, by file extension."""
 
     WEBP = "image/webp"
     PNG = "image/png"
+    JPEG = "image/jpeg"
     SVG = "image/svg+xml"
     JSON = "application/json"
     TEXT = "text/plain; charset=utf-8"
     FALLBACK = "application/octet-stream"
 
-    BY_SUFFIX: ClassVar[dict[str, str]] = {".webp": WEBP, ".png": PNG, ".svg": SVG, ".json": JSON, ".txt": TEXT}
+    BY_SUFFIX: ClassVar[dict[str, str]] = {
+        ".webp": WEBP,
+        ".png": PNG,
+        ".jpg": JPEG,
+        ".jpeg": JPEG,
+        ".svg": SVG,
+        ".json": JSON,
+        ".txt": TEXT,
+    }
 
 
 class UploadReason(StrEnum):
@@ -407,23 +444,90 @@ def alchemy_manifest_relative_paths(manifest: AlchemyManifest) -> list[str]:
     return paths
 
 
-def published_relative_paths(*, output_root: Path, index: SweepIndex | None = None) -> list[str]:
-    """Return every path the library publishes: the index's closure, then each manifest's.
+def cards_manifest_relative_paths(manifest: CardsManifest) -> list[str]:
+    """Return every path the share-card manifest references, with the manifest itself first."""
+    paths: list[str] = [PROMO_MANIFEST_PATH]
+    seen: set[str] = set(paths)
+    for entry in manifest.cards.values():
+        if entry.file not in seen:
+            seen.add(entry.file)
+            paths.append(entry.file)
+    return paths
 
-    The index is required; the two manifests are optional, because a library can be rendered
-    without the tutorial or alchemy campaigns having run. A manifest that is present is published
-    with everything it names, so the part of the tree the web app fetches through it never 404s.
+
+def gallery_manifest_relative_paths(manifest: dict[str, Any]) -> list[str]:
+    """Return every path the gallery manifest references, the manifest itself first.
+
+    The gallery is written by the frontpage's promo runner rather than by this tool, so its
+    manifest is read as plain JSON: each image entry has a ``file`` and an ``alchemy`` map of
+    entries with a ``file``, and each text entry has a ``file``.
+    """
+    paths: list[str] = [PROMO_GALLERY_MANIFEST_PATH]
+    seen: set[str] = set(paths)
+
+    def take(path: object) -> None:
+        if isinstance(path, str) and path and path not in seen:
+            seen.add(path)
+            paths.append(path)
+
+    for image in manifest.get("images", []):
+        take(image.get("file"))
+        for record in image.get("alchemy", {}).values():
+            take(record.get("file") if isinstance(record, dict) else None)
+    for text in manifest.get("texts", []):
+        take(text.get("file"))
+    return paths
+
+
+def promo_relative_paths(*, output_root: Path) -> list[str]:
+    """Return every path the promo tree publishes.
+
+    The card manifest and every card it names come first, then the gallery manifest and
+    everything it names where a gallery has been made.
+
+    Raises:
+        FileNotFoundError: If there is no card manifest to read.
+    """
+    manifest_path = output_root / PROMO_MANIFEST_PATH
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"no {PROMO_MANIFEST_PATH} at {output_root}: draw the cards first")
+    paths = cards_manifest_relative_paths(CardsManifest.model_validate_json(manifest_path.read_text(encoding="utf-8")))
+
+    gallery_path = output_root / PROMO_GALLERY_MANIFEST_PATH
+    if gallery_path.is_file():
+        gallery = json.loads(gallery_path.read_text(encoding="utf-8"))
+        paths.extend(path for path in gallery_manifest_relative_paths(gallery) if path not in paths)
+    return paths
+
+
+def published_relative_paths(
+    *,
+    output_root: Path,
+    tree: PublishTree = PublishTree.SWEEPS,
+    index: SweepIndex | None = None,
+) -> list[str]:
+    """Return every path a tree publishes.
+
+    For the evidence library that is the index's closure, then each manifest's. The index is
+    required; the two manifests are optional, because a library can be rendered without the
+    tutorial or alchemy campaigns having run. A manifest that is present is published with
+    everything it names, so the part of the tree the web app fetches through it never 404s. For
+    the promo tree it is the card manifest and everything it names.
 
     Args:
-        output_root: The root of the library on disk.
-        index: The already-parsed index, or None to read it from ``output_root``.
+        output_root: The root of the tree on disk.
+        tree: Which tree ``output_root`` is.
+        index: The already-parsed index, or None to read it from ``output_root``; unused for the promo tree.
 
     Returns:
         The paths, each once, entrypoint first within its group.
 
     Raises:
-        FileNotFoundError: If there is no index to read.
+        FileNotFoundError: If there is no index, or no card manifest, to read.
     """
+    if tree is PublishTree.PROMO:
+        return promo_relative_paths(output_root=output_root)
+
     resolved_index = index if index is not None else read_index(output_root=output_root)
     paths = indexed_relative_paths(resolved_index)
 
@@ -453,12 +557,18 @@ def read_index(*, output_root: Path) -> SweepIndex:
     return SweepIndex.model_validate_json(index_path.read_text(encoding="utf-8"))
 
 
-def enumerate_library(*, output_root: Path, index: SweepIndex | None = None) -> list[LibraryFile]:
-    """Return every file the index and the manifests reference, with its size, in their own order.
+def enumerate_library(
+    *,
+    output_root: Path,
+    tree: PublishTree = PublishTree.SWEEPS,
+    index: SweepIndex | None = None,
+) -> list[LibraryFile]:
+    """Return every file a tree publishes, with its size, in the tree's own order.
 
     Args:
-        output_root: The root of the library on disk.
-        index: The already-parsed index, or None to read it from ``output_root``.
+        output_root: The root of the tree on disk.
+        tree: Which tree ``output_root`` is.
+        index: The already-parsed index, or None to read it from ``output_root``; unused for the promo tree.
 
     Returns:
         One entry per referenced path.
@@ -470,7 +580,7 @@ def enumerate_library(*, output_root: Path, index: SweepIndex | None = None) -> 
     files: list[LibraryFile] = []
     missing: list[str] = []
 
-    for relative_path in published_relative_paths(output_root=output_root, index=index):
+    for relative_path in published_relative_paths(output_root=output_root, tree=tree, index=index):
         local_path = output_root / relative_path
         if not local_path.is_file():
             missing.append(relative_path)
@@ -611,22 +721,23 @@ def verify_remote(
     )
 
 
-def verify_local(*, output_root: Path) -> VerificationReport:
-    """Return whether every file the index and the manifests reference is on disk and not empty.
+def verify_local(*, output_root: Path, tree: PublishTree = PublishTree.SWEEPS) -> VerificationReport:
+    """Return whether every file a tree publishes is on disk and not empty.
 
     There is no hash to check against locally, so this is an existence and non-emptiness check:
     it catches the deletion or truncation that would make an upload publish a broken library.
 
     Args:
-        output_root: The root of the library on disk.
+        output_root: The root of the tree on disk.
+        tree: Which tree ``output_root`` is.
 
     Returns:
         The report.
 
     Raises:
-        FileNotFoundError: If there is no index to read.
+        FileNotFoundError: If there is no index, or no card manifest, to read.
     """
-    relative_paths = published_relative_paths(output_root=output_root)
+    relative_paths = published_relative_paths(output_root=output_root, tree=tree)
 
     missing = [path for path in relative_paths if not (output_root / path).is_file()]
     empty = [path for path in relative_paths if path not in missing and (output_root / path).stat().st_size == 0]
