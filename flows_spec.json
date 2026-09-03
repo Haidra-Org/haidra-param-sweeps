@@ -182,7 +182,7 @@
           "hires_fix": false,
           "tiling": false,
           "karras": true,
-          "denoising_strength": 0.75,
+          "denoising_strength": 1.0,
           "seed": 1234567890
         },
         "features": {
@@ -213,7 +213,7 @@
           "width": 512,
           "height": 512,
           "clip_skip": 2,
-          "denoising_strength": 0.75
+          "denoising_strength": 1.0
         },
         "features": {
           "control_type": "canny",
@@ -243,7 +243,7 @@
           "width": 512,
           "height": 512,
           "clip_skip": 1,
-          "denoising_strength": 0.75
+          "denoising_strength": 1.0
         },
         "features": {
           "control_type": "canny",
