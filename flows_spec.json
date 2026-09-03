@@ -629,6 +629,8 @@
     },
     {
       "flow_id": "facefix",
+      "status": "skipped",
+      "skipped_reason": "The rendered pair does not show the effect: the figure is far enough down the walkway that the before and after read the same at page size, so a reader sees nothing change. Withdrawn from the tutorials until a framing lands where the repair is visible.",
       "title": "Face fixing with GFPGAN",
       "summary": "The same seed with and without the GFPGAN post-processor, side by side.",
       "notes": "The two requests are identical apart from params.post_processing and params.facefixer_strength, so the pair isolates what the face fixer does. Face fixing is a post-processor, not a sampler setting: it runs on the finished image, so the composition is unchanged and only facial detail is redrawn. Both halves were rendered back to back on one GPU by the local runner at the same seed, which is what makes the pair a controlled comparison: away from the face the two images differ by no more than the rounding of a re-encode. The framing puts the figure far down the walkway, which leaves the face too few pixels to hold together and gives the pass something to repair. World 1 on the photoreal SD1.5 model, where GFPGAN, trained on photographic faces, has the most to give. Worlds 2 and 3 have no variant of their own: GFPGAN leaves a clean drawn face as it was (see facefix--w2) and the robot has no face, so this pair stands in for both. facefixer_strength is recorded at 1.0, and the worker software never forwards it to GFPGAN, so the same pair comes back whatever the strength is set to.",
