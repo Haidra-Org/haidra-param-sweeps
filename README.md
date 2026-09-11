@@ -710,6 +710,63 @@ Cards are promotional material cut from the evidence rather than evidence, so th
 library. They land in `assets/promo/` beside it (`--promo-root`), with `cards.json` at the root naming
 every card by key, and publish as their own tree under their own prefix: see the runbook below.
 
+## The promo gallery
+
+The cards above are cut from the sweep library, which is evidence about settings rather than a
+picture of what the horde makes on a good day. `gallery` makes that second thing: a set of promo
+pictures, post-processing pairs, short texts and short conversations, all through the live horde,
+each one recorded with what it cost.
+
+```sh
+uv run param-sweeps gallery --dry-run          # what would be submitted, with each model and its settings
+uv run param-sweeps gallery                    # everything the specification asks for that is not on disk
+uv run param-sweeps gallery --only fox-snow,airship
+uv run param-sweeps gallery --skip-text --skip-conversations
+uv run param-sweeps gallery --retry-censored   # offer the entries the safety checker refused again
+```
+
+The specification belongs to the consumer, like the promo cards' does: the frontpage keeps its own
+at `promo/spec/gallery.json`, which is the default. It carries the API root and client agent, the
+default parameters and the preferred models of each family, then three lists. An **image** entry has
+an id, a prompt, a family, its preferred models, a fixed seed, the alchemy forms to apply to it, and
+its `tags`, which are what the site queries the gallery by. A **text** entry is one instruction with
+a `max_length`. A **conversation** entry is an id, a `format` of `instruct` or `raw`, a list of
+`turns` and a `max_length`.
+
+Results land under `assets/promo/gallery` (`--out`): a picture and its `meta.json` per image entry,
+`text/<id>/` for the single-turn texts, `conversations/<id>/` for the threads, and `gallery.json` at
+the root naming all of it. The key is read from `AIHORDE_DEV_KEY` exactly as `flows` does.
+
+Runs are resumable and cost money, so nothing already on disk is made twice, and up to 25 requests
+are held open at once. Which model a picture resolves to is a fact about what the horde is serving
+at that moment, so even a dry run asks; what each model will accept is read from the model reference
+at `models.aihorde.net`, and steps, cfg scale, sampler and clip skip are brought inside it before
+the request goes out. A Flux entry asking for 25 steps at cfg 7 is submitted at 8 steps and cfg 4,
+and the request written beside the picture is the one that was actually sent.
+
+Texts and conversations go to a completion endpoint rather than a chat one, so an instruction is
+wrapped in the Alpaca frame and cut at the point the frame would start another turn. Each single-turn
+text records `format: "instruct:alpaca"` for that reason. A conversation is run turn by turn, each
+turn carrying the turns before it: an `instruct` thread as instruction and answer pairs inside the
+frame, a `raw` one as the bare text so far, which is what makes it a continuation rather than an
+answer. Every turn's request body, reply, model, seconds and kudos are kept in the entry's
+`meta.json`, beside a `transcript.txt` of how it reads.
+
+**The manifest is rebuilt from what is on disk**, every run, and never from the entries the run
+happened to touch: a run narrowed by `--only`, or one that skipped the texts, would otherwise
+publish a manifest missing everything it passed over. `curated` and `note` on an entry are written
+into the manifest by the curation step rather than by a run, so they are carried across a rebuild.
+
+An entry the safety checker refuses leaves a `censored.json` behind, holding the request and the
+time, and is listed under the manifest's `censored`. Later runs pass over it, because the refusal is
+about the prompt and paying for it a second time changes nothing; `--retry-censored` offers it again
+when the prompt has been reworked.
+
+Two things are deliberately absent from every record. **The worker is never written down**, so
+nothing published here can name a volunteer. And **the seconds are the dev key's seconds**: they are
+real, but a key with priority waits less than an anonymous user does for the same work, so they read
+as what the horde can do rather than as what a first-time visitor should expect.
+
 ## Publishing
 
 The library is around 70 MiB across 1400 files, so it is not committed: `assets/param-sweeps/` is
@@ -887,6 +944,11 @@ manifest's shape, the coverage of the form and control-map vocabularies, the tex
 strip are all checked without a GPU. `tests/test_image_utilities.py` does the same for the
 control-map service, answering the backend from a scripted transport mounted on a real session, so
 what the service says about a detector it will not run is checked without a service.
+
+`tests/test_gallery.py` drives a whole gallery run against a scripted transport: the model
+requirements a picture is clamped by, the manifest rebuilt from disk with its curation kept, a
+refusal recorded and passed over, and a conversation carrying its earlier turns, none of them
+reaching the horde or spending a kudos.
 
 `tests/test_publish.py` skips itself, with a reason, in an environment without the publish extra:
 there is no client to stub there. It also carries the test that keeps the extra optional, which

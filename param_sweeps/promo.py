@@ -64,6 +64,13 @@ CARDS_MANIFEST_SCHEMA_VERSION = 1
 SELECTION_PATTERN = re.compile(r"^(preview|all|spread:(\d+)|first:(\d+))$")
 
 
+GALLERY_DIRECTORY_NAME = "gallery"
+"""Where the promo gallery's entries sit under the promo tree, one directory per picture."""
+
+GALLERY_RESULT_FILENAME = "result.webp"
+"""The picture inside a gallery entry's directory."""
+
+
 class CardTemplate(StrEnum):
     """How a card arranges its frames."""
 
@@ -172,8 +179,10 @@ class FontSpec(BaseModel):
 class CardJob(BaseModel):
     """One card to draw.
 
-    A job names its frames one of three ways: a ``strip`` by the library's strip id, a
-    ``parameter`` (resolved to that parameter's preferred strip), or a ``tutorial`` by flow id.
+    A job names its frames one of four ways: a ``strip`` by the library's strip id, a
+    ``parameter`` (resolved to that parameter's preferred strip), a ``tutorial`` by flow id, or a
+    ``gallery`` picture by its entry id. A gallery picture carries no words of its own, so a job
+    that names one must say its title and subtitle itself.
     """
 
     model_config = ConfigDict(frozen=True, populate_by_name=True)
@@ -187,6 +196,9 @@ class CardJob(BaseModel):
     strip: str | None = None
     parameter: str | None = None
     tutorial: str | None = None
+    gallery: str | None = None
+    """A promo gallery entry, drawn from ``gallery/<id>/result.webp`` under the promo tree."""
+
     stops: str | list[int] = "spread:6"
     """Which frames take part: ``preview`` (the strip's own pair), ``all``, ``spread:N`` (N frames
     evenly across the strip, first and last included), ``first:N``, or explicit stop indices."""
@@ -252,6 +264,11 @@ class PromoSpec(BaseModel):
     titles: dict[str, str] = Field(default_factory=dict)
     """A parameter's name as a reader knows it (``cfg_scale`` reads as "Guidance"); unlisted
     parameters are humanised from their field name."""
+
+    subtitles: dict[str, str] = Field(default_factory=dict)
+    """What a parameter's card says under its title: one plain sentence on what the setting does.
+    An unlisted parameter falls back to the strip's model, scene and seed, which says where the
+    frames came from rather than what they show."""
 
     preferred_strips: dict[str, str] = Field(default_factory=dict)
     """The strip a per-parameter set draws for a parameter published as several; unlisted
@@ -557,12 +574,43 @@ def resolve_content(
     index: SweepIndex,
     manifest: TutorialManifest | None,
     library_root: Path,
+    promo_root: Path | None = None,
 ) -> CardContent:
     """Return the frames and words a job draws.
+
+    Args:
+        job: The card to resolve.
+        spec: The specification, for the words and the brand.
+        index: The library's index.
+        manifest: The tutorial manifest, or None where the library has none.
+        library_root: The root of the library on disk.
+        promo_root: The root of the promo tree, which gallery pictures are read from; None where
+            no job names one.
 
     Raises:
         ValueError: If the job names nothing to draw, or names it wrongly.
     """
+    if job.gallery is not None:
+        if promo_root is None:
+            raise ValueError(f"job {job.job_id!r} names a gallery picture, and there is no promo tree to read it from")
+        if job.title is None or job.subtitle is None:
+            raise ValueError(
+                f"job {job.job_id!r} names a gallery picture, so it has to carry its own title and subtitle"
+            )
+        picture = promo_root / GALLERY_DIRECTORY_NAME / job.gallery / GALLERY_RESULT_FILENAME
+        if not picture.is_file():
+            raise ValueError(
+                f"job {job.job_id!r} names gallery picture {job.gallery!r}, and there is none at {picture}"
+            )
+        return CardContent(
+            frames=[Frame(path=picture, label=job.gallery)],
+            title=job.title,
+            subtitle=job.subtitle,
+            link=job.link or spec.brand.url,
+            tagline=job.tagline,
+            source=f"gallery/{job.gallery}",
+        )
+
     if job.tutorial is not None:
         if manifest is None:
             raise ValueError(f"job {job.job_id!r} names a tutorial, and there is no manifest")
@@ -604,7 +652,9 @@ def resolve_content(
     return CardContent(
         frames=frames,
         title=job.title or parameter_title(spec, parameter),
-        subtitle=job.subtitle or f"{strip.image_model.name} · {strip.scene.label.lower()} · seed {strip.held.seed}",
+        subtitle=job.subtitle
+        or spec.subtitles.get(parameter)
+        or f"{strip.image_model.name} · {strip.scene.label.lower()} · seed {strip.held.seed}",
         link=job.link or spec.brand.url,
         tagline=job.tagline,
         source=strip.strip_id,
@@ -620,6 +670,7 @@ def render_card(
     library_root: Path,
     fonts: Fonts,
     spec_root: Path,
+    promo_root: Path | None = None,
 ) -> Image.Image:
     """Draw one job and return the image.
 
@@ -631,12 +682,15 @@ def render_card(
         library_root: The root of the library on disk.
         fonts: The loaded faces.
         spec_root: The directory the specification sits in, which its logo path is relative to.
+        promo_root: The root of the promo tree, for a job that draws a gallery picture.
 
     Raises:
         ValueError: If the job names nothing drawable.
         FileNotFoundError: If a frame the index names is not on disk.
     """
-    content = resolve_content(job, spec=spec, index=index, manifest=manifest, library_root=library_root)
+    content = resolve_content(
+        job, spec=spec, index=index, manifest=manifest, library_root=library_root, promo_root=promo_root
+    )
     width, height = CANVAS_SIZES[job.format]
     palette = spec.palettes[job.theme]
     scale = width / 1200 if width >= height else width / 1080
@@ -1061,7 +1115,9 @@ def write_cards(
     manifest = read_tutorial_manifest(library_root)
     jobs = expand_jobs(spec, index=index, manifest=manifest)
     contents = {
-        job.job_id: resolve_content(job, spec=spec, index=index, manifest=manifest, library_root=library_root)
+        job.job_id: resolve_content(
+            job, spec=spec, index=index, manifest=manifest, library_root=library_root, promo_root=promo_root
+        )
         for job in jobs
     }
     if only:
@@ -1089,6 +1145,7 @@ def write_cards(
                 library_root=library_root,
                 fonts=fonts,
                 spec_root=spec_root,
+                promo_root=promo_root,
             )
             if job.file_type == "jpg":
                 card.save(destination, format="JPEG", quality=90, optimize=True, progressive=True)

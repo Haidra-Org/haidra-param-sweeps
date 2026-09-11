@@ -13,7 +13,9 @@ the tutorials publish still decodes to the payload it was asked to carry. ``flow
 the odd one out: it reads its own specification and writes the frontpage's tutorial asset tree
 rather than the sweep library. ``alchemy`` reads its own specification too, and writes both: the
 evidence tree the alchemy pages read, and the one strip in the sweep library whose stops are
-upscalers rather than a generation parameter. ``review`` reads
+upscalers rather than a generation parameter. ``gallery`` makes the promo pictures, texts and
+conversations through the live horde, and rebuilds their manifest from whatever is on disk.
+``review`` reads
 nothing but the specification and what is already on disk; ``choose`` closes that loop by
 writing the picks a reviewer saved from the sheet back into the specification. Nothing here
 ever prints the API key or the bucket's secret.
@@ -63,6 +65,7 @@ from param_sweeps.flows import (
     run_flows,
     write_manifest,
 )
+from param_sweeps.gallery import GalleryHorde, load_gallery_spec, run_gallery
 from param_sweeps.horde_client import HordeApiClient
 from param_sweeps.horde_runner import HordeApiRunner, MissingApiKeyError, default_env_file, read_api_key
 from param_sweeps.image_utilities import DEFAULT_SERVICE_URL, HordeImageUtilitiesBackend, resolve_service_url
@@ -122,6 +125,12 @@ DEFAULT_SAMPLER_COST_MODEL_SLUGS = ("deliberate", "sdxl-1-0")
 
 DEFAULT_ALCHEMY_SPEC_PATH = TOOL_ROOT / "alchemy_spec.json"
 """The specification placing every alchemy form the shared vocabulary names into a use case."""
+
+DEFAULT_GALLERY_SPEC_PATH = TOOL_ROOT.parents[3] / "promo" / "spec" / "gallery.json"
+"""The frontpage's gallery specification: the pictures, texts and conversations it wants made."""
+
+DEFAULT_GALLERY_OUTPUT_ROOT = DEFAULT_PROMO_OUTPUT_ROOT / "gallery"
+"""``<haidra-assets>/assets/promo/gallery``: the gallery beside the share cards."""
 
 DEFAULT_FLOWS_SPEC_PATH = TOOL_ROOT / "flows_spec.json"
 DEFAULT_FLOWS_OUTPUT_ROOT = DEFAULT_OUTPUT_ROOT / "tutorials"
@@ -522,6 +531,48 @@ def build_parser() -> argparse.ArgumentParser:
     promo_parser.add_argument("--force", action="store_true", help="redraw cards that are already on disk")
     promo_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
+    gallery_parser = subparsers.add_parser(
+        "gallery",
+        help="make the promo gallery through the live horde: pictures, alchemy pairs, texts and conversations",
+    )
+    gallery_parser.add_argument(
+        "--spec",
+        type=Path,
+        default=DEFAULT_GALLERY_SPEC_PATH,
+        help="the gallery specification to read (default: the frontpage's)",
+    )
+    gallery_parser.add_argument(
+        "--out",
+        type=Path,
+        default=DEFAULT_GALLERY_OUTPUT_ROOT,
+        help="the gallery root, which is where gallery.json lands",
+    )
+    gallery_parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=None,
+        help="the .env holding AIHORDE_DEV_KEY (default: the frontpage repository's, if present)",
+    )
+    gallery_parser.add_argument("--only", default="", help="restrict the run to these entry ids, comma-separated")
+    gallery_parser.add_argument(
+        "--skip-alchemy",
+        action="store_true",
+        help="leave the alchemy forms the picture entries ask for alone",
+    )
+    gallery_parser.add_argument("--skip-text", action="store_true", help="leave the single-turn texts alone")
+    gallery_parser.add_argument("--skip-conversations", action="store_true", help="leave the conversations alone")
+    gallery_parser.add_argument(
+        "--retry-censored",
+        action="store_true",
+        help="offer the entries the safety checker refused before again",
+    )
+    gallery_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print what would be submitted, with each picture's model and settings, and stop",
+    )
+    gallery_parser.add_argument("--verbose", action="store_true", help="log at debug level")
+
     index_parser = subparsers.add_parser("index", help="rebuild index.json from the images already on disk")
     index_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     index_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
@@ -673,6 +724,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "promo":
         return _run_promo(arguments)
+
+    if arguments.command == "gallery":
+        return _run_gallery(arguments)
 
     spec = load_spec(arguments.spec)
     output_root: Path = arguments.output_root
@@ -1020,6 +1074,37 @@ def _run_promo(arguments: argparse.Namespace) -> int:
     print(f"cards: wrote {len(written)} ({written_bytes / 1_000_000:.1f} MB), kept {kept}.")
     for outcome in outcomes:
         print(f"  {outcome.key}: {outcome.relative_path} ({outcome.width}x{outcome.height})")
+    return 0
+
+
+def _run_gallery(arguments: argparse.Namespace) -> int:
+    """Make the promo gallery the specification asks for, and return the process exit code.
+
+    A dry run needs a key all the same: which model a picture resolves to is a fact about what the
+    horde is serving right now, so the plan is read from the horde even though nothing is submitted.
+    """
+    try:
+        spec = load_gallery_spec(arguments.spec)
+        env_file = arguments.env_file if arguments.env_file is not None else default_env_file()
+        api_key = read_api_key(env_file=env_file)
+    except (OSError, ValueError, MissingApiKeyError) as configuration_error:
+        print(f"error: {configuration_error}", file=sys.stderr)
+        return 1
+
+    horde = GalleryHorde(spec["api"], api_key, spec["client_agent"])
+    manifest_path = run_gallery(
+        horde=horde,
+        spec=spec,
+        out=arguments.out,
+        only={part.strip() for part in arguments.only.split(",") if part.strip()},
+        skip_alchemy=arguments.skip_alchemy,
+        skip_text=arguments.skip_text,
+        skip_conversations=arguments.skip_conversations,
+        retry_censored=arguments.retry_censored,
+        dry_run=arguments.dry_run,
+    )
+    if manifest_path is not None:
+        print(f"Wrote {manifest_path}")
     return 0
 
 

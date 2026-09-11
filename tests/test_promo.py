@@ -259,6 +259,39 @@ def test_a_pair_takes_the_strips_own_preview_and_a_hero_takes_the_last_frame(lib
     assert hero_content.title == "Look, then decide"
 
 
+def test_a_hero_can_draw_a_gallery_picture_and_a_parameter_takes_its_listed_subtitle(library: Path) -> None:
+    spec = promo_spec(titles={"steps": "Steps"}, subtitles={"steps": "How many passes the model takes."})
+    index = read_index(output_root=library)
+    # A promo tree of this test's own: the shared one beside the library is what a later test
+    # expects to find without a gallery in it.
+    root = library / "promo-with-gallery"
+    picture = root / "gallery" / "balloons" / "result.webp"
+    picture.parent.mkdir(parents=True)
+    Image.new("RGB", (64, 64), STOP_COLOURS[0]).save(picture, format="WEBP", lossless=True)
+    hero = CardJob(
+        job_id="site",
+        template=CardTemplate.HERO,
+        gallery="balloons",
+        title="Free to use",
+        subtitle="Run by volunteers.",
+    )
+    strip = CardJob(job_id="s", template=CardTemplate.STRIP, strip="steps/small/thing")
+
+    hero_content = resolve_content(hero, spec=spec, index=index, manifest=None, library_root=library, promo_root=root)
+    strip_content = resolve_content(strip, spec=spec, index=index, manifest=None, library_root=library)
+
+    assert [frame.path for frame in hero_content.frames] == [picture]
+    assert hero_content.source == "gallery/balloons"
+    assert strip_content.subtitle == "How many passes the model takes."
+
+    wordless = CardJob(job_id="w", template=CardTemplate.HERO, gallery="balloons")
+    with pytest.raises(ValueError, match="title and subtitle"):
+        resolve_content(wordless, spec=spec, index=index, manifest=None, library_root=library, promo_root=root)
+    absent = CardJob(job_id="a", template=CardTemplate.HERO, gallery="nope", title="t", subtitle="s")
+    with pytest.raises(ValueError, match="there is none"):
+        resolve_content(absent, spec=spec, index=index, manifest=None, library_root=library, promo_root=root)
+
+
 def test_a_job_naming_nothing_or_a_missing_strip_is_refused(library: Path) -> None:
     spec = promo_spec()
     index = read_index(output_root=library)
