@@ -79,7 +79,7 @@
       "title": "Image to image",
       "summary": "Re-render an existing image and control how far it may drift with one slider.",
       "source_note": "txt2img/result.webp at its native 1024x1024",
-      "notes": "The only difference from a text-to-image request is the source image and the denoising strength that says how far the render may travel from it. The world 1 courier's descriptor block is unchanged between the two renders, so what moves is the weather and nothing else. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "notes": "The only difference from a text-to-image request is the source image and the denoising strength that says how far the render may travel from it. The world 1 courier's descriptor block is unchanged between the two renders, so what moves is the weather and nothing else. Denoise sits at 0.80: at 0.70 the storm barely registered against the source, so the change of weather and light was not unmistakable at a glance; 0.80 is high enough that it is, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
       "request": {
         "model": "AlbedoBase XL (SDXL)",
         "source_image": "inputs/tutorial-anchor-1024.webp",
@@ -95,7 +95,7 @@
           "hires_fix": false,
           "tiling": false,
           "karras": true,
-          "denoising_strength": 0.7,
+          "denoising_strength": 0.8,
           "seed": 1234567890
         },
         "features": {
@@ -108,7 +108,7 @@
       "title": "Image to image, fox shrine",
       "summary": "Re-render an existing image and control how far it may drift with one slider. The fox shrine rendition, where the drift is a change of season.",
       "source_note": "txt2img--w2/result.webp at its native 1024x1024",
-      "notes": "World 2, where the season is the only thing the prompt changes: autumn in, winter out. Everything before the season tags, the descriptor block included, is byte-identical to the flow's source image, so the drift a reader sees is the denoising strength and not a different subject. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "notes": "World 2, where the season is the only thing the prompt changes: autumn in, winter out. Everything before the season tags, the descriptor block included, is byte-identical to the flow's source image, so the drift a reader sees is the denoising strength and not a different subject. Denoise sits at 0.80: at 0.70 the storm barely registered against the source, so the change of weather and light was not unmistakable at a glance; 0.80 is high enough that it is, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
       "request": {
         "model": "Nova Anime XL",
         "source_image": "inputs/tutorial-anchor-w2-1024.webp",
@@ -124,7 +124,7 @@
           "hires_fix": false,
           "tiling": false,
           "karras": true,
-          "denoising_strength": 0.7,
+          "denoising_strength": 0.8,
           "seed": 1234567890
         },
         "features": {
@@ -137,7 +137,7 @@
       "title": "Image to image, robot gardener",
       "summary": "Re-render an existing image and control how far it may drift with one slider. The robot gardener rendition, where the drift is golden hour into a wet night.",
       "source_note": "txt2img--w3/result.webp at its native 1024x1024",
-      "notes": "World 3, golden hour out and a wet night in, with the robot's descriptor block unchanged across both renders. Denoise sits at 0.70: high enough that the change of weather and light is unmistakable at a glance, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
+      "notes": "World 3, golden hour out and a wet night in, with the robot's descriptor block unchanged across both renders. Denoise sits at 0.80: at 0.70 the storm barely registered against the source, so the change of weather and light was not unmistakable at a glance; 0.80 is high enough that it is, and low enough that the subject and the composition survive, which is the balance the lesson is about.",
       "request": {
         "model": "AlbedoBase XL (SDXL)",
         "source_image": "inputs/tutorial-anchor-w3-1024.webp",
@@ -153,7 +153,7 @@
           "hires_fix": false,
           "tiling": false,
           "karras": true,
-          "denoising_strength": 0.7,
+          "denoising_strength": 0.8,
           "seed": 1234567890
         },
         "features": {
