@@ -678,6 +678,17 @@ def run_conversations(*, horde: GalleryHorde, spec: dict[str, Any], out: Path, o
         logger.info("%s: %s in %.1f s for %s kudos", entry_id, meta["model"], meta["seconds"], meta["kudos"])
 
 
+RECIPE_FIELDS = ("prompt", "params", "models", "nsfw")
+"""The parts of a request that make the picture; delivery choices (workers, storage, sharing) are not published."""
+
+
+def _recipe(request: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Reduce a request body to the settings a reader can reproduce the picture from."""
+    if not request:
+        return None
+    return {field: request[field] for field in RECIPE_FIELDS if field in request}
+
+
 def build_manifest(*, spec: dict[str, Any], out: Path) -> dict[str, Any]:
     """Rebuild the manifest from everything on disk, keeping the curation the existing one carries.
 
@@ -710,6 +721,10 @@ def build_manifest(*, spec: dict[str, Any], out: Path) -> dict[str, Any]:
             "kudos": meta.get("kudos"),
             "width": meta["width"],
             "height": meta["height"],
+            # The settings the picture was made with, so a reader of the published
+            # manifest can reproduce it or load them; the per-picture meta files
+            # themselves are not published.
+            "request": _recipe(meta.get("request")),
             "alchemy": {
                 form: {**record, "file": f"{root_name}/{meta['id']}/{record['file']}"}
                 for form, record in meta.get("alchemy", {}).items()

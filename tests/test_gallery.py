@@ -320,6 +320,10 @@ def test_the_manifest_is_rebuilt_from_disk_and_keeps_curation(tmp_path: Path) ->
     assert rebuilt["images"][0]["curated"] is True
     assert rebuilt["images"][0]["note"] == "the fox is the header picture"
     assert "curated" not in rebuilt["images"][1], "curation is absent until a curator writes it"
+    assert rebuilt["images"][0]["request"]["prompt"] == SPEC["images"][0]["prompt"], (
+        "the request that made a picture is published with it"
+    )
+    assert "params" in rebuilt["images"][0]["request"]
 
 
 def test_a_censored_entry_is_recorded_and_left_alone_until_it_is_retried(tmp_path: Path) -> None:
