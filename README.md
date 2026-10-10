@@ -704,7 +704,8 @@ Two kinds of work:
   (`strip`, `pair`, `grid`, `hero`), a format (`og` 1200×630, `square`, `wide`, `story`, `poster`
   2048²), a theme (`dark`, `light`), a stop selection (`all`, `preview`, `spread:N`, `first:N`, or
   indices), and optional title, subtitle, link, tagline (replacing the brand's on that card) and
-  output path.
+  output path. A `hero` card sets its words over the picture, so each letter is drawn with a dark
+  outline and glow, and its subtitle may run to two lines before it is cut.
 
 Cards are promotional material cut from the evidence rather than evidence, so they never go into the
 library. They land in `assets/promo/` beside it (`--promo-root`), with `cards.json` at the root naming

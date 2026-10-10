@@ -21,12 +21,15 @@ from param_sweeps.outputs import write_index
 from param_sweeps.promo import (
     CANVAS_SIZES,
     CARDS_MANIFEST_FILENAME,
+    OVERLAY_OUTLINE,
     CardFormat,
     CardJob,
     CardSet,
     CardTemplate,
+    Fonts,
     PromoSpec,
     expand_jobs,
+    render_card,
     resolve_content,
     select_stops,
     spread_positions,
@@ -290,6 +293,38 @@ def test_a_hero_can_draw_a_gallery_picture_and_a_parameter_takes_its_listed_subt
     absent = CardJob(job_id="a", template=CardTemplate.HERO, gallery="nope", title="t", subtitle="s")
     with pytest.raises(ValueError, match="there is none"):
         resolve_content(absent, spec=spec, index=index, manifest=None, library_root=library, promo_root=root)
+
+
+def test_type_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_left_alone(library: Path) -> None:
+    spec = promo_spec()
+    index = read_index(output_root=library)
+    root = library / "promo-with-pale-gallery"
+    picture = root / "gallery" / "snow" / "result.webp"
+    picture.parent.mkdir(parents=True)
+    Image.new("RGB", (64, 64), (255, 255, 255)).save(picture, format="WEBP", lossless=True)
+    hero = CardJob(
+        job_id="h", template=CardTemplate.HERO, gallery="snow", title="Free to use", subtitle="By volunteers."
+    )
+
+    card = render_card(
+        hero,
+        spec=spec,
+        index=index,
+        manifest=None,
+        library_root=library,
+        fonts=Fonts(None, base=library),
+        spec_root=library,
+        promo_root=root,
+    )
+
+    width, height = card.size
+    foot = card.crop((0, height // 2, width, height))
+    colours = {colour for _, colour in foot.getcolors(maxcolors=width * height)}
+    # The foot shade alone never reaches the outline tone over white, so finding it means the
+    # letters carry their own outline, and white beside it means their fill survived it.
+    assert OVERLAY_OUTLINE in colours
+    assert (255, 255, 255) in colours
+    assert card.getpixel((width // 2, height // 4)) == (255, 255, 255)
 
 
 def test_a_job_naming_nothing_or_a_missing_strip_is_refused(library: Path) -> None:

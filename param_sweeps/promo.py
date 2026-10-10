@@ -37,7 +37,7 @@ import re
 from pathlib import Path
 from typing import Literal
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from pydantic import BaseModel, ConfigDict, Field
 from strenum import StrEnum
 
@@ -60,6 +60,12 @@ TUTORIAL_CARDS_DIRECTORY_NAME = "tutorials"
 """The subtree a per-tutorial set writes to, one card per flow."""
 
 CARDS_MANIFEST_SCHEMA_VERSION = 1
+
+OVERLAY_OUTLINE = (6, 9, 18)
+"""The tone that rings and shadows type set over a picture."""
+
+OVERLAY_INK = "#ffffff"
+OVERLAY_MUTED = "#f3f4f6"
 
 SELECTION_PATTERN = re.compile(r"^(preview|all|spread:(\d+)|first:(\d+))$")
 
@@ -698,8 +704,9 @@ def render_card(
     draw = ImageDraw.Draw(canvas)
     margin = round(56 * scale)
 
-    if job.template is CardTemplate.HERO:
-        _draw_hero(canvas, content, fonts=fonts, scale=scale, margin=margin)
+    overlay_text = _OverlayText(canvas, scale=scale) if job.template is CardTemplate.HERO else None
+    if overlay_text is not None:
+        _draw_hero(canvas, content, fonts=fonts, scale=scale, margin=margin, text=overlay_text)
     else:
         header_bottom = _draw_header(
             draw, content, palette=palette, fonts=fonts, scale=scale, margin=margin, width=width
@@ -723,9 +730,61 @@ def render_card(
         scale=scale,
         margin=margin,
         spec_root=spec_root,
-        overlay=job.template is CardTemplate.HERO,
+        overlay_text=overlay_text,
     )
     return canvas
+
+
+class _OverlayText:
+    """White type set over a picture, each glyph ringed and shadowed in a dark tone.
+
+    The tones behind the type are whatever the picture has there, so the type carries its own
+    relief: a soft glow in the shape of the letters, then an outline, then the fill. Runs are queued
+    and drawn in those three passes so that one run's outline never covers a neighbouring run's fill.
+    """
+
+    OUTLINE_RATIO = 0.075
+    """Outline width as a share of the face size."""
+
+    GLOW_RATIO = 0.16
+    """Blur radius of the glow as a share of the largest queued face size."""
+
+    def __init__(self, canvas: Image.Image, *, scale: float) -> None:
+        """Remember the canvas; nothing is drawn until ``draw``."""
+        self._canvas = canvas
+        # Small faces take the floor: a ring thinner than this gives no relief at preview size.
+        self._least_outline = round(3 * scale)
+        self._runs: list[tuple[tuple[float, float], str, ImageFont.FreeTypeFont, str]] = []
+
+    def add(self, position: tuple[float, float], words: str, *, font: ImageFont.FreeTypeFont, fill: str) -> None:
+        """Queue one run of text."""
+        self._runs.append((position, words, font, fill))
+
+    def _outline_width(self, font: ImageFont.FreeTypeFont) -> int:
+        return max(self._least_outline, round(font.size * self.OUTLINE_RATIO))
+
+    def draw(self) -> None:
+        """Draw every queued run onto the canvas and empty the queue."""
+        if not self._runs:
+            return
+        glow = Image.new("L", self._canvas.size, 0)
+        glow_draw = ImageDraw.Draw(glow)
+        for position, words, font, _ in self._runs:
+            width = self._outline_width(font)
+            glow_draw.text(position, words, font=font, fill=255, stroke_width=width, stroke_fill=255)
+        radius = max(font.size for _, _, font, _ in self._runs) * self.GLOW_RATIO
+        glow = glow.filter(ImageFilter.GaussianBlur(radius)).point(lambda value: min(255, int(value * 1.6)))
+        self._canvas.paste(Image.new("RGB", self._canvas.size, OVERLAY_OUTLINE), (0, 0), glow)
+
+        draw = ImageDraw.Draw(self._canvas)
+        for position, words, font, _ in self._runs:
+            width = self._outline_width(font)
+            draw.text(
+                position, words, font=font, fill=OVERLAY_OUTLINE, stroke_width=width, stroke_fill=OVERLAY_OUTLINE
+            )
+        for position, words, font, fill in self._runs:
+            draw.text(position, words, font=font, fill=fill)
+        self._runs.clear()
 
 
 def _draw_header(
@@ -760,18 +819,30 @@ def _draw_footer(
     scale: float,
     margin: int,
     spec_root: Path,
-    overlay: bool,
+    overlay_text: _OverlayText | None,
 ) -> None:
-    """Draw the brand line along the foot: logo and name at the left, tagline and address at the right."""
+    """Draw the brand line along the foot: logo and name at the left, tagline and address at the right.
+
+    Over a picture the words go through ``overlay_text``, which is drawn here once the line is
+    queued, and the logo is pasted after it so the glow does not dim it.
+    """
     draw = ImageDraw.Draw(canvas)
     width, height = canvas.size
     name_font = fonts.get("bold", round(28 * scale))
     small_font = fonts.get("mono", round(20 * scale))
-    ink = "#ffffff" if overlay else palette.ink
-    muted = "#d1d5db" if overlay else palette.muted
+    ink = OVERLAY_INK if overlay_text is not None else palette.ink
+    muted = OVERLAY_MUTED if overlay_text is not None else palette.muted
+
+    def put(position: tuple[float, float], words: str, *, font: ImageFont.FreeTypeFont, fill: str) -> None:
+        if overlay_text is not None:
+            overlay_text.add(position, words, font=font, fill=fill)
+        else:
+            draw.text(position, words, font=font, fill=fill)
+
     line_height = round(44 * scale)
     y = height - margin - line_height
     x = margin
+    logo_at: tuple[Image.Image, tuple[int, int]] | None = None
     if brand.logo is not None:
         logo_path = spec_root / brand.logo
         if logo_path.is_file():
@@ -779,19 +850,21 @@ def _draw_footer(
                 logo_height = line_height
                 logo_width = max(1, round(logo.width * logo_height / logo.height))
                 resized = logo.convert("RGBA").resize((logo_width, logo_height), Image.Resampling.LANCZOS)
-                canvas.paste(resized, (x, y), resized)
+                logo_at = (resized, (x, y))
                 x += logo_width + round(14 * scale)
-    draw.text((x, y + (line_height - _text_height(name_font)) // 2), brand.name, font=name_font, fill=ink)
+    put((x, y + (line_height - _text_height(name_font)) // 2), brand.name, font=name_font, fill=ink)
 
     address = link
     tagline = tagline if tagline is not None else brand.tagline
     address_width = draw.textlength(address, font=small_font)
     tagline_width = draw.textlength(tagline, font=small_font)
     right = width - margin
-    draw.text(
-        (right - address_width, y + line_height - _text_height(small_font)), address, font=small_font, fill=muted
-    )
-    draw.text((right - tagline_width, y), tagline, font=small_font, fill=muted)
+    put((right - address_width, y + line_height - _text_height(small_font)), address, font=small_font, fill=muted)
+    put((right - tagline_width, y), tagline, font=small_font, fill=muted)
+    if overlay_text is not None:
+        overlay_text.draw()
+    if logo_at is not None:
+        canvas.paste(logo_at[0], logo_at[1], logo_at[0])
 
 
 def _draw_frames(
@@ -944,8 +1017,9 @@ def _draw_hero(
     fonts: Fonts,
     scale: float,
     margin: int,
+    text: _OverlayText,
 ) -> None:
-    """Fill the canvas with the frame and lay the title over a darkened foot."""
+    """Fill the canvas with the frame, darken its foot and queue the title and subtitle on ``text``."""
     width, height = canvas.size
     _paste_covered(canvas, content.frames[0].path, box=(0, 0, width, height))
     shade_height = round(height * 0.55)
@@ -958,16 +1032,26 @@ def _draw_hero(
 
     draw = ImageDraw.Draw(canvas)
     title_font = fonts.get("bold", round(64 * scale))
-    subtitle_font = fonts.get("regular", round(26 * scale))
-    lines = _wrap(content.title, font=title_font, max_width=width - 2 * margin, draw=draw)
-    subtitle = _ellipsise(content.subtitle, font=subtitle_font, max_width=width - 2 * margin)
+    # A link preview is shown at about a third of the canvas, so the subtitle is set large enough to
+    # be read there and is allowed a second line before it is cut.
+    subtitle_font = fonts.get("regular", round(34 * scale))
+    text_width = width - 2 * margin
+    lines = _wrap(content.title, font=title_font, max_width=text_width, draw=draw)
+    subtitle_lines = _wrap(content.subtitle, font=subtitle_font, max_width=text_width, draw=draw)
+    if len(subtitle_lines) > 2:
+        rest = " ".join(subtitle_lines[1:])
+        subtitle_lines = [subtitle_lines[0], _ellipsise(rest, font=subtitle_font, max_width=text_width)]
     footer_height = round(44 * scale) + margin
-    y = height - footer_height - round(24 * scale) - _text_height(subtitle_font)
-    draw.text((margin, y), subtitle, font=subtitle_font, fill="#d1d5db")
+    subtitle_line_height = _text_height(subtitle_font) + round(2 * scale)
+    subtitle_top = height - footer_height - round(24 * scale) - subtitle_line_height * len(subtitle_lines)
+    for position, line in enumerate(subtitle_lines):
+        text.add(
+            (margin, subtitle_top + position * subtitle_line_height), line, font=subtitle_font, fill=OVERLAY_MUTED
+        )
     line_height = _text_height(title_font) + round(6 * scale)
-    y -= round(14 * scale) + line_height * len(lines)
+    y = subtitle_top - round(14 * scale) - line_height * len(lines)
     for line in lines:
-        draw.text((margin, y), line, font=title_font, fill="#ffffff")
+        text.add((margin, y), line, font=title_font, fill=OVERLAY_INK)
         y += line_height
 
 
