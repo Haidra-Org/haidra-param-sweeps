@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 license = { text = "AGPL-3.0-or-later" }
 dependencies = [
     "pillow>=10.0",
-    "horde_sdk>=0.27",
+    "horde_sdk>=0.29.3",
     "pydantic>=2.7",
     "requests>=2.31",
     "strenum>=0.4.15",

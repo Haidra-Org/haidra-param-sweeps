@@ -108,7 +108,10 @@ class SchedulePolicy(BaseModel):
             an advisory names. A sampler absent from the mapping has no advice.
         scheduler_baselines: The baselines a restricted schedule is defined for. A schedule absent
             from the mapping works on every baseline.
-        evaluations_per_step: How many model evaluations one step of each sampler performs.
+        evaluations_per_step: How many model evaluations one step of each sampler performs, for the
+            samplers with a fixed rate.
+        adaptive_samplers: The samplers that choose their own iteration count, so a step has no fixed
+            evaluation count and no expected ratio.
     """
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
@@ -117,6 +120,7 @@ class SchedulePolicy(BaseModel):
     recommended_schedulers: Mapping[str, tuple[str, ...]] = Field(default_factory=dict)
     scheduler_baselines: Mapping[str, frozenset[str]] = Field(default_factory=dict)
     evaluations_per_step: Mapping[str, int] = Field(default_factory=dict)
+    adaptive_samplers: frozenset[str] = frozenset()
 
     def allows(self, *, sampler: str, scheduler: str, baseline: str) -> bool:
         """Return whether this sampler may be measured on this schedule against this baseline."""
@@ -135,7 +139,8 @@ class SamplerSchedulePairing(BaseModel):
     sampler_name: str
     scheduler: str
     schedule_reason: ScheduleChoiceReason
-    evaluations_per_step: int
+    evaluations_per_step: int | None
+    """None for an adaptive sampler, whose evaluation count is not fixed per step."""
 
 
 class LinearFit(BaseModel):
@@ -167,7 +172,8 @@ class SamplerCostRecord(BaseModel):
     model_slug: str
     scheduler: str
     schedule_reason: ScheduleChoiceReason
-    evaluations_per_step: int
+    evaluations_per_step: int | None
+    """None for an adaptive sampler, whose evaluation count is not fixed per step."""
     points: tuple[StepPoint, ...] = ()
     fit: LinearFit | None = None
     ratio_vs_k_euler: float | None = None
@@ -250,6 +256,7 @@ def horde_sdk_schedule_policy() -> SchedulePolicy:
             SAMPLER_RECOMMENDATIONS,
             SCHEDULER_BASELINE_APPLICABILITY,
         )
+        from horde_sdk.generation_parameters.image.sampler_work import FixedRateSamplerWorkProfile
     except ImportError as missing_table:
         raise RuntimeError(
             "the installed horde_sdk has no image sampler constraints table, so the sampler"
@@ -275,8 +282,15 @@ def horde_sdk_schedule_policy() -> SchedulePolicy:
             for scheduler, baselines in SCHEDULER_BASELINE_APPLICABILITY.items()
         },
         evaluations_per_step={
-            str(sampler): constraints.evaluations_per_step for sampler, constraints in SAMPLER_CONSTRAINTS.items()
+            str(sampler): constraints.work_profile.marginal_work_units_per_trajectory_step
+            for sampler, constraints in SAMPLER_CONSTRAINTS.items()
+            if isinstance(constraints.work_profile, FixedRateSamplerWorkProfile)
         },
+        adaptive_samplers=frozenset(
+            str(sampler)
+            for sampler, constraints in SAMPLER_CONSTRAINTS.items()
+            if not isinstance(constraints.work_profile, FixedRateSamplerWorkProfile)
+        ),
     )
 
 
@@ -326,7 +340,7 @@ def derive_pairings(
     pairings: list[SamplerSchedulePairing] = []
     for sampler in samplers:
         evaluations = policy.evaluations_per_step.get(sampler)
-        if evaluations is None:
+        if evaluations is None and sampler not in policy.adaptive_samplers:
             raise ValueError(f"the policy states no evaluations per step for {sampler!r}")
 
         if policy.allows(sampler=sampler, scheduler=default_scheduler, baseline=baseline):
@@ -442,7 +456,9 @@ def build_records(
             ratio = _ratio(fit=fit, reference_fit=reference_fit)
             expected = (
                 pairing.evaluations_per_step / reference_evaluations
-                if reference_evaluations is not None and reference_evaluations > 0
+                if pairing.evaluations_per_step is not None
+                and reference_evaluations is not None
+                and reference_evaluations > 0
                 else None
             )
             records.append(
@@ -514,7 +530,7 @@ def format_summary_table(report: SamplerCostReport) -> str:
             f"{_number(fit.r_squared if fit else None, 3):>7}"
             f"{_number(record.ratio_vs_k_euler, 2):>8}"
             f"{_number(record.expected_ratio, 2):>8}"
-            f"{record.evaluations_per_step:>6}  "
+            f"{_number(record.evaluations_per_step, 0):>6}  "
             f"{'DISCREPANT' if record.is_discrepant else ''}",
         )
 

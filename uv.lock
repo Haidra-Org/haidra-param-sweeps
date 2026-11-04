@@ -1464,7 +1464,7 @@ requires-dist = [
     { name = "boto3", marker = "extra == 'publish'", specifier = ">=1.34" },
     { name = "botocore", marker = "extra == 'publish'", specifier = ">=1.34" },
     { name = "horde-engine", extras = ["layerdiffuse"], marker = "extra == 'local'", specifier = ">=6.4.1" },
-    { name = "horde-sdk", specifier = ">=0.27" },
+    { name = "horde-sdk", specifier = ">=0.29.3" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pyzbar", specifier = ">=0.1.9" },

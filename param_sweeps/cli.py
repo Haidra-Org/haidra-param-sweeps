@@ -799,6 +799,11 @@ def _build_runner(arguments: argparse.Namespace) -> SweepRunner:
     )
 
 
+def _evaluations_label(evaluations_per_step: int | None) -> str:
+    """Return how many model evaluations a step costs, or that the sampler sets its own count."""
+    return "adaptive" if evaluations_per_step is None else f"{evaluations_per_step} eval/step"
+
+
 def _run_sampler_cost(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Measure sampler cost, write the artifact and print the summary, returning the exit code.
 
@@ -824,7 +829,7 @@ def _run_sampler_cost(arguments: argparse.Namespace, *, spec: SweepSpec, output_
         for pairing in pairings_by_model[image_model.slug]:
             print(
                 f"  {pairing.sampler_name} on {pairing.scheduler}"
-                f" [{pairing.schedule_reason}, {pairing.evaluations_per_step} eval/step]",
+                f" [{pairing.schedule_reason}, {_evaluations_label(pairing.evaluations_per_step)}]",
             )
 
     render_count = sum(

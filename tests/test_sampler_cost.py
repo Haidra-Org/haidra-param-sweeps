@@ -26,6 +26,8 @@ from param_sweeps.sampler_cost import (
     derive_pairings,
     fit_line,
     format_summary_table,
+    horde_sdk_samplers,
+    horde_sdk_schedule_policy,
     measurement_job,
     write_report,
 )
@@ -46,6 +48,7 @@ POLICY = SchedulePolicy(
         "restricted_only": 1,
         "unadvised": 1,
     },
+    adaptive_samplers=frozenset({"k_dpm_adaptive"}),
 )
 
 MODEL = ModelSpec(
@@ -122,6 +125,12 @@ class TestDerivePairings:
         with pytest.raises(ValueError, match="evaluations per step"):
             derive_pairings(samplers=["not_in_the_table"], baseline=SD15_BASELINE, policy=POLICY)
 
+    def test_an_adaptive_sampler_is_measured_without_a_fixed_cost(self) -> None:
+        """Assert an adaptive sampler is paired with no evaluations-per-step value instead of being refused."""
+        pairings = derive_pairings(samplers=["k_dpm_adaptive"], baseline=SD15_BASELINE, policy=POLICY)
+
+        assert [pairing.evaluations_per_step for pairing in pairings] == [None]
+
     def test_a_schedule_undefined_for_the_baseline_is_not_substituted_in(self) -> None:
         """Assert a schedule the baseline has no entry for is skipped rather than substituted."""
         policy = POLICY.model_copy(
@@ -178,6 +187,40 @@ class TestBuildRecords:
         assert heun.expected_ratio == pytest.approx(2.0)
         assert heun.fit is not None
         assert heun.fit.slope_seconds_per_step == pytest.approx(0.5)
+
+    def test_an_adaptive_sampler_has_no_expected_ratio_and_is_never_flagged(self) -> None:
+        """Assert an adaptive sampler reports its measured ratio with no expected ratio to compare it to."""
+        records = build_records(
+            timings={
+                ("deliberate", "k_euler"): {10: [6.0], 20: [11.0]},
+                ("deliberate", "k_dpm_adaptive"): {10: [20.0], 20: [40.0]},
+            },
+            pairings_by_model={
+                "deliberate": derive_pairings(
+                    samplers=["k_euler", "k_dpm_adaptive"], baseline=SD15_BASELINE, policy=POLICY
+                ),
+            },
+        )
+
+        adaptive = next(record for record in records if record.sampler_name == "k_dpm_adaptive")
+        assert adaptive.ratio_vs_k_euler == pytest.approx(4.0)
+        assert adaptive.expected_ratio is None
+        assert not adaptive.is_discrepant
+
+
+class TestInstalledSdkPolicy:
+    """The policy read from the installed horde_sdk, which the stated-policy tests above do not exercise."""
+
+    def test_every_installed_sampler_can_be_paired(self) -> None:
+        """Assert every sampler in the installed vocabulary is either fixed-rate or adaptive, never unknown."""
+        policy = horde_sdk_schedule_policy()
+        samplers = horde_sdk_samplers()
+
+        pairings = derive_pairings(samplers=samplers, baseline=SD15_BASELINE, policy=policy)
+
+        assert [pairing.sampler_name for pairing in pairings] == list(samplers)
+        assert policy.evaluations_per_step["k_euler"] == 1
+        assert "k_dpm_adaptive" in policy.adaptive_samplers
 
     def test_a_point_is_the_median_of_its_repeats_so_one_slow_render_cannot_move_it(self) -> None:
         """Assert each fitted point is the median of its repeat timings, with the raw repeats kept too."""
