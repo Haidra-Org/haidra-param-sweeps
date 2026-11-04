@@ -39,7 +39,7 @@ class CountingRunner(SweepRunner):
     """A runner that produces a solid colour, so the driver can be tested without a GPU."""
 
     def __init__(self, *, fail_on: str | None = None) -> None:
-        """Create a runner that renders every job, except one that is asked to fail."""
+        """Create a runner that renders every job, except one that is set to fail."""
         self.rendered_paths: list[str] = []
         self.prepare_count = 0
         self._fail_on = fail_on
@@ -179,7 +179,7 @@ def test_index_omits_strips_with_no_images(spec: SweepSpec, tmp_path: Path) -> N
 
 
 def test_each_image_to_image_strip_publishes_the_source_it_starts_from(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert every image-to-image strip carries its own source, so a consumer can show it beside the strip."""
+    """Assert every image-to-image strip has its own source, so a consumer can show it beside the strip."""
     run_campaign(spec=spec, runner=CountingRunner(), output_root=tmp_path, job_filter=EVERY_IMAGE_TO_IMAGE_STRIP)
 
     index = SweepIndex.model_validate_json((tmp_path / INDEX_FILENAME).read_text(encoding="utf-8"))
@@ -205,9 +205,9 @@ def test_each_image_to_image_strip_publishes_the_source_it_starts_from(spec: Swe
 
 
 def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a stop carries only what a strip is drawn and captioned from.
+    """Assert a stop holds only what a strip is drawn and captioned from.
 
-    The full parameter set is in the sidecar beside every image; repeating it per stop trebled
+    The full parameter set is in the sidecar beside every image. Repeating it per stop trebled
     an index that every visitor to the Learn pages downloads.
     """
     run_campaign(spec=spec, runner=CountingRunner(), output_root=tmp_path, job_filter=ONE_STRIP)
@@ -240,7 +240,7 @@ def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, t
 
 
 def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a ControlNet gallery's stops carry their control type, family and map into the index.
+    """Assert a ControlNet gallery's stops include their control type, family and map in the index.
 
     The map is half of what the stop teaches, so a consumer reads it from the index rather than
     guessing at a path. A map that was never drawn is reported as absent rather than as a path to
@@ -270,7 +270,7 @@ def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec,
 
 
 def test_a_strength_strip_names_the_map_its_dial_holds_the_render_to(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a strip held to one detector carries its map into the index once the map is on disk.
+    """Assert a strip held to one detector includes its map in the index once the map is on disk.
 
     A map that has not been drawn is reported as absent rather than as a path to a file that is
     not there, for the same reason a stop's map is: the renders are on disk either way.
@@ -404,8 +404,8 @@ def test_there_is_no_default_env_file_without_the_variable_or_a_repository_env(
 def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, tmp_path: Path) -> None:
     """Assert every strip the index publishes names two stops to wipe between, and the grids none.
 
-    The pair is resolved here rather than by the consumer, because it depends on the value the
-    strip is read against, which the index does not otherwise carry.
+    The pair is resolved here rather than by the consumer, because it depends on the value that
+    the strip is read against, which the index does not otherwise include.
     """
     run_campaign(
         spec=spec,
@@ -428,7 +428,7 @@ def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, t
 
 
 def test_a_preview_falls_back_to_the_stops_that_were_actually_rendered(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a strip missing its top stop still previews two pictures the index carries.
+    """Assert a strip missing its top stop still previews two pictures that the index includes.
 
     The index leaves out a stop whose image is not on disk, so a preview resolved against the
     declared ladder could point past the end of a partly rendered strip.

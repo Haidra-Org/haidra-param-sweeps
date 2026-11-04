@@ -8,27 +8,26 @@ tutorial flows queue, poll, retry and download identically. It knows nothing abo
 strips or flows: it takes a request body that is already built and returns what came back.
 
 It is deliberately unhurried. One request is in flight at a time and the next is not submitted
-until the previous images are in hand, because this is other people's hardware being asked for a
-favour.
+until the previous images are in hand, because the requests use other people's hardware.
 
-**No worker attribution is collected anywhere in this module.** The status models do not carry a
+**No worker attribution is collected anywhere in this module.** The status models do not include a
 worker name or id, so nothing downstream can record one even by accident. Kudos, wall time and
-generation ids are kept: they are what an honest disclosure of what an example cost needs.
+generation ids are kept: they are what is needed to disclose what an example cost.
 
 The API key is held only in a session header. Nothing here prints, logs or returns it.
 
 The horde's other half, alchemy, is served by the same transport under its own endpoints: a form
 is submitted to ``/interrogate/async`` and polled at ``/interrogate/status`` exactly as an image
 request is. ``horde_sdk`` models both sides of that exchange, and its vocabulary is used here for
-the states and the form names; the answers themselves are kept as the mapping the API returned,
-because the SDK models a result class only for the forms it already knew about and the describe
-family has outgrown that list.
+the states and the form names. The results themselves are kept as the mapping that the API
+returned, because the SDK models a result class only for the forms that it already supported and
+the describe family has outgrown that list.
 
 Critical public members:
 
 - [`HordeApiClient`][param_sweeps.horde_client.HordeApiClient]: the client itself.
 - [`CompletedGeneration`][param_sweeps.horde_client.CompletedGeneration]: what one request produced.
-- [`CompletedInterrogation`][param_sweeps.horde_client.CompletedInterrogation]: what one form said.
+- [`CompletedInterrogation`][param_sweeps.horde_client.CompletedInterrogation]: what one form returned.
 - [`read_api_key`][param_sweeps.horde_client.read_api_key]: the ``.env`` and environment lookup.
 - [`HordePacing`][param_sweeps.horde_client.HordePacing]: how politely the client talks.
 """
@@ -63,15 +62,15 @@ DEFAULT_API_BASE_URL = "https://aihorde.net/api/v2"
 """The public AI Horde API."""
 
 CLIENT_AGENT = "haidra-param-sweeps:1.0.0:https://github.com/Haidra-Org/haidra-param-sweeps"
-"""Identifies this tool to the horde, as the API asks every client to do."""
+"""Identifies this tool to the horde, as the API requires every client to do."""
 
 ENV_ASSIGNMENT_PATTERN = re.compile(r"^\s*(?:export\s+)?(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.*?)\s*$")
 
 FINISHED_STATE: str = str(GENERATION_STATE.done)
-"""The state the horde reports a piece of work in once its answer is ready."""
+"""The state the horde reports for a piece of work once its result is ready."""
 
 ABANDONED_STATES: frozenset[str] = frozenset({str(GENERATION_STATE.faulted), str(GENERATION_STATE.cancelled)})
-"""The states that mean the work will not produce an answer, however long it is polled for."""
+"""The states that mean the work will not produce a result, however long it is polled for."""
 
 
 class HordePacing:
@@ -90,16 +89,16 @@ class HordePacing:
     INTERROGATION_MAX_WAIT_SECONDS = 600.0
     """A shorter ceiling than a render's, because no alchemy form is slow to run.
 
-    A form still queues for an alchemist worker to pick it up, so the ceiling is a queue's
-    patience rather than a processor's; ten minutes is well past the point where waiting longer
-    is more likely to mean nobody is serving the form than that the answer is nearly ready.
+    A form still queues for an alchemist worker to pick it up, so the ceiling allows for queue
+    time rather than processing time. Ten minutes is well past the point where waiting longer
+    is more likely to mean that nobody is serving the form than that the result is nearly ready.
     """
 
     INTERROGATION_MAX_ATTEMPTS = 2
     """How many times one form is submitted before its failure is raised.
 
-    A text form costs almost nothing in kudos, so a retry is cheap, but a form that failed twice
-    is being refused rather than being unlucky and the run should say so rather than keep asking.
+    A text form costs almost nothing in kudos, so a retry is cheap. A form that failed twice
+    is being refused, so the run should report that instead of retrying again.
     """
 
 
@@ -107,8 +106,8 @@ class HordeGeneration(BaseModel):
     """Represents one finished generation in a status response.
 
     The worker that served the generation is deliberately not modelled. Examples published from
-    this pipeline carry no worker attribution, and the surest way to keep that true is for the
-    name never to be parsed in the first place.
+    this pipeline do not include worker attribution, and the surest way to keep that true is to
+    never parse the name in the first place.
     """
 
     model_config = ConfigDict(frozen=True, extra="ignore", populate_by_name=True, protected_namespaces=())
@@ -189,12 +188,12 @@ class HordeInterrogationAccepted(BaseModel):
 
 
 class HordeFormStatus(BaseModel):
-    """Represents one form's state, and its answer once it has one.
+    """Represents one form's state, and its result once it has one.
 
-    The answer is kept as the mapping the API returned rather than parsed into a result class.
-    ``horde_sdk`` models a class per form it knew about, and the forms the live alchemist has
-    gained since answer in shapes none of those classes describe; keeping the mapping means a
-    form the SDK has not caught up with is published rather than discarded.
+    The result is kept as the mapping that the API returned rather than parsed into a result class.
+    ``horde_sdk`` models a class for each form that it supported, and the forms that the live
+    alchemist has gained since respond in shapes that none of those classes describe. Keeping the
+    mapping means that a form that the SDK does not yet support is published rather than discarded.
     """
 
     model_config = ConfigDict(frozen=True, extra="ignore", protected_namespaces=())
@@ -205,7 +204,7 @@ class HordeFormStatus(BaseModel):
 
     @property
     def is_done(self) -> bool:
-        """Return whether this form has finished and carries its answer."""
+        """Return whether this form has finished and has its result."""
         return self.state == FINISHED_STATE
 
 
@@ -219,7 +218,7 @@ class HordeInterrogationStatusResponse(BaseModel):
 
 
 class CompletedInterrogation(BaseModel):
-    """Represents what one alchemy form said about one image.
+    """Represents what one alchemy form returned for one image.
 
     As with a generation, who served it is deliberately not modelled.
     """
@@ -235,7 +234,7 @@ class CompletedInterrogation(BaseModel):
 class FormRefusedError(RuntimeError):
     """The API refused the form itself, rather than failing to run it.
 
-    This is what the deployed horde says about a form its request schema does not accept, which
+    This is the deployed horde's response to a form that its request schema does not accept, which
     is a fact about what the live alchemist serves rather than a transport failure, so it is
     raised as its own type and never retried.
     """
@@ -249,7 +248,7 @@ def read_api_key(*, env_file: Path | None) -> str:
     """Return the AI Horde API key, from the environment or the given ``.env``.
 
     The environment wins, so a run can be pointed at a different key without editing a file. The
-    key itself is never logged: a failure reports only where it looked.
+    key itself is never logged: a failure reports only the locations that were checked.
 
     Args:
         env_file: The ``.env`` to read, or None to use only the environment.
@@ -310,12 +309,12 @@ def read_env_value(*, env_file: Path, variable_name: str) -> str:
 
 
 def refusal_reason(*, response: requests.Response, form: str) -> str:
-    """Return, in one sentence, what the API said about a form it would not accept.
+    """Return, in one sentence, the API's message about a form that it would not accept.
 
-    The deployed API answers a form its request schema does not carry with a validation error
-    naming the offending field and listing the forms it does accept. That list is the live
-    alchemist's own account of what it serves, which is the most useful thing the published
-    evidence can say about the gap, so it is kept verbatim rather than summarised.
+    The deployed API's response to a form that its request schema does not include is a validation
+    error that names the offending field and lists the forms that it does accept. That list states
+    what the live alchemist serves, which is the most useful thing the published evidence can say
+    about the gap, so it is kept verbatim rather than summarised.
     """
     try:
         body = response.json()
@@ -382,7 +381,7 @@ class HordeApiClient:
         Args:
             request_body: The already-built ``POST /generate/async`` body.
             label: What to call this request in logs and errors.
-            expected_image_count: How many images the request asked for.
+            expected_image_count: How many images the request requested.
 
         Returns:
             The finished generation.
@@ -417,8 +416,8 @@ class HordeApiClient:
     def available_model_names(self) -> set[str]:
         """Return the names of the image models workers currently serve, or an empty set.
 
-        An empty set means the question could not be answered, which the callers treat as "carry
-        on without the availability check" rather than as "no models are served".
+        An empty set means the model list could not be read. Callers treat that as "continue
+        without the availability check" rather than as "no models are served".
         """
         try:
             models_response = self._session.get(
@@ -435,7 +434,7 @@ class HordeApiClient:
         return {served_model.name for served_model in served_models if served_model.name}
 
     def interrogate(self, *, form: str, source_image_base64: str) -> CompletedInterrogation:
-        """Ask the horde to run one alchemy form on one image, and return what it said.
+        """Ask the horde to run one alchemy form on one image, and return the result.
 
         One form per request rather than several at once, because the API refuses the whole
         request over a form it does not accept, and a batch would take the forms that do work
@@ -446,7 +445,7 @@ class HordeApiClient:
             source_image_base64: The image, base64-encoded, as the API's ``source_image`` takes it.
 
         Returns:
-            The finished form and its answer.
+            The finished form and its result.
 
         Raises:
             FormRefusedError: If the API's request schema does not accept the form.
@@ -473,7 +472,7 @@ class HordeApiClient:
         raise RuntimeError(f"the horde could not run the {form} form: {last_error}")
 
     def _interrogate_once(self, *, form: str, source_image_base64: str) -> CompletedInterrogation:
-        """Submit one form and see it through to its answer.
+        """Submit one form and see it through to its result.
 
         Raises:
             FormRefusedError: If the API's request schema does not accept the form.
@@ -538,7 +537,7 @@ class HordeApiClient:
 
         Raises:
             RuntimeError: If the horde reported the request as faulted, impossible, or returned
-                fewer generations than were asked for.
+                fewer generations than were requested.
             requests.RequestException: On any transport or HTTP failure, which the caller retries.
         """
         started_at = time.monotonic()
@@ -613,7 +612,7 @@ class HordeApiClient:
         """Download and decode one finished generation.
 
         Raises:
-            RuntimeError: If the generation carries no URL.
+            RuntimeError: If the generation does not have a URL.
             requests.RequestException: On any transport or HTTP failure.
         """
         if not image_url:

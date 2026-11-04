@@ -14,8 +14,8 @@ Critical public members:
 - [`SweepSpec`][param_sweeps.spec.SweepSpec]: the whole specification.
 - [`RenderStrip`][param_sweeps.spec.RenderStrip]: one model/scene/parameter strip and its jobs.
 - [`RenderJob`][param_sweeps.spec.RenderJob]: one fully resolved image to render.
-- [`BatchSpec`][param_sweeps.spec.BatchSpec]: a section of one-off jobs a human signs off, which
-  expands to one-stop strips so it travels the same rails a teaching strip does.
+- [`BatchSpec`][param_sweeps.spec.BatchSpec]: a section of one-off jobs that a human reviews. It
+  expands to one-stop strips, so it follows the same path as a teaching strip.
 - [`RulingSet`][param_sweeps.spec.RulingSet]: the questions a reviewer has to answer about what
   the batch shows, each one pointing at the images that decide it.
 - [`FeatureOverrides`][param_sweeps.spec.FeatureOverrides]: the generation features beyond the
@@ -44,10 +44,10 @@ from strenum import StrEnum
 type SamplerName = KNOWN_IMAGE_SAMPLERS | str
 """A sampler, named from the shared vocabulary but accepting any string.
 
-The specification is data a human writes, and the horde accepts sampler names this vocabulary has
-not caught up with yet, so an unrecognised name is carried through to the backend to answer for
-rather than rejected while reading the file. A recognised one validates into the enum, which is
-what makes a typo in a familiar name visible here instead of in a render.
+The specification is data written by a human, and the horde accepts sampler names that this
+vocabulary does not include yet. An unrecognised name is therefore passed through to the backend
+instead of being rejected while the file is read. A recognised name validates into the enum, which
+makes a typo in a familiar name visible here instead of in a render.
 """
 
 type SchedulerName = KNOWN_IMAGE_SCHEDULERS | str
@@ -63,7 +63,7 @@ sampler beside it, which the constraints table checks and this file cannot.
 
 # `protected_namespaces` is cleared because these models describe image-generation *models*, and
 # pydantic otherwise warns about every `model_`-prefixed field name as a namespace collision.
-# `populate_by_name` is set because a few fields carry the horde payload's own short name as an
+# `populate_by_name` is set because a few fields have the horde payload's short name as an
 # alias (``n``, ``chosen``) while reading as themselves in Python.
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=(), populate_by_name=True)
 
@@ -74,7 +74,7 @@ MAX_BATCH_SIZE = 20
 """The most candidates one curation batch may render, which is the horde's own ceiling."""
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
-"""The tool's own directory: what a sweep's ``source_image`` path is relative to."""
+"""The tool's directory, which a sweep's ``source_image`` path is relative to."""
 
 NON_LABEL_CHARACTERS = re.compile(r"[^a-z0-9_]+")
 
@@ -88,15 +88,15 @@ class SweepParameter(StrEnum):
     SAMPLER = "sampler"
     SAMPLER_GALLERY = "sampler_gallery"
     """Every sampler the horde publishes, one stop each, on one seed and scene. The sampler strip
-    teaches the four a reader meets first; this one lets the rest be seen beside them."""
+    teaches the four that a reader meets first. This one lets the rest be seen beside them."""
     CLIP_SKIP = "clip_skip"
     HIRES_FIX = "hires_fix"
     HIRES_FIX_DENOISING_STRENGTH = "hires_fix_denoising_strength"
     """How much of the enlarged frame the second pass redraws.
 
-    Not the strength the first pass runs at: this one is the enlargement's own, and the backend
-    derives the second pass's step count from it as well, so the strip is a reading of the pass
-    rather than of one number in isolation.
+    This is not the strength that the first pass runs at. It belongs to the enlargement, and the
+    backend also derives the second pass's step count from it, so the strip shows the whole pass
+    instead of one number in isolation.
     """
 
     TILING = "tiling"
@@ -107,8 +107,8 @@ class SweepParameter(StrEnum):
     RESOLUTION = "resolution"
     DENOISING_STRENGTH = "denoising_strength"
     MASKED_DENOISING_STRENGTH = "masked_denoising_strength"
-    """The same strength again with a mask over part of the source, where it still means what it
-    means everywhere else: the backend keeps what was under the mask and redraws it by this much."""
+    """The same strength with a mask over part of the source. It still means what it means
+    everywhere else: the backend keeps what was under the mask and redraws it by this much."""
 
     MASKING_GRID = "masking_grid"
     """A masked image-to-image column beside an inpainting one, read down a range of strengths.
@@ -120,12 +120,12 @@ class SweepParameter(StrEnum):
     OUTPAINT_EXTENT = "outpaint_extent"
     """How far a canvas was pushed out past the picture it started from.
 
-    Not a field any payload carries: the caller pads the source and masks the new region itself,
-    so what varies between these stops is the picture and the mask that were sent.
+    No payload has a field for this. The caller pads the source and masks the new region, so what
+    varies between these stops is the picture and the mask that were sent.
     """
 
     SOURCE_PROCESSING = "source_processing"
-    """Not a parameter a strip teaches: the axis a grid lays its columns out along."""
+    """Not a parameter a strip teaches: the axis along which a grid lays out its columns."""
 
     DENOISING_STRENGTH_CONVERGING = "denoising_strength_converging"
     """The denoising strip again on a sampler that settles, so a reader can see how much of what a
@@ -148,7 +148,7 @@ class SweepParameter(StrEnum):
     CONTROLNET_GALLERY = "controlnet_gallery"
     """Every ControlNet guidance mode the horde publishes, one stop each, on one source and seed.
 
-    The sampler gallery's counterpart for the other long vocabulary a reader has to choose from.
+    The sampler gallery's counterpart for the other long vocabulary that a reader has to choose from.
     A stop is three pictures rather than one: the source, the map the detector drew from it, and
     the render that map guided, because the map is what a reader is actually choosing between.
     """
@@ -193,7 +193,7 @@ GRID_AXIS_STOP_FIELDS: dict[SweepParameter, tuple[str, ...]] = {
     SweepParameter.DENOISING_STRENGTH: ("denoising_strength",),
     SweepParameter.SOURCE_PROCESSING: ("source_processing",),
 }
-"""Which stop fields each parameter a grid can be laid out along writes.
+"""The stop fields that each grid-axis parameter writes.
 
 ``RESOLUTION`` writes two, because one square size is what a reader is choosing between when
 they pick a resolution, and a grid axis holds one value per row.
@@ -215,21 +215,21 @@ PREVIEW_DEFAULT_SOURCE_FIELDS: dict[SweepParameter, str] = {
     SweepParameter.MASKED_DENOISING_STRENGTH: "denoising_strength",
     SweepParameter.CONTROL_STRENGTH: "control_strength",
 }
-"""Which field carries the value a strip's stops are read against, per parameter swept.
+"""The field that holds the value a strip's stops are read against, per swept parameter.
 
-Nothing in this tool records what a worker would do with a parameter nobody sends, so the value a
-preview calls the default is the one the strip itself holds: the sweep's own hold if it states
+This tool does not record what a worker does with a parameter that nobody sends, so the value that
+a preview treats as the default is the one that the strip holds: the sweep's own hold if it states
 one, then the anchor (or the model, for clip skip). A parameter absent from this table has no
-such value at all, and a preview that asks for the default there falls back to the first stop.
+such value, and a preview that requests the default there falls back to the first stop.
 """
 
 PREVIEW_BACKEND_DEFAULT_VALUES: dict[SweepParameter, bool | int | float | str] = {
     SweepParameter.CONTROL_STRENGTH: 1.0,
 }
-"""What the backend applies for a parameter the anchor does not carry and no sweep holds.
+"""What the backend applies for a parameter that the anchor does not include and no sweep holds.
 
-Only the ControlNet strength is here: the anchor has nothing to say about it, and a strip that
-sweeps it is read against the strength a job gets when it sends none, which is 1.
+Only the ControlNet strength is here. The anchor has no value for it, and a strip that sweeps it
+is read against the strength that a job gets when it sends none, which is 1.
 """
 
 GRID_AXIS_LABEL_PREFIXES: dict[SweepParameter, str] = {
@@ -252,12 +252,12 @@ GRID_AXIS_LABEL_PREFIXES: dict[SweepParameter, str] = {
 class StripPresentation(StrEnum):
     """How a web app should lay a strip out.
 
-    ``TILE_REPEAT_3X3`` asks the consumer to draw each image repeated nine times in a square
-    alongside the single image itself, which is the only way the difference a seamless-tiling
+    ``TILE_REPEAT_3X3`` has the consumer draw each image repeated nine times in a square
+    alongside the single image itself, which is the only way the difference that a seamless-tiling
     flag makes is visible at all: the odd grid puts whole joins in the interior rather than only
-    at the crossing point, and the isolated tile says what was actually rendered.
+    at the crossing point, and the isolated tile shows what was actually rendered.
 
-    ``TRIPTYCH`` asks for three pictures per stop: the strip's source, the stop's own control map,
+    ``TRIPTYCH`` has three pictures per stop: the strip's source, the stop's own control map,
     and the render. A reader choosing a detector is choosing what the map keeps, so the map has to
     be on the page beside the render it produced rather than described in words.
     """
@@ -302,11 +302,11 @@ class PreviewAnchor(StrEnum):
 
 
 PREVIEW_ANCHOR_NAMES = frozenset(str(anchor) for anchor in PreviewAnchor)
-"""The names a preview side can carry instead of a stop value."""
+"""The names a preview side can use instead of a stop value."""
 
 
 class StripPreview(BaseModel):
-    """Represents the two stops a strip's collapsed card puts either side of the wipe handle.
+    """Represents the two stops that a strip's collapsed card puts on either side of the wipe handle.
 
     ``left`` may be ``default``, ``first``, or the value of one of the strip's stops; ``right``
     may be ``last`` or a stop's value. Stating one is how a strip whose lesson does not live
@@ -323,8 +323,8 @@ class StripPreview(BaseModel):
     def _read_anchor_names(cls, value: Any) -> Any:
         """Convert an anchor's name into the anchor itself, and leave any stop value alone.
 
-        A side is read as a stop value first otherwise, because the union prefers the plain string
-        and the three names would arrive as strings no ladder carries.
+        Without this, a side is read as a stop value first, because the union prefers the plain
+        string, and the three names would arrive as strings that no ladder contains.
         """
         if isinstance(value, str) and value in PREVIEW_ANCHOR_NAMES:
             return PreviewAnchor(value)
@@ -332,7 +332,7 @@ class StripPreview(BaseModel):
 
 
 class AnchorParameters(BaseModel):
-    """Represents the values every sweep holds constant unless it is the one being swept."""
+    """Represents the values that every sweep holds constant unless it is the one being swept."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -345,7 +345,7 @@ class AnchorParameters(BaseModel):
     tiling: bool
 
     scheduler: SchedulerName | None = None
-    """The sigma schedule every sweep runs on. Unset leaves the schedule to the karras flag.
+    """The sigma schedule that every sweep runs on. Unset leaves the schedule to the karras flag.
 
     Kept optional so a specification written before schedules were nameable still reads, and means
     what it always meant: karras when the flag is on, and the backend's plain schedule otherwise.
@@ -394,17 +394,17 @@ class WorkflowName(StrEnum):
 
 
 QR_TEXT_REFERENCES = frozenset({"qr_code", "qr_text"})
-"""The ``extra_texts`` references the QR workflow reads its payload from.
+"""The ``extra_texts`` references that the QR workflow reads its payload from.
 
 Both spellings are accepted because the two backends this tool drives have not always agreed:
-the frontpage's own verified QR example and the web app both write ``qr_code``, while the
-``hordelib`` recipe this batch was written from uses ``qr_text``. Accepting either here means a
-specification is validated on what it is trying to say rather than on which backend wrote it.
+the frontpage's verified QR example and the web app both write ``qr_code``, while the
+``hordelib`` recipe that this batch was written from uses ``qr_text``. Accepting either here means
+a specification is validated on its content, regardless of which backend wrote it.
 """
 
 
 class ExtraText(BaseModel):
-    """Represents one entry of ``extra_texts``: a string a workflow reads by its reference."""
+    """Represents one entry of ``extra_texts``: a string that a workflow reads by its reference."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -429,7 +429,7 @@ class ExtraSourceImage(BaseModel):
 
 
 class LoraReference(BaseModel):
-    """Represents one LoRA a job applies, in the shape the horde payload carries."""
+    """Represents one LoRA a job applies, in the shape used by the horde payload."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -441,7 +441,7 @@ class LoraReference(BaseModel):
 
 
 class TextualInversionReference(BaseModel):
-    """Represents one textual inversion a job applies, in the shape the horde payload carries."""
+    """Represents one textual inversion a job applies, in the shape used by the horde payload."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -482,7 +482,7 @@ class FeatureOverrides(BaseModel):
     """The picture to start from, relative to the tool root, in place of the sweep's own.
 
     A stop states this only where the picture is what varies. Outpainting is the case that needs
-    it: the backend never pads anything, so each extent is a canvas that was padded beforehand,
+    it: the backend does not pad anything, so each extent is a canvas that was padded beforehand,
     and the stops of one strip do not share an input.
     """
 
@@ -530,13 +530,13 @@ class ParameterOverrides(FeatureOverrides):
     seed: int | None = None
 
     hires_fix_denoising_strength: float | None = Field(default=None, ge=0.01, le=1.0)
-    """What the second pass redraws by, when a job asks for the hires pass at all.
+    """What the second pass redraws by, when a job requests the hires pass at all.
 
     Unset rather than anchored, like the solver knobs: an unset value is never sent, and the
     backend then runs the pass exactly as it does for every other strip in the library.
     """
 
-    # Solver tuning. Each is unset unless a stop asks for it, and an unset knob is never sent, so a
+    # Solver tuning. Each is unset unless a stop sets it, and an unset knob is never sent, so a
     # strip that varies one of them differs from the rest of the library only in that one knob.
     sampler_eta: float | None = None
     sampler_s_noise: float | None = None
@@ -584,7 +584,7 @@ class CropRegion(BaseModel):
     A crop exists because a picture is shown smaller than it was rendered. Below
     [`MINIMUM_CROPPABLE_PIXELS`][param_sweeps.derivatives.MINIMUM_CROPPABLE_PIXELS] a frame is already
     shown at or near its own pixels, so a crop of it teaches nothing and is not cut unless the
-    specification says the region carries something anyway.
+    specification says the region has something worth showing anyway.
     """
 
     @model_validator(mode="after")
@@ -618,7 +618,7 @@ class CropRegion(BaseModel):
 
 
 class PublishedCrop(BaseModel):
-    """Represents a crop that was cut: where it landed, and the box it holds in its frame."""
+    """Represents a crop that was cut: where it was written, and the box it occupies in its frame."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -669,16 +669,16 @@ class SweepBase(BaseModel):
     """An image to start from, relative to the tool root. Unset renders from noise."""
 
     negative_prompt: str = ""
-    """The negative prompt this sweep's stops can turn on. Empty means none of them do."""
+    """The negative prompt that this sweep's stops can turn on. Empty means none of them do."""
 
     holds: ParameterOverrides = Field(default_factory=ParameterOverrides)
     """What this sweep holds differently from the anchor, for every stop that does not say."""
 
     crop: CropRegion | None = None
-    """The region every stop of this sweep publishes at its own pixels, unless a stop says otherwise.
+    """The region that every stop of this sweep publishes at its own pixels, unless a stop says otherwise.
 
-    Set it where the difference the strip teaches lives in detail the reader cannot see at the
-    size a page draws the frame: an upscaler's invented texture, or what a second pass adds to a
+    Set it where the difference that the strip teaches is in detail that the reader cannot see at
+    the size at which a page draws the frame: an upscaler's invented texture, or what a second pass adds to a
     face. Left unset where the lesson is composition, which reads at any size.
     """
 
@@ -710,17 +710,17 @@ class StripSweep(SweepBase):
     preview: StripPreview | None = None
     """Which two stops the collapsed card previews. Unset means the held value against the top.
 
-    Only a strip carries one: see
+    Only a strip has one: see
     [`PREVIEWABLE_PRESENTATIONS`][param_sweeps.spec.PREVIEWABLE_PRESENTATIONS].
     """
 
     @model_validator(mode="after")
     def _check_preview_names_stops_it_has(self) -> StripSweep:
-        """Validate that a stated preview names stops this sweep actually renders.
+        """Validate that a stated preview names stops that this sweep actually renders.
 
         Raises:
-            ValueError: If a side names a value no stop carries, or an anchor the side cannot
-                take (the left side cannot be the last stop, and the right side cannot be the
+            ValueError: If a side names a value that is not the value of any stop, or an anchor
+                that the side cannot take (the left side cannot be the last stop, and the right side cannot be the
                 held value or the first).
         """
         if self.preview is None:
@@ -798,13 +798,13 @@ class BatchSection(StrEnum):
     DIALECT_COMPARISON = "b-dialects"
     FEATURE_PROBES = "c-feature-probes"
     SUSPECT_CLAIMS = "d-suspect-claims"
-    """Renders that exist to be ruled on: each one answers a claim nobody has confirmed by eye."""
+    """Renders that exist to be ruled on: each one addresses a claim that nobody has confirmed by eye."""
 
     REFERENCE_IMAGES = "e-reference-images"
     """New reference images, re-rendered from their own parameters for review."""
 
     RAW_BACKEND = "f-raw-backend"
-    """Images produced by driving the backend directly, for claims the rendering path itself alters."""
+    """Images produced by driving the backend directly, for claims that the rendering path itself alters."""
 
 
 class BatchJob(ParameterOverrides):
@@ -822,14 +822,14 @@ class BatchJob(ParameterOverrides):
     caption: str
     negative_prompt: str = ""
     source_image: str | None = None
-    """The image this job starts from, relative to the tool root; unset renders from noise."""
+    """The image this job starts from, relative to the tool root. Unset renders from noise."""
 
     requires_source_from: str | None = None
     """The ``job_id`` whose chosen render is staged into ``source_image`` before this job runs."""
 
 
 class BatchSpec(BaseModel):
-    """Represents one section of a review batch: a list of jobs a human signs off together."""
+    """Represents one section of a review batch: a list of jobs that a human reviews together."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -867,7 +867,7 @@ class RulingControl(StrEnum):
 
 
 RULING_OTHER_OPTION_ID = "other-see-comments"
-"""The escape every ruling that picks from a set carries, so no reviewer is forced into a bad fit.
+"""The escape option that every ruling picking from a set includes, so no reviewer is forced into a bad fit.
 
 It is appended by [`RulingItem.presented_options`][param_sweeps.spec.RulingItem.presented_options]
 rather than written into the data, which is what makes it impossible for a ruling to be authored
@@ -883,7 +883,7 @@ RULING_IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 Identifiers become element ids, form-control names and export keys, all of which are built by
 concatenation, so they are held to one lowercase alphabet: an identifier that is safe in one of
 those places is then safe in all of them. Underscores are allowed because a sampler or schedule
-name is the honest identifier for a ruling about that sampler or schedule.
+name is the natural identifier for a ruling about that sampler or schedule.
 """
 
 
@@ -918,12 +918,12 @@ class RulingRow(BaseModel):
 
 
 class RulingItem(BaseModel):
-    """Represents one question a reviewer has to answer before the wave it belongs to ships.
+    """Represents one question a reviewer has to answer before the review it belongs to is complete.
 
-    A ruling states the question in the words it will be answered in, and points at the images
-    that decide it, because the failure mode this exists to prevent is a claim shipping because
-    nobody noticed it was never put to anyone. Every ruling carries a comment box and, unless it
-    is answered in free text alone, an ``Other`` option: an answer that does not fit the offered
+    A ruling states the question in the words in which it will be answered, and points at the
+    images that decide it, because the failure mode that this exists to prevent is a claim being
+    published because nobody noticed that it was never put to anyone. Every ruling has a comment
+    box and, unless it is answered in free text alone, an ``Other`` option: an answer that does not fit the offered
     set is a real answer and has to be recordable as one.
     """
 
@@ -942,7 +942,7 @@ class RulingItem(BaseModel):
     evidence_job_ids: list[str] = Field(default_factory=list)
     options: list[RulingChoice] = Field(default_factory=list)
     rows: list[RulingRow] = Field(default_factory=list)
-    """The things a ``row-select`` ruling answers one by one."""
+    """The things that a ``row-select`` ruling answers one by one."""
 
     master_toggle_label: str | None = None
     """A control that ticks every box of a ``checkbox-set`` at once, when the set is long enough."""
@@ -953,7 +953,7 @@ class RulingItem(BaseModel):
 
         Raises:
             ValueError: If an identifier is malformed, duplicated or reserved, if a control is
-                missing its options or rows, or if it was handed parts it cannot render.
+                missing its options or rows, or if it is given parts that it cannot render.
         """
         self._check_identifier(self.ruling_id, "ruling id")
         self._check_option_ids(self.options)
@@ -988,7 +988,7 @@ class RulingItem(BaseModel):
         """Validate one identifier's spelling.
 
         Raises:
-            ValueError: If it is not a lowercase identifier the sheet can build element ids from.
+            ValueError: If it is not a lowercase identifier that the sheet can build element ids from.
         """
         if not RULING_IDENTIFIER.match(identifier):
             raise ValueError(f"{what} {identifier!r} is not a lowercase identifier")
@@ -1010,7 +1010,7 @@ class RulingItem(BaseModel):
     def presented_options(self, *, row: RulingRow | None = None) -> list[RulingChoice]:
         """Return the options as the sheet offers them: the stated set, then the ``Other`` escape.
 
-        A free-text ruling offers nothing, because its comment box already is the escape. A row is
+        A free-text ruling offers no options, because its comment box is already the escape. A row is
         offered its own options when it states any, and the ruling's shared set otherwise.
         """
         if self.control is RulingControl.TEXT:
@@ -1020,12 +1020,12 @@ class RulingItem(BaseModel):
 
 
 class RulingSet(BaseModel):
-    """Represents every ruling one review wave needs, and the identity its answers are keyed by."""
+    """Represents every ruling that one review needs, and the identity that its answers are keyed by."""
 
     model_config = FROZEN_MODEL_CONFIG
 
     ruling_set_id: str
-    """What the saved answers are keyed by, so two waves reviewed on one browser cannot collide."""
+    """What the saved answers are keyed by, so two reviews done in one browser cannot collide."""
 
     title: str
     intro: str = ""
@@ -1123,7 +1123,7 @@ class JobFeatures(BaseModel):
 
 
 class RenderJob(BaseModel):
-    """Represents one fully resolved image: every parameter a runner needs, and where it lands."""
+    """Represents one fully resolved image: every parameter a runner needs, and where it is written."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -1164,7 +1164,7 @@ class RenderJob(BaseModel):
     """What this stop added to the scene's prompt, when the strip is one that varies the prompt."""
 
     source_image: str | None = None
-    """The image this job starts from, relative to the tool root; unset renders from noise."""
+    """The image this job starts from, relative to the tool root. Unset renders from noise."""
 
     control_type: str | None = None
     control_strength: float | None = None
@@ -1196,7 +1196,7 @@ class RenderJob(BaseModel):
     """Which family of detectors this job's control type belongs to, for a consumer to group by.
 
     Stated in the specification rather than derived, because the grouping is an editorial reading
-    of what each detector is for and the backend has no opinion about it.
+    of what each detector is for and the backend has no notion of it.
     """
 
     crop: CropRegion | None = None
@@ -1230,7 +1230,7 @@ class RenderJob(BaseModel):
         return self
 
     def _has_qr_payload_text(self) -> bool:
-        """Return whether the extra texts carry the string the QR workflow encodes."""
+        """Return whether the extra texts include the string that the QR workflow encodes."""
         return any(extra_text.reference in QR_TEXT_REFERENCES for extra_text in self.extra_texts)
 
     @property
@@ -1251,8 +1251,8 @@ class RenderJob(BaseModel):
     def resolved_source_processing(self) -> SourceProcessing | None:
         """Return what the backend should do with the source image, or None when there is none.
 
-        A job that names a source image and says nothing else is doing plain image-to-image,
-        which is what both runners assumed before the processings became stateable.
+        A job that has a source image and states nothing else is doing plain image-to-image,
+        which is what both runners assumed before the processings could be stated.
         """
         if self.source_image is None:
             return None
@@ -1279,7 +1279,7 @@ class RenderJob(BaseModel):
         """Return the filename stem of one candidate.
 
         A job that renders a single image keeps the plain stem it always had, so turning a
-        curation batch back into a single render does not rename the file a consumer already has.
+        curation batch back into a single render does not rename the file that a consumer already has.
         """
         stem = f"{self.stop_index:03d}_{self.stop_label}"
         return stem if self.batch_size == 1 else f"{stem}_{candidate_number:02d}"
@@ -1306,7 +1306,7 @@ class RenderJob(BaseModel):
     def relative_control_map_path(self) -> str | None:
         """Return where this job's control map is published, or None when it conditions on none.
 
-        The map lives beside the render it guided rather than in a tree of its own: the pair is
+        The map lives beside the render that it guided rather than in a tree of its own: the pair is
         only meaningful together, and a consumer that has the render's path has the map's.
         """
         if self.control_type is None:
@@ -1317,7 +1317,7 @@ class RenderJob(BaseModel):
     def relative_crop_path(self) -> str | None:
         """Return where this render's crop is published, or None when it declares no region.
 
-        Beside the render and under its stem, for the same reason a control map is: the pair is
+        Beside the render and under its stem, for the same reason as a control map: the pair is
         only meaningful together, and the published stem is the one the index already names.
         """
         if self.crop is None:
@@ -1328,14 +1328,14 @@ class RenderJob(BaseModel):
     def relative_fit_path(self) -> str:
         """Return where this render's bounded copy is published, beside the render itself.
 
-        Every render names one whether or not it has one: a frame small enough to be drawn
-        whole needs no bounded copy, and whether the file exists is what the index reports.
+        Every render has a path for one whether or not the file exists: a frame small enough to
+        be drawn whole needs no bounded copy, and the index reports whether the file exists.
         """
         return f"{self.relative_directory}/{self.candidate_stem(self.chosen_candidate_number)}_fit.webp"
 
     @property
     def checkpoint_key(self) -> str:
-        """Return the path resumption is keyed by, which never moves when a candidate is picked.
+        """Return the path that resumption is keyed by. It does not change when a candidate is picked.
 
         Keying on the published image would make marking a choice look like an unrendered job,
         and re-render a batch that has already been paid for.
@@ -1384,7 +1384,7 @@ class RenderJob(BaseModel):
         )
 
     def solver_parameters(self) -> dict[str, Any]:
-        """Return the schedule and solver knobs this job states, and only those it states."""
+        """Return the schedule and solver knobs that this job states, and only those."""
         return {
             "scheduler": self.scheduler,
             "sampler_eta": self.sampler_eta,
@@ -1415,7 +1415,7 @@ class RenderStrip(BaseModel):
     """Which review-batch section this strip's single job belongs to, when it came from a batch."""
 
     subject: SweepSubject | None = None
-    """Which kind of source picture this strip runs on, carried from the sweep that built it."""
+    """Which kind of source picture this strip runs on, copied from the sweep that built it."""
 
     directory_override: str | None = None
     """Where this strip's files go instead of the parameter/model/scene layout."""
@@ -1424,10 +1424,10 @@ class RenderStrip(BaseModel):
     """Which two stops the collapsed card previews, as the sweep stated it, or None if it did not."""
 
     default_value: bool | int | float | str | None = None
-    """The value this strip's stops are read against, when the specification carries one.
+    """The value this strip's stops are read against, when the specification has one.
 
-    Resolved per strip rather than per sweep because clip skip's comes from the model. None means
-    the parameter has no such value here, and a preview asking for the default falls back.
+    Resolved per strip rather than per sweep because the value for clip skip comes from the model.
+    None means the parameter has no such value here, and a preview that requests the default falls back.
     """
 
     @property
@@ -1442,7 +1442,7 @@ class RenderStrip(BaseModel):
         """Return where this strip's source image is published, relative to the output root.
 
         A copy per strip rather than per parameter: two sweeps of the same parameter can start
-        from different images, and a strip that carries its own source inside its own directory
+        from different images, and a strip that has its own source copy inside its own directory
         cannot be pointed at the wrong one.
         """
         if self.source_image is None:
@@ -1488,14 +1488,14 @@ class SweepSpec(BaseModel):
     scenes: list[SceneSpec] = Field(default_factory=list)
     sweeps: list[Sweep] = Field(default_factory=list)
     batches: list[BatchSpec] = Field(default_factory=list)
-    """Review batches: sections of one-off jobs a human signs off, rather than teaching strips."""
+    """Review batches: sections of one-off jobs that a human reviews, rather than teaching strips."""
 
     rulings: list[RulingSet] = Field(default_factory=list)
     """The questions this specification's batches exist to answer, rendered onto the contact sheet.
 
-    More than one set, because a wave that has been ruled on is often followed by a shorter one
-    asking only what the first left open. A set is what answers are keyed by, so a new set opens
-    empty rather than reopening the decisions that were already made.
+    More than one set, because a review that has been ruled on is often followed by a shorter one
+    that asks only what the first left open. Answers are keyed by set, so a new set starts empty
+    instead of reopening the decisions that were already made.
     """
 
     @model_validator(mode="after")
@@ -1561,17 +1561,17 @@ class SweepSpec(BaseModel):
                 raise ValueError(f"ruling {item.ruling_id} cites jobs no batch renders: {sorted(unknown_job_ids)}")
 
     def _check_hires_fix_geometry(self) -> None:
-        """Validate that every job asking for the hires pass renders where the backends run it.
+        """Validate that every job requesting the hires pass renders where the backends run it.
 
-        Three ways a job can ask for the pass and not get it. Either requested dimension at or
+        Three ways a job can request the pass and not get it. Either requested dimension at or
         below the baseline's training size (512 for SD1.5, 1024 for SDXL) turns the flag off, and
-        so does inpainting or outpainting, whatever the size; such a job renders as if the flag
+        so does inpainting or outpainting, whatever the size. Such a job renders as if the flag
         were never set and publishes a pair of identical images as a comparison. Stating what the
-        pass redraws by without asking for the pass is the third: nothing reads the value.
+        pass redraws by without requesting the pass is the third: nothing reads the value.
 
         Raises:
-            ValueError: If a job asks for the hires pass where the backends would not run it, or
-                states its strength without asking for it.
+            ValueError: If a job requests the hires pass where the backends would not run it, or
+                states its strength without requesting the pass.
         """
         disable_threshold_by_baseline = {"stable_diffusion_1": 512, "stable_diffusion_xl": 1024}
         painting = (SourceProcessing.INPAINTING, SourceProcessing.OUTPAINTING)
@@ -1626,7 +1626,7 @@ class SweepSpec(BaseModel):
         """Return the model with this slug.
 
         Raises:
-            KeyError: If no model in the specification carries the slug.
+            KeyError: If no model in the specification has the slug.
         """
         for image_model in self.models:
             if image_model.slug == slug:
@@ -1637,7 +1637,7 @@ class SweepSpec(BaseModel):
         """Return the scene with this identifier.
 
         Raises:
-            KeyError: If no scene in the specification carries the identifier.
+            KeyError: If no scene in the specification has the identifier.
         """
         for scene in self.scenes:
             if scene.scene_id == scene_id:
@@ -1648,7 +1648,7 @@ class SweepSpec(BaseModel):
         """Return the ruling set with this identifier.
 
         Raises:
-            KeyError: If no set in the specification carries the identifier.
+            KeyError: If no set in the specification has the identifier.
         """
         for ruling_set in self.rulings:
             if ruling_set.ruling_set_id == ruling_set_id:
@@ -1658,8 +1658,8 @@ class SweepSpec(BaseModel):
     def expand_strips(self) -> list[RenderStrip]:
         """Return every strip the specification describes, in declaration order.
 
-        A batch job expands to a strip of one stop, so a batch travels through the campaign
-        driver, the checkpoint and the index on exactly the same rails a teaching strip does.
+        A batch job expands to a strip of one stop, so a batch goes through the campaign
+        driver, the checkpoint and the index in exactly the same way as a teaching strip.
         """
         strips: list[RenderStrip] = []
         for sweep in self.sweeps:
@@ -1792,7 +1792,7 @@ class SweepSpec(BaseModel):
         """Return the value this sweep's stops are read against, or None when there is none.
 
         The sweep's own hold wins, then the model for clip skip, then the anchor, then the value
-        the backend applies when a job sends nothing. See
+        that the backend applies when a job sends nothing. See
         [`PREVIEW_DEFAULT_SOURCE_FIELDS`][param_sweeps.spec.PREVIEW_DEFAULT_SOURCE_FIELDS].
         """
         field_name = PREVIEW_DEFAULT_SOURCE_FIELDS.get(sweep.parameter)
@@ -1898,7 +1898,7 @@ def resolved_features(*, stop: FeatureOverrides, held: FeatureOverrides) -> dict
 
     Every feature is off unless something turns it on, which is why the defaults here are the
     inert ones rather than the sweep's: a feature that leaked from a sweep into a stop that did
-    not ask for it would change what an image teaches without saying so anywhere.
+    not state it would change what an image teaches without saying so anywhere.
 
     Args:
         stop: The stop's own overrides.
@@ -1963,9 +1963,9 @@ def resolve_preview_indices(
     """Return the two stop positions a collapsed card previews, as indices into ``stop_values``.
 
     An unstated preview reads the strip the way a reader meets it: the stop nearest the value
-    everything else is held at, against the top of the ladder. A stated one is honoured, except
-    that a side naming a stop no image was published for falls back to what an unstated preview
-    would have chosen, so a partly rendered strip still previews two pictures it has.
+    that everything else is held at, against the top of the ladder. A stated one is used, except
+    that a side naming a stop that no image was published for falls back to what an unstated
+    preview would have chosen, so a partly rendered strip still previews two pictures it has.
 
     Args:
         preview: What the sweep stated, or None if it stated nothing.
@@ -2007,7 +2007,7 @@ def _stated_stop_index(
     wanted: bool | int | float | str,
     fallback: int,
 ) -> int:
-    """Return the position of the stop carrying this value, or the fallback when none does."""
+    """Return the position of the stop with this value, or the fallback when none has it."""
     for index, stop_value in enumerate(stop_values):
         if same_stop_value(wanted, stop_value):
             return index
@@ -2021,7 +2021,7 @@ def _nearest_stop_index(
 ) -> int:
     """Return the position of the stop closest to this value, or the first when none is.
 
-    Numeric ladders measure distance; everything else can only match exactly, and a value off the
+    Numeric ladders measure distance. Everything else can only match exactly, and a value off the
     ladder or unknown falls back to the first stop rather than to an arbitrary neighbour.
     """
     if wanted is None:

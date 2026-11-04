@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Generate the worked examples the tutorials walk a reader through, and the manifest that lists them.
+"""Generate the worked examples that the tutorials walk a reader through, and the manifest that lists them.
 
 A flow is one tutorial example: a single request, the image it produced, and enough of a record
 beside it that a reader can see exactly what was asked for. It is not a sweep. Nothing is held
@@ -12,9 +12,9 @@ The output layout is the frontpage's ``src/assets/tutorials``: one directory per
 ``request.json``, ``result.webp``, ``meta.json`` and whatever inputs the flow used, with a
 ``manifest.json`` at the root listing every flow and its files.
 
-**No worker attribution is recorded.** ``meta.json`` carries what the request cost and what
-identifies it (kudos, wall time, generation ids) and never who served it. The transport does not
-parse a worker name at all, so there is nothing here to leak.
+**No worker attribution is recorded.** ``meta.json`` records what the request cost and what
+identifies it (kudos, wall time, generation ids) and does not record who served it. The transport
+does not parse a worker name at all, so there is nothing here to leak.
 
 A flow is turned into a [`RenderJob`][param_sweeps.spec.RenderJob] before it is submitted, which
 is what lets the flows and the sweeps share one payload builder and one API client: a change to
@@ -59,7 +59,7 @@ MANIFEST_FILENAME = "manifest.json"
 """The name of the file listing every flow, at the root of the tutorial asset tree."""
 
 TUTORIALS_DIRECTORY_NAME = "tutorials"
-"""The directory the tutorial asset tree lives in, under the library root."""
+"""The directory that the tutorial asset tree lives in, under the library root."""
 
 REQUEST_FILENAME = "request.json"
 BEFORE_REQUEST_FILENAME = "request-before.json"
@@ -70,13 +70,13 @@ SOURCE_FILENAME = "source.webp"
 MASK_FILENAME = "mask.png"
 REFERENCE_FILENAME_PREFIX = "reference-"
 """A remix's extra source images are published beside the source as reference-1.webp, reference-2.webp
-and so on, in the order the request carries them, so a reader can see every picture that went in."""
+and so on, in the order they appear in the request, so a reader can see every picture that went in."""
 
 SOURCE_IMAGE_PLACEHOLDER = f"<base64 of {SOURCE_FILENAME}>"
 """What stands in for the encoded source image in the published request.
 
 The request that is published has to be readable and has to be diffable. A megabyte of base64
-is neither, and a reader who wants the bytes has the file it names sitting beside it.
+is neither, and a reader who wants the bytes has the file that it names beside it.
 """
 
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=())
@@ -92,8 +92,8 @@ class FlowStatus(StrEnum):
 class FlowRequest(BaseModel):
     """Represents one request a flow makes: the model, the parameters and any input images.
 
-    Every parameter is stated rather than inherited. A tutorial example is a thing a reader is
-    invited to reproduce exactly, so there is no anchor for it to drift away from.
+    Every parameter is stated rather than inherited. A tutorial example is one that a reader is
+    invited to reproduce exactly, so it has no inherited values to drift from.
     """
 
     model_config = FROZEN_MODEL_CONFIG
@@ -110,9 +110,9 @@ class FlowRequest(BaseModel):
     """The mask this request uses, relative to the tool root."""
 
     def to_render_job(self, *, flow_id: str, title: str) -> RenderJob:
-        """Return this request as the render job the shared payload builder takes.
+        """Return this request as the render job that the shared payload builder takes.
 
-        A flow has no sweep, model slug or stop, so the identity fields carry the flow's own
+        A flow has no sweep, model slug or stop, so the identity fields hold the flow's own
         identity. Nothing downstream of the payload builder reads them for a flow: the files a
         flow writes are named by this module, not by the job.
         """
@@ -184,7 +184,7 @@ class FlowSpec(BaseModel):
     vary next. Set on a flow whose published example is a compromise (a skipped world, a scan
     that took a seed search, a lesson that reads weaker than the others), so the next campaign
     starts from the record rather than rediscovering it. The dry-run plan lists every flow that
-    carries one."""
+    has one."""
 
     @model_validator(mode="after")
     def _check_a_skipped_flow_says_why(self) -> FlowSpec:
@@ -222,7 +222,7 @@ class FlowsSpec(BaseModel):
         """Return the flow with this identifier.
 
         Raises:
-            KeyError: If no flow in the specification carries the identifier.
+            KeyError: If no flow in the specification has the identifier.
         """
         for flow in self.flows:
             if flow.flow_id == flow_id:
@@ -233,9 +233,8 @@ class FlowsSpec(BaseModel):
 class FlowMeta(BaseModel):
     """Represents a flow's ``meta.json``: what the request cost and what identifies it.
 
-    There is no worker name or worker id here, and there is no field for one. What an example
-    cost and which generation it was are the honest disclosures; who happened to serve it is not
-    published.
+    There is no worker name or worker id here, and there is no field for one. The cost of an
+    example and which generation it was are disclosed. Who served it is not published.
     """
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
@@ -248,7 +247,7 @@ class FlowMeta(BaseModel):
     generation_id: str
     kudos_estimate: float | None = None
     kudos_charged: float | None = None
-    """What the horde charged. Absent on a local render, which is charged nothing."""
+    """What the horde charged. Absent on a local render, which is not charged."""
     wall_time_seconds: float
     censored: bool
     runner: Literal["horde", "local"] = "horde"
@@ -268,7 +267,7 @@ class ManifestFlow(BaseModel):
     model_config = ConfigDict(frozen=True, populate_by_name=True, protected_namespaces=())
 
     flow_id: str = Field(alias="id")
-    """Written ``id`` in the manifest, which is the key the frontpage looks flows up by."""
+    """Written ``id`` in the manifest, which is the key that the frontpage uses to look up flows."""
 
     directory: str
     title: str
@@ -334,7 +333,7 @@ def publishable_request(flow_request: FlowRequest, *, flow_id: str, title: str) 
     Args:
         flow_request: The request to render publishable.
         flow_id: The flow it belongs to.
-        title: The flow's title, which the job carries as its caption.
+        title: The flow's title, which the job uses as its caption.
 
     Returns:
         The body, ready to be written as ``request.json``.
@@ -512,7 +511,7 @@ def run_flows(
             run may go without one.
         output_root: The root of the tutorial asset tree.
         flow_ids: Which flows to generate. Empty means every available one.
-        plan_only: Log what would be submitted and generate nothing.
+        plan_only: Log what would be submitted and do not generate anything.
 
     Returns:
         One result per flow that was generated or deliberately skipped.
@@ -523,7 +522,7 @@ def run_flows(
 
     Side Effects:
         Submits generation requests, writes every selected flow's directory, and rewrites the
-        manifest. Nothing is submitted and nothing is written when ``plan_only`` is set.
+        manifest. Requests are not submitted and files are not written when ``plan_only`` is set.
     """
     if generator is None and not plan_only:
         raise RuntimeError("generating flows needs a generator; only a planning run can go without one")
@@ -615,10 +614,10 @@ class HordeFlowGenerator:
 class LocalFlowGenerator:
     """Generates flows through the worker software on this machine's GPU.
 
-    The same payload builder the local sweep runner uses takes the flow's job, so a flow rendered
-    here is the request the studio would send, run by the software a worker runs, without a queue
-    or another machine's hardware between the specification and the picture. Nothing is charged,
-    so the meta carries no kudos and says which runner made it.
+    The same payload builder that the local sweep runner uses takes the flow's job, so a flow
+    rendered here is the request that the studio would send, run by the software that a worker
+    runs, without a queue or another machine's hardware between the specification and the
+    picture. Nothing is charged, so the meta does not include kudos and says which runner made it.
     """
 
     def __init__(self, runner: SweepRunner) -> None:
@@ -658,7 +657,7 @@ def _save_image(image: Image.Image, destination: Path) -> None:
 
 
 def _write_json(destination: Path, content: dict[str, Any]) -> None:
-    """Write one JSON file with the trailing newline every other file in this tree has."""
+    """Write one JSON file with the trailing newline that every other file in this tree has."""
     destination.write_text(json.dumps(content, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -704,7 +703,7 @@ def _manifest_references(files: list[str]) -> list[str] | None:
 
 
 def _manifest_mask(files: list[str]) -> str | None:
-    """Return the mask a flow published, preferring the lossless one a reader should open."""
+    """Return the mask a flow published, preferring the lossless one that a reader should open."""
     for candidate in (MASK_FILENAME, "mask.webp"):
         if candidate in files:
             return candidate

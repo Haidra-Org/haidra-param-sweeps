@@ -3,14 +3,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Render sweep jobs on this machine's GPU through horde-engine (``hordelib``).
 
-This is the primary runner: it is the same inference stack an AI Horde worker runs, so what it
-produces is what the horde produces. The GPU backend is always stated rather than guessed, and
+This is the primary runner: it is the same inference stack that an AI Horde worker runs, so what
+it produces is what the horde produces. The GPU backend is always stated rather than guessed, and
 model weights come from the standard ``AIWORKER_CACHE_HOME`` location, so an existing worker
 cache is reused instead of re-downloaded.
 
 ``hordelib`` is imported inside the methods that need it. Importing it starts a ComfyUI
-environment check and pulls in torch, which must not happen merely because something wanted to
-read the specification or rebuild the index.
+environment check and pulls in torch, which must not happen just because the specification is
+read or the index is rebuilt.
 
 Critical public members:
 
@@ -47,9 +47,9 @@ MISCELLANEOUS_MODEL_MANAGER = "miscellaneous"
 POST_PROCESSOR_MODEL_MANAGERS = ("gfpgan", "codeformer", "esrgan")
 """The managers a post-processor is resolved against: face fixers and upscalers.
 
-Post-processing looks its model up across these three and fails outright when none of them is
-loaded, so they are loaded up front. They carry only their references until a job actually names
-one of their models, at which point the weights (tens of megabytes) are fetched on demand.
+Post-processing looks up its model across these three and fails outright when none of them is
+loaded, so they are loaded up front. They hold only their references until a job names one of
+their models, at which point the weights (tens of megabytes) are fetched on demand.
 """
 
 IMG2IMG_SOURCE_PROCESSING = "img2img"
@@ -74,7 +74,7 @@ class GpuBackend(StrEnum):
 
 
 DEFAULT_GPU_BACKEND = GpuBackend.CUDA
-"""CUDA is the documented default; every other backend has to be asked for."""
+"""CUDA is the documented default. Every other backend has to be requested explicitly."""
 
 
 class HordelibPayload(BaseModel):
@@ -160,8 +160,8 @@ class HordelibPayload(BaseModel):
             hires_fix=job.hires_fix,
             clip_skip=job.clip_skip,
             hires_fix_denoising_strength=job.hires_fix_denoising_strength,
-            # A named schedule is more specific than the karras flag and wins over it in hordelib;
-            # an unset one leaves the flag to decide, which is what every earlier sweep relied on.
+            # A named schedule is more specific than the karras flag and wins over it in hordelib.
+            # An unset schedule leaves the flag in effect, which is what every earlier sweep relied on.
             scheduler=str(job.scheduler) if job.scheduler is not None else None,
             sampler_eta=job.sampler_eta,
             sampler_s_noise=job.sampler_s_noise,
@@ -192,10 +192,10 @@ class HordelibPayload(BaseModel):
         )
 
     def as_hordelib_mapping(self) -> dict[str, Any]:
-        """Return the payload in the mapping form ``hordelib`` expects.
+        """Return the payload in the mapping form that ``hordelib`` accepts.
 
         Keys whose value is None are dropped rather than passed through: ``hordelib`` reads the
-        presence of a key as the feature being asked for in several places, so a payload that
+        presence of a key as the feature being requested in several places, so a payload that
         states every feature as absent is not the same thing as one that never mentions them.
         """
         return {key: value for key, value in self.model_dump().items() if value is not None}
@@ -296,9 +296,9 @@ class LocalRunner(SweepRunner):
             device_index=self._device_index,
         )
 
-        # The miscellaneous manager owns the layer-diffusion weights the
-        # `transparent` pipeline loads; without it the LayeredDiffusionApply
-        # node resolves no model folder and every transparent job dies.
+        # The miscellaneous manager owns the layer-diffusion weights that the
+        # `transparent` pipeline loads. Without it, the LayeredDiffusionApply
+        # node cannot resolve a model folder and every transparent job fails.
         SharedModelManager.load_model_managers(
             [COMPVIS_MODEL_MANAGER, MISCELLANEOUS_MODEL_MANAGER, *POST_PROCESSOR_MODEL_MANAGERS],
         )
@@ -338,10 +338,10 @@ class LocalRunner(SweepRunner):
     def _render_post_processed(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render one image through the entry point that also applies the requested post-processors.
 
-        The single-image entry point runs the sampler and nothing else: only the multi-image call
-        reads ``post_processing``. A face fixer or upscaler asked for through the single-image call
-        is dropped without a word, and the render comes back byte-identical to one that never asked
-        for it, which is exactly the silence a post-processing comparison cannot afford.
+        The single-image entry point runs only the sampler: only the multi-image call reads
+        ``post_processing``. A face fixer or upscaler requested through the single-image call is
+        dropped without a warning, and the render is returned byte-identical to one that never
+        requested it. A post-processing comparison cannot tolerate that silent failure.
 
         Raises:
             RuntimeError: If the backend did not return exactly one image.
@@ -363,11 +363,11 @@ class LocalRunner(SweepRunner):
     def _render_candidates(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render a curation batch through the multi-image entry point.
 
-        The single-image entry point is kept for the jobs that ask for one image, because it is
-        the call the whole library was rendered with and there is no reason to move it.
+        The single-image entry point is kept for the jobs that request one image, because it is
+        the call that the whole library was rendered with and there is no reason to change it.
 
         Raises:
-            RuntimeError: If the backend returned fewer images than the batch asked for.
+            RuntimeError: If the backend returned fewer images than the batch requested.
         """
         if self._horde is None:
             raise RuntimeError("prepare() must be called before render()")
@@ -391,9 +391,10 @@ class LocalRunner(SweepRunner):
         """Render a curation batch as separate single calls, stepping the seed per candidate.
 
         Workflow pipelines (the QR overlay among them) generate one image per request whatever
-        ``n_iter`` says, the same way the horde itself refuses to batch them. Separate calls with
-        the same seed would be the same picture eight times, so each candidate takes the job's
-        seed plus its zero-based index, and the sidecars record the seed each candidate really used.
+        ``n_iter`` is set to, the same way the horde itself refuses to batch them. Separate calls
+        with the same seed would be the same picture eight times, so each candidate takes the job's
+        seed plus its zero-based index, and the sidecars record the seed that each candidate
+        actually used.
         """
         if self._horde is None:
             raise RuntimeError("prepare() must be called before render()")
@@ -511,8 +512,8 @@ class LocalRunner(SweepRunner):
         """Return whether this model's weights are already present, or None before prepare().
 
         ``SharedModelManager.manager`` only exists once ``load_model_managers`` has run, which
-        ``prepare()`` records in ``_model_managers_loaded``; before that (the state a first-run
-        fetch plan is printed in) presence is reported as unknown rather than guessed.
+        ``prepare()`` records in ``_model_managers_loaded``. Before that (the state in which a
+        first-run fetch plan is printed), presence is reported as unknown rather than guessed.
         """
         if not self._model_managers_loaded:
             return None

@@ -54,13 +54,13 @@ TEXT_FORM = "caption"
 CUT_OUT_FORM = "strip_background"
 
 CONTROL_TYPE = "canny"
-"""One control map, which is the whole answer for the form all thirty-three of them share."""
+"""One control map, which is the whole result for the form that all thirty-three of them share."""
 
 REFUSED_FORM = "palette"
 """A form to script a refusal for, standing in for whatever the deployed API's schema lacks."""
 
 PICTURE_ANSWERING_FORM = "vectorize"
-"""A form whose answer is a picture, which the API returns as a URL rather than as bytes."""
+"""A form whose result is a picture, which the API returns as a URL rather than as bytes."""
 
 
 @pytest.fixture(autouse=True)
@@ -87,10 +87,10 @@ def sweep_spec() -> SweepSpec:
 
 
 class FakeAlchemyBackend(AlchemyBackend):
-    """A backend that answers from a script, so the campaign can be driven without a GPU.
+    """A backend that returns scripted results, so the campaign can be driven without a GPU.
 
-    Every entry named in ``texts`` answers in words, every entry named in ``unavailable`` answers
-    with a reason, and everything else answers with a small image. An entry is named by its
+    Every entry named in ``texts`` returns words, every entry named in ``unavailable`` returns a
+    reason, and every other entry returns a small image. An entry is named by its
     control type when it has one, so the control maps can be scripted apart from each other.
     """
 
@@ -101,7 +101,7 @@ class FakeAlchemyBackend(AlchemyBackend):
         svgs: dict[str, str] | None = None,
         unavailable: dict[str, str] | None = None,
     ) -> None:
-        """Script the backend's answers."""
+        """Script the backend's results."""
         self.texts = texts or {}
         self.svgs = svgs or {}
         self.unavailable = unavailable or {}
@@ -144,7 +144,7 @@ class FakeAlchemyBackend(AlchemyBackend):
 def test_every_known_form_is_placed_in_exactly_one_use_case(alchemy_spec: AlchemySpec) -> None:
     """Assert the specification covers the shared vocabulary once each and adds nothing to it.
 
-    The loader enforces this, so reaching this assertion at all means the file is complete; the
+    The loader enforces this, so reaching this assertion at all means the file is complete. The
     counts are asserted separately because a form silently moving between use cases would still
     load and would quietly change which page a reader finds it on. The ``annotation`` form is held
     to the same rule one level down, by the control-map coverage test.
@@ -168,7 +168,7 @@ def test_a_form_the_vocabulary_names_and_the_specification_omits_fails_to_load()
 
 
 def test_a_form_placed_twice_fails_to_load() -> None:
-    """Assert a form cannot answer the same question from two pages."""
+    """Assert a form cannot be placed on two pages."""
     duplicated = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     duplicated["entries"].append(duplicated["entries"][0])
 
@@ -189,9 +189,9 @@ def test_the_upscaler_strip_holds_only_forms_the_manifest_also_lists(
 ) -> None:
     """Assert every stop is an upscaler the manifest places, and that the rest stay disclosed.
 
-    The strip is a scrubber the page hides unless it is whole, so it carries the upscalers that
-    have weights behind them and no others. The upscalers the vocabulary names and no weights
-    back are not dropped: they stay in the specification, which is what puts them in the manifest
+    The strip is a scrubber that the page hides unless it is whole, so it includes the upscalers
+    that have weights behind them and no others. The upscalers that the vocabulary names and that
+    no weights back are not dropped: they stay in the specification, which is what puts them in the manifest
     as entries that say they could not be run.
     """
     strip = upscaler_form_strip(sweep_spec=sweep_spec)
@@ -221,7 +221,7 @@ def test_a_run_writes_the_manifest_the_frontpage_reads(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert the manifest carries every entry, its shared source, and the right kind of result."""
+    """Assert the manifest lists every entry, its shared source, and the right kind of result."""
     backend = FakeAlchemyBackend(
         texts={TEXT_FORM: "a woman on the deck of an airship at sunset"},
         unavailable={"4xNomos8kSC": "not in the model reference"},
@@ -289,7 +289,7 @@ def test_a_run_publishes_the_upscaler_strip_into_the_sweep_library(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert each upscaler's result lands at the stop the sweep specification declares for it."""
+    """Assert each upscaler's result is written at the stop that the sweep specification declares for it."""
     run_alchemy(spec=alchemy_spec, sweep_spec=sweep_spec, backend=FakeAlchemyBackend(), output_root=tmp_path)
 
     strip = upscaler_form_strip(sweep_spec=sweep_spec)
@@ -337,7 +337,7 @@ def test_a_second_run_reuses_what_is_already_on_disk(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert an entry already carrying a result is left alone, and ``--force`` applies it again."""
+    """Assert an entry that already has a result is left alone, and ``--force`` applies it again."""
     run_alchemy(spec=alchemy_spec, sweep_spec=sweep_spec, backend=FakeAlchemyBackend(), output_root=tmp_path)
 
     second_backend = FakeAlchemyBackend()
@@ -371,7 +371,7 @@ def test_a_form_that_stops_being_available_loses_the_result_it_used_to_have(
     """Assert a stale result cannot outlive the availability that produced it.
 
     A manifest built from the files on disk would otherwise list a result beside a note saying
-    the form could not be run, which is the one contradiction the honest-gap reporting exists to
+    the form could not be run, which is the one contradiction that the gap reporting is meant to
     prevent.
     """
     run_alchemy(spec=alchemy_spec, sweep_spec=sweep_spec, backend=FakeAlchemyBackend(), output_root=tmp_path)
@@ -396,20 +396,20 @@ REFUSAL_BODY = {
     "errors": {"forms.0.name": "'palette' is not one of ['caption', 'interrogation', 'nsfw']"},
     "message": "Input payload validation failed",
 }
-"""What the deployed API answers a form its request schema does not carry, in the shape it uses."""
+"""The deployed API's response to a form that its request schema does not include."""
 
 SCRIPTED_REQUEST_ID = "0f8b1f16-0000-4000-8000-000000000000"
 
 
 class ScriptedTransport(requests.adapters.BaseAdapter):
-    """Answers the client from a script, so the whole submit-and-poll path runs without a network.
+    """Responds to the client from a script, so the whole submit-and-poll path runs without a network.
 
     Mounted on a real session and handed to a real client, which is what makes this a test of the
     transport rather than of a stand-in for it.
     """
 
     def __init__(self, *, submit_status: int, submit_body: dict[str, Any], status_body: dict[str, Any]) -> None:
-        """Script the answers the client can ask for."""
+        """Script the responses to the requests that the client can make."""
         self.submit_status = submit_status
         self.submit_body = submit_body
         self.status_body = status_body
@@ -456,7 +456,7 @@ def _live_backend(transport: ScriptedTransport) -> LiveHordeAlchemyBackend:
 
 
 def test_the_live_backend_publishes_what_the_horde_said() -> None:
-    """Assert a text answer comes back as text, and that the form and the image were submitted."""
+    """Assert a text result comes back as text, and that the form and the image were submitted."""
     said = "a woman on the deck of an airship at sunset"
     transport = ScriptedTransport(
         submit_status=202,
@@ -500,7 +500,7 @@ def test_a_form_the_api_refuses_is_published_as_a_gap_carrying_the_reason_it_gav
 
 
 def test_an_answer_that_is_a_picture_is_downloaded_rather_than_written_down() -> None:
-    """Assert a form answering with an image URL lands as a result image, not as its URL in text."""
+    """Assert a form that responds with an image URL is written as a result image, not as its URL in text."""
     transport = ScriptedTransport(
         submit_status=202,
         submit_body={"id": SCRIPTED_REQUEST_ID},
@@ -525,7 +525,7 @@ def test_an_answer_that_is_a_picture_is_downloaded_rather_than_written_down() ->
 
 
 def test_an_answer_with_nothing_in_it_is_a_gap_rather_than_an_empty_result() -> None:
-    """Assert a form that finishes carrying no answer publishes no result and says why."""
+    """Assert a form that finishes without a result does not publish a result and reports why."""
     transport = ScriptedTransport(
         submit_status=202,
         submit_body={"id": SCRIPTED_REQUEST_ID},
@@ -542,13 +542,13 @@ def test_an_answer_with_nothing_in_it_is_a_gap_rather_than_an_empty_result() -> 
 
 
 def test_a_sentence_answer_is_published_as_the_sentence() -> None:
-    """Assert the captioner's answer is not dressed up with the field name it arrived under."""
+    """Assert the captioner's result is not dressed up with the field name that it arrived under."""
     said = "a woman standing on a wooden deck next to a metal railing"
     assert render_form_answer(form="caption", result={"caption": said}) == said
 
 
 def test_a_judgement_answer_keeps_the_spelling_the_horde_used() -> None:
-    """Assert a boolean reads as the JSON it arrived as, and a score keeps every digit it had."""
+    """Assert a boolean reads as the JSON it arrived as, and a score keeps every digit that it had."""
     assert render_form_answer(form="nsfw", result={"nsfw": False}) == "nsfw: false"
     assert render_form_answer(form="aesthetic", result={"aesthetic": 6.3933}) == "aesthetic: 6.3933"
 
@@ -588,10 +588,10 @@ def test_a_vector_answer_publishes_as_a_drawable_result(
     sweep_spec: SweepSpec,
     tmp_path: Path,
 ) -> None:
-    """Assert an SVG answer lands as the entry's result rather than as a transcript.
+    """Assert an SVG result is written as the entry's result rather than as a transcript.
 
-    The vectorizer answers with the picture itself, as markup. A page handed that markup as
-    result_text would print a wall of path data; filed as the result, a browser draws it.
+    The vectorizer returns the picture itself, as markup. A page handed that markup as
+    result_text would print a wall of path data. Filed as the result, a browser draws it.
     """
     markup = '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>'
     run_alchemy(
@@ -642,7 +642,7 @@ def test_a_control_map_the_vocabulary_does_not_name_fails_to_load() -> None:
 
 
 def test_a_control_type_on_a_form_that_is_not_the_annotation_form_fails_to_load() -> None:
-    """Assert a control type belongs to the one form whose answer is which detector ran."""
+    """Assert a control type belongs to the one form whose result identifies which detector ran."""
     misplaced = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     for entry in misplaced["entries"]:
         if entry["form"] == UPSCALER_FORM:
@@ -660,7 +660,8 @@ def test_the_control_maps_are_told_apart_by_their_detector_in_the_tree_and_in_th
     """Assert each detector gets its own directory and its own manifest entry naming it.
 
     Every control map is the same form, so the form cannot tell the entries apart. The detector
-    is the whole answer, and a consumer that cannot read which one drew a map cannot label it.
+    is what distinguishes them, and a consumer that cannot read which one drew a map cannot
+    label it.
     """
     run_alchemy(
         spec=alchemy_spec,
@@ -715,8 +716,8 @@ def test_a_strength_strip_draws_one_map_and_a_strip_with_no_detector_draws_none(
 ) -> None:
     """Assert a strip held to one detector publishes one map, beside its source, and only one.
 
-    Every stop of a strength strip is held to the same map, so drawing it per stop would ask the
-    service for the same picture a dozen times and publish a dozen copies of it. A strip that
+    Every stop of a strength strip is held to the same map, so drawing it per stop would request the
+    same picture from the service a dozen times and publish a dozen copies of it. A strip that
     conditions on nothing has nothing for a detector to draw.
     """
     backend = FakeAlchemyBackend()

@@ -13,7 +13,7 @@ preprocessing.
 The gate is applied in two places. A single-image render is decoded as it comes off the runner and
 the job fails if it does not scan, so a code that cannot be read is never written into the library.
 A curation batch is not failed that way, because the point of rendering candidates is that a human
-picks one afterwards; every candidate's decode is reported instead, and
+picks one afterwards. Every candidate's decode is reported instead, and
 [`check_library`][param_sweeps.qr_decode.check_library] is the gate over what was actually
 published, run from ``param-sweeps qr-check`` once the picks are in.
 
@@ -59,14 +59,14 @@ class QrCheck(BaseModel):
     """The image, relative to the output root."""
 
     expected: str
-    """The payload the request asked to encode."""
+    """The payload that the request specified for encoding."""
 
     decoded: str | None
     """What the scanner read, or None when it read nothing at all."""
 
     @property
     def scans(self) -> bool:
-        """Return whether this image decodes to exactly the payload it was asked to carry."""
+        """Return whether this image decodes to exactly the requested payload."""
         return self.decoded == self.expected
 
 
@@ -95,8 +95,8 @@ def decode_qr(image: Image.Image) -> str | None:
         image: The image to scan, at its published size.
 
     Returns:
-        The decoded text, or None when no QR symbol was found. A symbol carrying bytes that are
-        not UTF-8 is reported as unreadable, because a payload this tool can write is text.
+        The decoded text, or None when no QR symbol was found. A symbol whose bytes are not
+        UTF-8 is reported as unreadable, because a payload that this tool can write is text.
     """
     symbols = zbar_decode(image.convert("L"), symbols=[ZBarSymbol.QRCODE])
     if not symbols:
@@ -116,7 +116,7 @@ def decode_image_file(image_path: Path) -> str | None:
 
 
 def payload_in(extra_texts: Iterable[ExtraText]) -> str | None:
-    """Return the payload these extra texts ask the QR workflow to encode, or None when none do."""
+    """Return the payload that these extra texts specify for the QR workflow to encode, or None when none do."""
     for extra_text in extra_texts:
         if extra_text.reference in QR_TEXT_REFERENCES:
             return extra_text.text
@@ -145,8 +145,8 @@ def failed_gate_reason(*, job: RenderJob, images: Sequence[Image.Image]) -> str 
 
     A single-image QR render is gated: it is published as it is, so a code that does not scan is
     a failed render rather than a picture worth keeping. A curation batch is never gated here,
-    because which of its candidates is published is a decision a human has not made yet; its
-    decodes are logged so that decision can be an informed one.
+    because which of its candidates is published is a decision that a human has not made yet.
+    Its decodes are logged so that decision can be an informed one.
 
     Args:
         job: The job that was rendered.
@@ -181,11 +181,11 @@ def failed_gate_reason(*, job: RenderJob, images: Sequence[Image.Image]) -> str 
 def check_library(*, output_root: Path) -> QrReport:
     """Decode every published QR image under this output root, and report what each read.
 
-    Both trees are covered, because both publish QR images a reader will point a phone at: the
-    sweep library, whose sidecars state the request each image came from, and the tutorial flows,
-    whose ``request.json`` does the same. The index and the manifest are what "published" means
-    here, so a candidate a human passed over is not checked and a stop that is not in the index
-    is not either.
+    Both trees are covered, because both publish QR images that a reader will point a phone at:
+    the sweep library, whose sidecars state the request that each image came from, and the
+    tutorial flows, whose ``request.json`` does the same. The index and the manifest are what
+    "published" means here, so a candidate that a human passed over is not checked, and neither
+    is a stop that is not in the index.
 
     Args:
         output_root: The root of the output tree.
@@ -255,7 +255,7 @@ def _tutorial_checks(output_root: Path) -> list[QrCheck]:
 
 
 def _checked(*, output_root: Path, relative_path: str, expected: str) -> QrCheck:
-    """Return one image decoded and compared against the payload it was asked to carry."""
+    """Return one image decoded and compared against the requested payload."""
     return QrCheck(
         path=relative_path,
         expected=expected,

@@ -4,22 +4,22 @@
 """Render a contact sheet of what a batch produced, for a person to review before anything ships.
 
 The sheet is one static HTML file written into the output tree, so every image reference is the
-path the index already states and opening the file in a browser needs no server, no build step
-and no network. Every image, caption and ruling renders with nothing running: the scripts in the
-page are enhancements. One lets the reviewer click a curation batch's candidates to pick them and
-save the picks as a small choices file, which [`apply_choices`][param_sweeps.review.apply_choices]
-writes back into the specification. The other keeps the rulings panel's answers across reloads and
-serialises them for export. A reviewer without the scripts still sees every image, every question
-and every option; they just answer on paper.
+path that the index already states and opening the file in a browser does not need a server, a
+build step or a network. Every image, caption and ruling renders without any script running: the
+scripts in the page are enhancements. One lets the reviewer click a curation batch's candidates
+to pick them and save the picks as a small choices file, which
+[`apply_choices`][param_sweeps.review.apply_choices] writes back into the specification. The
+other keeps the rulings panel's answers across reloads and serialises them for export. A reviewer
+without the scripts still sees every image, every question and every option, and answers on paper.
 
-Every cell states the payload beneath the image, because the question being answered is not "is
-this pretty" but "is this what we asked for". A curation batch shows all of its candidates with
-the chosen one marked, which is the only way the choice can be reviewed rather than trusted.
+Every cell states the payload beneath the image, because the question is whether the image
+matches the request, regardless of how it looks. A curation batch shows all of its candidates
+with the chosen one marked, which is the only way the choice can be reviewed rather than trusted.
 
-When the specification carries a [`RulingSet`][param_sweeps.spec.RulingSet], the sheet leads with
+When the specification has a [`RulingSet`][param_sweeps.spec.RulingSet], the sheet leads with
 it: each question, the control it is answered with, and a link to the images that decide it. The
-panel counts how many rulings are still open, so a wave cannot ship on the assumption that silence
-about a question meant assent to it.
+panel counts how many rulings are still open, so a review is not complete while any question is
+still open.
 
 Critical public members:
 
@@ -27,7 +27,7 @@ Critical public members:
 - [`write_contact_sheet`][param_sweeps.review.write_contact_sheet]: write it into the output tree.
 - [`apply_choices`][param_sweeps.review.apply_choices]: write a saved choices file into the spec.
 - [`section_anchor`][param_sweeps.review.section_anchor] and
-  [`job_anchor`][param_sweeps.review.job_anchor]: where a ruling's evidence link lands.
+  [`job_anchor`][param_sweeps.review.job_anchor]: where a ruling's evidence link points.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ CHOICES_SCHEMA_VERSION = 1
 """The choices-file layout this module writes from the sheet and reads back into the spec."""
 
 CHOICES_FILENAME = "choices.json"
-"""What the sheet's save button names its download, and what ``choose`` expects to be handed."""
+"""The file name of the sheet's saved download, and the file that ``choose`` reads."""
 
 SECTION_TITLES: dict[BatchSection, str] = {
     BatchSection.WORLD_SCENES: "A. World core scenes",
@@ -71,7 +71,7 @@ SECTION_TITLES: dict[BatchSection, str] = {
 """What each batch section is called on the sheet, in the order the batch was written in."""
 
 SWEEP_SECTION_TITLE = "Sweeps"
-"""The heading the strips that are not part of any batch are collected under."""
+"""The heading under which the strips that are not part of any batch are collected."""
 
 RULINGS_SCHEMA_VERSION = 1
 """The layout of the rulings file the sheet's export button produces."""
@@ -79,15 +79,15 @@ RULINGS_SCHEMA_VERSION = 1
 RULINGS_FILENAME_SUFFIX = "_rulings.json"
 """What the export button appends to a set's identifier to name its download.
 
-Named after the set rather than the sheet, because a sheet can carry more than one set and two
+Named after the set rather than the sheet, because a sheet can have more than one set and two
 downloads sharing a name would leave the reviewer to work out which was which.
 """
 
 RULINGS_DATA_ATTRIBUTE = "data-rulings-descriptor"
-"""What marks the element a panel's descriptor is embedded in, which the script reads its work from.
+"""The attribute that marks the element holding a panel's descriptor, which the script reads its work from.
 
-An attribute rather than an id, because a sheet carries one panel per ruling set and an id would
-have to be made unique across them for no gain: each panel finds its own descriptor within itself.
+An attribute rather than an id, because a sheet has one panel per ruling set and an id would
+have to be made unique across them for no gain: each panel finds its descriptor within itself.
 """
 
 RULINGS_HELP = (
@@ -95,7 +95,7 @@ RULINGS_HELP = (
     " at least one box or a comment for a checklist, and every row answered for a per-row question."
     " Answers are kept in this browser and are exported as a file, never sent anywhere."
 )
-"""What the panel says about when a question stops counting as open, stated rather than guessed."""
+"""What the panel states about when a question stops counting as open."""
 
 STYLE_SHEET = """
 :root { color-scheme: light dark; --gap: 1rem; }
@@ -270,7 +270,7 @@ CHOICES_SCRIPT = """
 
 Picks survive a reload through ``localStorage``, so a review can be done in sittings. The saved
 file's keys are each job's first-candidate path, the same key resumption uses, because it is the
-one identifier that never moves when a choice changes.
+one identifier that does not change when a choice changes.
 """
 
 RULINGS_SCRIPT = """
@@ -431,10 +431,10 @@ document.querySelectorAll(".rulings").forEach((panel) => {
 });
 """
 """The enhancement on the rulings panels: answers that survive a reload, a count of what is still
-open, and an export that hands back one file plus the same text to copy out of the page.
+open, and an export that produces one file plus the same text to copy out of the page.
 
-Each panel is driven independently from the descriptor embedded inside it, and answers are keyed
-by the ruling set's own identifier, so neither two sets on one sheet nor two waves reviewed in one
+Each panel runs independently from the descriptor embedded inside it, and answers are keyed
+by the ruling set's identifier, so neither two sets on one sheet nor two reviews done in one
 browser can inherit each other's answers.
 """
 
@@ -446,7 +446,7 @@ def build_contact_sheet(*, spec: SweepSpec, output_root: Path, title: str) -> st
         spec: The specification the outputs were rendered from.
         output_root: The root of the output tree, which the sheet is written into and whose
             layout every image reference is relative to.
-        title: The heading the sheet carries.
+        title: The heading of the sheet.
 
     Returns:
         The document.
@@ -480,12 +480,12 @@ def build_contact_sheet(*, spec: SweepSpec, output_root: Path, title: str) -> st
 
 
 def section_anchor(section: BatchSection | None) -> str:
-    """Return the element id a section's heading carries, which a ruling's evidence link lands on."""
+    """Return the element id of a section's heading, which a ruling's evidence link points to."""
     return f"section-{section}" if section is not None else "section-sweeps"
 
 
 def job_anchor(job_id: str) -> str:
-    """Return the element id a batch job's figure carries, which a ruling's evidence link lands on."""
+    """Return the element id of a batch job's figure, which a ruling's evidence link points to."""
     return f"job-{job_id}"
 
 
@@ -505,8 +505,8 @@ def write_contact_sheet(*, spec: SweepSpec, output_root: Path, title: str) -> Pa
 def _grouped_strips(spec: SweepSpec) -> dict[BatchSection | None, list[RenderStrip]]:
     """Return the specification's strips grouped under their section, in batch order.
 
-    Sections with nothing in them are left out rather than shown empty, so a sheet for one
-    section of a batch is a sheet for that section. The strips belonging to no batch come last,
+    Sections that have no strips are left out rather than shown empty, so a sheet for one
+    section of a batch is a sheet for that section. The strips that belong to no batch come last,
     under the ``None`` key.
     """
     grouped: dict[BatchSection | None, list[RenderStrip]] = {}
@@ -524,7 +524,7 @@ def _grouped_strips(spec: SweepSpec) -> dict[BatchSection | None, list[RenderStr
 
 
 def _rulings_panel(ruling_set: RulingSet) -> str:
-    """Return the rulings panel: every question this wave has to answer, and how to answer it."""
+    """Return the rulings panel: every question this review has to answer, and how to answer it."""
     parts: list[str] = [
         f'<section class="rulings" data-ruling-set="{html.escape(ruling_set.ruling_set_id, quote=True)}">',
         f"<h2>{html.escape(ruling_set.title)}</h2>",
@@ -581,7 +581,7 @@ def _ruling_item(*, item: RulingItem) -> str:
 
 
 def _ruling_controls(item: RulingItem) -> str:
-    """Return the form control a ruling is answered with, matching what its data asks for."""
+    """Return the form control a ruling is answered with, matching what its data specifies."""
     ruling_id = html.escape(item.ruling_id, quote=True)
 
     if item.control is RulingControl.TEXT:
@@ -641,7 +641,7 @@ def _rulings_descriptor(ruling_set: RulingSet) -> str:
     """Return the panel's descriptor, embedded as data so the script never has to infer its work.
 
     It states only what reading and writing an answer needs: the set's identity, and each ruling's
-    identity, control and rows in the order the export has to carry them.
+    identity, control and rows in the order that the export uses.
     """
     payload = {
         "schema_version": RULINGS_SCHEMA_VERSION,
@@ -782,14 +782,14 @@ def _document(*, title: str, body: str) -> str:
 
 
 def apply_choices(*, spec_path: Path, choices_path: Path) -> int:
-    """Write the picks a reviewer saved from the sheet back into the specification file.
+    """Write the picks that a reviewer saved from the sheet back into the specification file.
 
     The choices file is what the sheet's save button downloads: ``{"schema_version": 1,
     "choices": {<first-candidate path>: <one-based pick>}}``. Only a batch job's picks are
-    addressable this way; a sweep stop that renders candidates has no unique id in its
+    addressable this way. A sweep stop that renders candidates has no unique id in its
     specification and keeps being edited by hand.
 
-    The edit is surgical: the file is rewritten field-for-field with only ``chosen`` values
+    The edit is minimal: the file is rewritten field-for-field with only ``chosen`` values
     changed, and the result is validated as a specification before anything touches disk.
 
     Args:

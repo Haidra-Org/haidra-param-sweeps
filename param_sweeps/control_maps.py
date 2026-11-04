@@ -3,27 +3,27 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Publish the control map beside every render that was guided by one.
 
-A strip that walks the ControlNet vocabulary is asking the reader to choose between detectors,
-and a detector is only knowable by what it draws. The render alone cannot answer that: two
-detectors that read a scene completely differently can land on renders that look alike, and a
-detector that found nothing at all in a scene looks, from the render, like one that worked. So
-the map is published as evidence in its own right, in the same directory as the render it
+A strip that walks the ControlNet vocabulary asks the reader to choose between detectors,
+and a detector can only be judged by what it draws. The render alone does not show that: two
+detectors that read a scene completely differently can produce renders that look alike, and a
+detector that detected nothing in a scene looks, from the render, like one that worked. So
+the map is published as evidence in its own right, in the same directory as the render that it
 guided and under the same filename stem.
 
-The maps are drawn on a horde-image-utilities service, which is the same detector code an
-alchemist worker runs. The backend the sweeps render through derives its own map internally and
-never hands it back, so asking the service is the only way to publish the real thing rather than
-an approximation drawn by whatever else happens to be installed.
+The maps are drawn on a horde-image-utilities service, which runs the same detector code as an
+alchemist worker. The backend that the sweeps render through derives its own map internally and
+does not return it, so requesting the map from the service is the only way to publish the actual
+map rather than an approximation drawn by other installed tools.
 
-A detector the service will not run is recorded as a gap carrying the service's own sentence,
-and the render it belongs to is left alone: the render still exists, and saying that no map came
-back is more useful than leaving a hole a reader cannot interpret.
+A detector that the service will not run is recorded as a gap with the service's own message,
+and the render that it belongs to is left alone: the render still exists, and recording that no
+map was returned is more useful than leaving a hole that a reader cannot interpret.
 
 Critical public members:
 
 - [`ControlMapOutcome`][param_sweeps.control_maps.ControlMapOutcome]: what became of one map.
 - [`draw_control_maps`][param_sweeps.control_maps.draw_control_maps]: draw and publish the maps
-  every job in a specification needs.
+  that every job in a specification needs.
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ class ControlMapOutcome(BaseModel):
     """Whether the map was already on disk and left alone."""
 
     unavailable_reason: str | None = None
-    """What the service said about a map it would not draw, when it said anything."""
+    """The service's message about a map that it would not draw, if it sent one."""
 
 
 def jobs_needing_control_maps(
@@ -85,7 +85,7 @@ def jobs_needing_control_maps(
     spec: SweepSpec,
     parameters: Sequence[SweepParameter] | None = None,
 ) -> list[RenderJob]:
-    """Return every job that conditions on a ControlNet and can therefore carry a map.
+    """Return every job that conditions on a ControlNet and can therefore have a map.
 
     Args:
         spec: The specification to read.
@@ -112,17 +112,17 @@ def draw_control_maps(
     parameters: Sequence[SweepParameter] | None = None,
     force: bool = False,
 ) -> list[ControlMapOutcome]:
-    """Draw and publish the control map every strip and every job that conditions on one needs.
+    """Draw and publish the control maps needed by every strip and every job that conditions on one.
 
     A strip held to a single detector publishes one map beside its own source, because the dial
-    such a strip turns is only readable against the map it is holding the render to and the map is
-    the same at every stop. A strip that changes detector publishes one map per stop instead,
-    beside the render each guided.
+    that such a strip turns can only be read against the map that the render is held to, and the
+    map is the same at every stop. A strip that changes detector publishes one map per stop
+    instead, beside the render that each guided.
 
     Args:
         spec: The specification to read the jobs from.
-        output_root: The root of the output tree, which the maps land inside.
-        backend: The prepared backend to ask for each map.
+        output_root: The root of the output tree, inside which the maps are written.
+        backend: The prepared backend to request each map from.
         parameters: Restrict to these parameters, or None for every one of them.
         force: Redraw maps that are already on disk.
 
@@ -199,7 +199,7 @@ def _publish_control_map(
     """Draw one map on the backend and write it with its sidecar, and return what became of it.
 
     Args:
-        backend: The prepared backend to ask for the map.
+        backend: The prepared backend to request the map from.
         sources: Images already opened, keyed by resolved path, added to as sources are opened.
         output_root: The root of the output tree.
         relative_path: Where the map is published, relative to the output root.

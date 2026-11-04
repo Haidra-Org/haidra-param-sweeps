@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """The step-preview capture: what it stashes, what it puts back, and what it refuses.
 
-Nothing here renders or touches an accelerator. The seams the capture wraps are stated as fakes
-that call the wrapper the way ComfyUI calls the real one, which is what lets the arming, the
+These tests do not render or touch an accelerator. The seams that the capture wraps are stated as
+fakes that call the wrapper the way ComfyUI calls the real one, which is what lets the arming, the
 per-pass separation and the restoration be proven rather than assumed.
 """
 
@@ -49,11 +49,11 @@ class FakeLatent:
         return copy
 
     def float(self) -> FakeLatent:
-        """Return the same latent: the fake carries no dtype to widen."""
+        """Return the same latent: the fake has no dtype to widen."""
         return self
 
     def cpu(self) -> FakeLatent:
-        """Return the same latent, recording that it was asked onto the host."""
+        """Return the same latent, recording that it was copied to the host."""
         self.was_copied_to_host = True
         return self
 
@@ -77,7 +77,7 @@ class FakeModel:
 
 
 class FakeModelPatcher:
-    """Stands in for the patcher ``prepare_callback`` is handed, which carries the inner model."""
+    """Stands in for the patcher that ``prepare_callback`` is handed, which holds the inner model."""
 
     def __init__(self) -> None:
         """Open a patcher around a fresh inner model."""
@@ -85,10 +85,10 @@ class FakeModelPatcher:
 
 
 class FakeLatentPreviewModule:
-    """Stands in for ComfyUI's ``latent_preview``, recording the callbacks it was asked for."""
+    """Stands in for ComfyUI's ``latent_preview``, recording the callbacks requested from it."""
 
     def __init__(self) -> None:
-        """Open a module that has been asked for no callbacks yet."""
+        """Open a module for which no callbacks have been requested yet."""
         self.prepared_step_counts: list[int] = []
         self.delegated_steps: list[int] = []
 

@@ -5,21 +5,21 @@
 
 The library is too large to commit, so it lives in a bucket and the web app is pointed at that
 bucket's public base URL. The addressing contract is deliberately trivial: an object's key is the
-path ``index.json`` already states, under an optional prefix, so a consumer builds a URL as
-``{base}/{path-from-the-index}`` and needs no translation logic of any kind.
+path that ``index.json`` already states, under an optional prefix, so a consumer builds a URL as
+``{base}/{path-from-the-index}`` and does not need any translation logic.
 
 Three entrypoints are the source of truth for what belongs in the library: ``index.json`` for the
 sweeps, ``tutorials/manifest.json`` for the worked examples and ``alchemy/manifest.json`` for the
-post-processor evidence, each the file the web app fetches first for its part of the tree. Anything
-on disk that none of them references is not published, and anything in the bucket that none of
-them references is an orphan. Sidecars are published along with the images because the index names one
-per stop: a bucket where those paths 404 would make the index a liar, and the whole set of them is
-a rounding error beside the images.
+post-processor evidence, each the file that the web app fetches first for its part of the tree.
+Anything on disk that is not referenced by any of them is not published, and anything in the
+bucket that is not referenced by any of them is an orphan. Sidecars are published along with the
+images because the index names one per stop: a bucket where those paths return 404 would make the
+index inaccurate, and the whole set of them is small compared with the images.
 
 Change is detected by content: a single-part S3 upload's ETag is the object's MD5, and every file
-here is far below the multipart threshold, so the ETag the bucket reports is compared against the
-local digest. Objects are written with ``put_object`` rather than the transfer manager expressly
-to keep that true.
+here is far below the multipart threshold, so the ETag that the bucket reports is compared against
+the local digest. Objects are written with ``put_object`` rather than the transfer manager so that
+this stays true.
 
 Critical public members:
 
@@ -35,8 +35,8 @@ Critical public members:
 ``boto3`` is an optional dependency, imported where a client is actually built rather than at the
 top of this module. Everything above the bucket itself, including planning a whole sync, is pure
 computation over the index and the files on disk, so it runs in an environment that has no
-publishing stack at all: rendering happens in a GPU environment that has no business carrying an
-object-storage SDK, and importing this module must not put one there.
+publishing stack at all: rendering happens in a GPU environment that should not include an
+object-storage SDK, and importing this module must not require one.
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ logger = logging.getLogger(__name__)
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid")
 
 HASH_CHUNK_BYTES = 1024 * 1024
-"""How much of a file is digested at a time; the images are a few hundred kilobytes each."""
+"""How much of a file is digested at a time. The images are a few hundred kilobytes each."""
 
 DEFAULT_UPLOAD_WORKERS = 8
 """How many objects are put at once. Each is a single small request, so the wait is latency, not bandwidth."""
@@ -115,11 +115,11 @@ class CacheControl:
 
     Images are not truly immutable: inserting a stop into a strip renumbers the ones after it, so
     a path can come to hold a different image. A week is long enough that a consumer refetches
-    almost nothing between publishes and short enough that a renumbering settles on its own; a
-    publish that renumbers and needs to be seen immediately wants a cache purge at the CDN, not a
-    shorter header here.
+    almost nothing between publishes and short enough that a renumbering settles on its own. A
+    publish that renumbers and needs to be seen immediately needs a cache purge at the CDN
+    instead of a shorter header here.
 
-    ``index.json`` and the two manifests are the mutable entrypoints every consumer starts from,
+    ``index.json`` and the two manifests are the mutable entrypoints that every consumer starts from,
     so they are held briefly.
     """
 
@@ -130,8 +130,8 @@ class CacheControl:
 class PublishTree(StrEnum):
     """Which tree a publishing command works on.
 
-    The evidence library and the promotional cards cut from it are published apart, under
-    prefixes of their own, so that the library's prefix holds only what a page cites as evidence.
+    The evidence library and the promotional cards cut from it are published separately, under
+    separate prefixes, so that the library's prefix holds only what a page cites as evidence.
     """
 
     SWEEPS = "sweeps"
@@ -142,7 +142,7 @@ class PublishTree(StrEnum):
 
 
 DEFAULT_TREE_PREFIXES: dict[PublishTree, str | None] = {PublishTree.SWEEPS: None, PublishTree.PROMO: "promo"}
-"""The key prefix each tree publishes under when none is given; None reads the configured one."""
+"""The key prefix that each tree publishes under when none is given. None reads the configured one."""
 
 
 class ContentType:
@@ -182,7 +182,7 @@ class MissingS3ConfigurationError(RuntimeError):
 
 
 class MissingPublishDependencyError(RuntimeError):
-    """Raised when reaching the bucket is asked of an environment without the publish extra."""
+    """Raised when reaching the bucket is requested in an environment without the publish extra."""
 
 
 class IncompleteLibraryError(RuntimeError):
@@ -194,7 +194,7 @@ PUBLISH_EXTRA_HINT = (
     ' Install it with `uv sync --extra publish`, or `pip install "haidra-param-sweeps[publish]"`.'
     " It is deliberately optional: rendering environments do not carry an object-storage SDK."
 )
-"""What to tell an operator who asked for a bucket operation in an environment that cannot do one."""
+"""What to tell an operator who requested a bucket operation in an environment that cannot do one."""
 
 
 def publish_dependencies_installed() -> bool:
@@ -203,9 +203,9 @@ def publish_dependencies_installed() -> bool:
 
 
 def bucket_transport_errors() -> tuple[type[BaseException], ...]:
-    """Return the exception types a bucket call can fail with, or none where there is no SDK.
+    """Return the exception types a bucket call can fail with, or an empty tuple where there is no SDK.
 
-    An empty tuple matches nothing, which is correct rather than merely convenient: without the
+    An empty tuple matches no exception, which is correct rather than merely convenient: without the
     SDK no bucket call can have been made, so no such failure can be in flight.
     """
     try:
@@ -229,7 +229,7 @@ class S3Settings(BaseModel):
     """An optional key prefix, so one bucket can hold more than one thing. No leading slash."""
 
     region: str = "auto"
-    """Cloudflare R2 and several other S3-compatible services want ``auto``; AWS wants a region."""
+    """Cloudflare R2 and several other S3-compatible services require ``auto``. AWS requires a region."""
 
 
 class LibraryFile(BaseModel):
@@ -271,8 +271,8 @@ class SyncPlan(BaseModel):
     """Represents everything an upload would do, before any of it is done.
 
     ``uploads`` is ordered so that ``index.json`` is written last. A bucket is then never in a
-    state where the index it serves advertises files that have not arrived yet: the worst an
-    interrupted upload leaves behind is objects nothing points at, which the next run reconciles.
+    state where the index it serves advertises files that have not arrived yet: the worst thing an
+    interrupted upload leaves behind is objects that nothing points at, which the next run reconciles.
     """
 
     model_config = FROZEN_MODEL_CONFIG
@@ -283,7 +283,7 @@ class SyncPlan(BaseModel):
     """Objects under the prefix that the index does not reference, whether or not they are deleted."""
 
     deletions: list[str] = Field(default_factory=list)
-    """The orphans this plan would actually remove, which is none unless deletion was asked for."""
+    """The orphans that this plan would actually remove, which is an empty list unless deletion was requested."""
 
     @property
     def upload_bytes(self) -> int:
@@ -305,7 +305,7 @@ class VerificationReport(BaseModel):
     missing_paths: list[str] = Field(default_factory=list)
     mismatched_paths: list[str] = Field(default_factory=list)
     orphan_keys: list[str] = Field(default_factory=list)
-    """Always empty for a local check: the disk is allowed to hold things the index does not name."""
+    """Always empty for a local check: the disk is allowed to hold things that the index does not name."""
 
     @property
     def is_intact(self) -> bool:
@@ -317,7 +317,7 @@ def load_s3_settings(*, env_file: Path | None, prefix_override: str | None = Non
     """Return the bucket's connection details from the environment, falling back to a ``.env``.
 
     Args:
-        env_file: A ``.env`` to read variables the environment does not set, or None to use only
+        env_file: A ``.env`` to read variables that the environment does not set, or None to use only
             the environment.
         prefix_override: A prefix given on the command line, which wins over the environment.
 
@@ -363,7 +363,7 @@ def normalise_prefix(prefix: str) -> str:
 
 
 def object_key(*, prefix: str, relative_path: str) -> str:
-    """Return the bucket key for a path the index states, under the prefix.
+    """Return the bucket key for a path that the index states, under the prefix.
 
     The path is used exactly as the index states it. That is the whole addressing contract: a
     consumer joins its configured base URL to the same string and reaches the same object.
@@ -388,9 +388,9 @@ def indexed_relative_paths(index: SweepIndex) -> list[str]:
 
     for strip in index.strips:
         take(strip.source_image)
-        # A strip held to one detector publishes the map beside its source; a gallery stop
-        # publishes the map beside its render. Both are read off the index by consumers, so
-        # both are part of the closure the library has to carry.
+        # A strip held to one detector publishes the map beside its source. A gallery stop
+        # publishes the map beside its render. Both are read from the index by consumers, so
+        # both are part of the closure that the library has to include.
         take(strip.control_map)
 
         for stop in strip.stops:
@@ -509,15 +509,15 @@ def published_relative_paths(
     """Return every path a tree publishes.
 
     For the evidence library that is the index's closure, then each manifest's. The index is
-    required; the two manifests are optional, because a library can be rendered without the
+    required. The two manifests are optional, because a library can be rendered without the
     tutorial or alchemy campaigns having run. A manifest that is present is published with
-    everything it names, so the part of the tree the web app fetches through it never 404s. For
-    the promo tree it is the card manifest and everything it names.
+    everything it names, so the part of the tree that the web app fetches through it never
+    returns 404. For the promo tree it is the card manifest and everything it names.
 
     Args:
         output_root: The root of the tree on disk.
         tree: Which tree ``output_root`` is.
-        index: The already-parsed index, or None to read it from ``output_root``; unused for the promo tree.
+        index: The already-parsed index, or None to read it from ``output_root``. Unused for the promo tree.
 
     Returns:
         The paths, each once, entrypoint first within its group.
@@ -568,7 +568,7 @@ def enumerate_library(
     Args:
         output_root: The root of the tree on disk.
         tree: Which tree ``output_root`` is.
-        index: The already-parsed index, or None to read it from ``output_root``; unused for the promo tree.
+        index: The already-parsed index, or None to read it from ``output_root``. Unused for the promo tree.
 
     Returns:
         One entry per referenced path.
@@ -603,7 +603,7 @@ def enumerate_library(
 
 
 def file_content_hash(path: Path) -> str:
-    """Return the MD5 of a file's contents, as the hexadecimal digest an ETag carries.
+    """Return the MD5 of a file's contents, as the hexadecimal digest that an ETag holds.
 
     MD5 is used because it is what the object store reports back, not to guard against tampering.
     """
@@ -635,7 +635,7 @@ def plan_sync(
     """Return what an upload would do, deciding entirely from a listing and the local files.
 
     A file is uploaded when the bucket has no object at its key, or when the object's ETag is not
-    the file's MD5. An ETag that carries a part count (it contains a hyphen) is not an MD5 and is
+    the file's MD5. An ETag that has a part count (it contains a hyphen) is not an MD5 and is
     treated as a mismatch, so an object uploaded by something other than this tool is replaced
     rather than silently trusted.
 
@@ -643,13 +643,13 @@ def plan_sync(
         files: The library's files, from [`enumerate_library`][param_sweeps.publish.enumerate_library].
         remote_objects: The bucket's objects under the prefix, keyed by their full key.
         prefix: The key prefix the library is published under.
-        delete_orphans: Whether the plan should remove objects the index does not reference.
+        delete_orphans: Whether the plan should remove objects that the index does not reference.
 
     Returns:
         The plan, with the index and the manifests ordered last among the uploads.
 
     Performance:
-        Hashes only the files that already exist in the bucket; a file that has to be uploaded
+        Hashes only the files that already exist in the bucket. A file that has to be uploaded
         anyway is never read.
     """
     uploads: list[PlannedUpload] = []
@@ -695,7 +695,7 @@ def verify_remote(
         prefix: The key prefix the library is published under.
 
     Returns:
-        The report, whose ``is_intact`` is what an exit code should be taken from.
+        The report, whose ``is_intact`` determines the exit code.
     """
     missing: list[str] = []
     mismatched: list[str] = []
@@ -746,7 +746,7 @@ def verify_local(*, output_root: Path, tree: PublishTree = PublishTree.SWEEPS) -
 
 
 class SweepLibraryBucket:
-    """The bucket the library is published to, and the four operations this tool needs of it.
+    """The bucket the library is published to, and the four operations this tool needs from it.
 
     The client is constructed from [`S3Settings`][param_sweeps.publish.S3Settings] and nothing
     here is specific to any one provider: Cloudflare R2 is an S3 endpoint URL and a pair of
@@ -754,7 +754,7 @@ class SweepLibraryBucket:
 
     Objects are written with ``put_object`` rather than the transfer manager, which keeps every
     upload single-part and therefore keeps the ETag equal to the object's MD5. That equality is
-    what makes an upload incremental, so it is worth giving up parallel multipart transfers for.
+    what makes an upload incremental, so giving up parallel multipart transfers is worth it.
     """
 
     def __init__(self, *, settings: S3Settings, client: S3Client | None = None) -> None:
@@ -814,7 +814,7 @@ class SweepLibraryBucket:
         """Remove one object from the bucket.
 
         Side Effects:
-            Deletes remote data, and does not ask twice.
+            Deletes remote data, and does not ask for confirmation.
         """
         self._client.delete_object(Bucket=self.settings.bucket, Key=key)
 
@@ -840,11 +840,11 @@ def create_s3_client(*, settings: S3Settings) -> S3Client:
 
 
 def apply_sync_plan(*, bucket: SweepLibraryBucket, plan: SyncPlan, workers: int = DEFAULT_UPLOAD_WORKERS) -> None:
-    """Carry out a plan against the bucket, uploading before deleting and the entrypoints last.
+    """Run a plan against the bucket, uploading before deleting and the entrypoints last.
 
     The ordinary objects are put concurrently: each is one small request, so a serial run is
     bound by round trips rather than bytes. The entrypoints are put only after every one of those
-    has landed, one at a time, so no consumer fetches an index or manifest naming an object that
+    has completed, one at a time, so no consumer fetches an index or manifest naming an object that
     is not there yet. Deletions come after everything, for the same reason.
 
     Args:

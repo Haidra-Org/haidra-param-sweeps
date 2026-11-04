@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Check what a page needs to read a render: its size, the crop, and the bounded copy.
 
-The evidence these files exist for is invisible at the size a page draws a picture, so the checks
-here are about pixels rather than about paths: that a region lands on the same part of two
-differently sized frames, that the cut box is the one the region names, and that the index
-reports only what is actually on disk.
+The evidence that these files exist for is invisible at the size at which a page draws a picture,
+so the checks here are about pixels rather than about paths: that a region falls on the same part
+of two differently sized frames, that the cut box is the one that the region names, and that the
+index reports only what is actually on disk.
 """
 
 from __future__ import annotations
@@ -144,7 +144,7 @@ def test_a_region_has_to_sit_inside_the_frame() -> None:
 
 
 def test_the_index_reports_the_pixel_size_of_every_published_frame(tmp_path: Path) -> None:
-    """Assert the sizes come from the files rather than from what the jobs asked for."""
+    """Assert the sizes come from the files rather than from what the jobs requested."""
     spec = SweepSpec.model_validate(one_sweep_spec(steps_sweep()))
     render_frames(spec=spec, output_root=tmp_path, size=(640, 384))
 
@@ -323,7 +323,7 @@ def test_an_alchemy_entry_crops_both_its_source_and_its_result(tmp_path: Path) -
     cut_here = {outcome.relative_path for outcome in outcomes if outcome.written}
 
     # Entries sharing a source share its published copy, so the other entries on that source are
-    # cut here too; this one's own pair is what the test is about.
+    # cut here too. This one's own pair is what the test is about.
     assert {published_source_crop_name(entry), published_result_crop_name(entry)} <= cut_here
 
     manifest_entry = next(
@@ -359,7 +359,7 @@ def test_an_alchemy_entry_without_a_result_carries_no_result_crop(tmp_path: Path
 
 
 def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_the_manifest_names(tmp_path: Path) -> None:
-    """Assert the enlarge use case, whose whole point is more pixels, publishes a page-sized copy."""
+    """Assert the enlarge use case, whose purpose is more pixels, publishes a page-sized copy."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
     crop = entry.crop

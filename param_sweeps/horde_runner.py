@@ -74,26 +74,26 @@ RECENTLY_ADDED_PARAMETERS: tuple[str, ...] = (
     "sampler_order",
     "flow_shift",
 )
-"""Parameters a deployed API may not accept yet, which a job is allowed to ask for anyway.
+"""Parameters that a deployed API may not accept yet, which a job is allowed to request anyway.
 
-The public API validates its request body strictly and refuses the whole request over a field it
-does not know, so a job carrying one of these fails as a job rather than quietly rendering
-something else. That is the right failure, but it is worth saying out loud before a campaign
-spends its queue time on it, which is what
+The public API validates its request body strictly and refuses the whole request over a field
+that it does not recognize, so a job that sets one of these fails as a job rather than rendering
+something different without notice. That is the intended failure, but it should be reported
+before a campaign spends its queue time on it, which is the purpose of
 [`unsupported_parameters_in`][param_sweeps.horde_runner.unsupported_parameters_in] and the
-preflight warning are for. Rendering these strips locally needs no server support at all.
+preflight warning. Rendering these strips locally needs no server support at all.
 """
 
 
 SILENTLY_IGNORED_FEATURES: tuple[str, ...] = ()
-"""Features the public API's request payload has no field for, so a request cannot ask for them.
+"""Features that do not have a field in the public API's request payload, so a request cannot include them.
 
-This is the worse failure of the two. A parameter the API refuses fails the job and says so; one
-it has no field for is dropped on the way in and the render comes back at whatever the backend's
-own graph does. A strip that swept such a feature would publish the same image at every stop, so
-the runner says so before it queues anything and the strip is rendered locally instead. Nothing
-belongs here at present: ``control_strength`` did until the API grew a field for it, and it now
-reaches the request body like any other per-job feature.
+This is the worse failure of the two. A parameter that the API refuses fails the job and reports
+the failure. A feature without a field is dropped on the way in, and the render is produced with
+whatever the backend's own graph does. A strip that swept such a feature would publish the same
+image at every stop, so the runner reports this before it queues anything and the strip is
+rendered locally instead. The tuple is empty at present: ``control_strength`` was listed until
+the API added a field for it, and it now reaches the request body like any other per-job feature.
 """
 
 
@@ -104,7 +104,7 @@ def unsupported_parameters_in(job: RenderJob) -> list[str]:
 
 
 def silently_ignored_features_in(job: RenderJob) -> list[str]:
-    """Return the features this job sets that the public API's payload cannot carry."""
+    """Return the features this job sets that the public API's payload cannot include."""
     stated = job.features().model_dump()
     return [name for name in SILENTLY_IGNORED_FEATURES if stated.get(name) is not None]
 
@@ -163,7 +163,7 @@ class HordeGenerationParams(BaseModel):
 class HordeGenerationRequest(BaseModel):
     """Represents the body of a ``POST /generate/async`` request.
 
-    The API carries the negative prompt as a ``###``-separated suffix of the prompt rather than
+    The API takes the negative prompt as a ``###``-separated suffix of the prompt rather than
     as a field of its own, which is the one place a job's parameters are not passed through
     unchanged.
     """

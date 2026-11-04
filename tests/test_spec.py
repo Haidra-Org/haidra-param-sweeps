@@ -76,7 +76,8 @@ def test_clip_skip_runs_on_every_model_and_the_anime_one_on_an_anime_scene(spec:
     """Assert each model's clip-skip strip runs on a scene where the setting can be judged.
 
     The anime-lineage model renders the shared photoreal scene as a photograph, where the layer
-    its lineage was trained around shows nothing, so it is swept on the anime scene instead.
+    that its lineage was trained around has no visible effect, so it is swept on the anime scene
+    instead.
     """
     clip_skip_strips = [strip for strip in spec.expand_strips() if strip.parameter is SweepParameter.CLIP_SKIP]
     assert {strip.image_model.slug for strip in clip_skip_strips} == {
@@ -129,8 +130,8 @@ def test_the_hires_strength_is_read_on_a_close_subject(spec: SweepSpec) -> None:
 
     This strip is not about the oversize failure and does not share the recipe that shows it. On
     the pair strip's distant figure the default SD1.5 model renders almost monochrome and the
-    whole range moves nothing a reader could name; what the strength buys is detail, and detail
-    needs a subject close enough to carry it.
+    whole range does not change anything that a reader could name. What the strength buys is
+    detail, and detail needs a subject close enough to show it.
     """
     jobs = [job for job in spec.expand_jobs() if job.parameter is SweepParameter.HIRES_FIX_DENOISING_STRENGTH]
     assert {job.scene_id for job in jobs} == {"portrait"}
@@ -169,7 +170,7 @@ def test_tiling_is_taught_on_a_texture_and_counter_taught_on_an_object(spec: Swe
     """Assert tiling is swept on a surface as well as on an object.
 
     A seam is only visible where one copy of an image meets the next, which a centred object
-    hides and a repeating surface shows; the object strip is kept as the counter-example.
+    hides and a repeating surface shows. The object strip is kept as the counter-example.
     """
     scenes = {job.scene_id for job in spec.expand_jobs() if job.parameter is SweepParameter.TILING}
     assert scenes == {"texture", "thing"}
@@ -252,8 +253,9 @@ def test_prompt_emphasis_varies_the_prompt_and_nothing_else(spec: SweepSpec) -> 
             strip.jobs[-1].generation_parameters(),
         ) == {"prompt"}
 
-    # The QR gallery uses the same machinery for a different purpose: its fragment carries the
-    # world each finished code is drawn from, so it is the other strip allowed to move the prompt.
+    # The QR gallery uses the same machinery for a different purpose: its fragment names the
+    # world that each finished code is drawn from, so it is the other strip allowed to move the
+    # prompt.
     fragment_parameters = (SweepParameter.PROMPT_EMPHASIS, SweepParameter.QR_STYLE)
     jobs_elsewhere = [job for job in spec.expand_jobs() if job.parameter not in fragment_parameters]
     assert all(job.prompt_fragment is None for job in jobs_elsewhere)
@@ -272,7 +274,7 @@ def test_the_sampler_grid_reads_samplers_down_and_steps_across(spec: SweepSpec) 
     """Assert the sampler grid is laid out so that a row is one sampler as steps climb.
 
     Which sampler to use is a question about how it behaves as steps change, so the samplers
-    have to be the rows: a reader answers it by reading along one.
+    have to be the rows, and a reader can settle the question by reading along one.
     """
     grid_strips = [strip for strip in spec.expand_strips() if strip.parameter is SweepParameter.SAMPLER_STEPS_GRID]
     assert len(grid_strips) == 2
@@ -371,8 +373,8 @@ def test_the_image_to_image_strips_are_the_only_ones_with_a_source(spec: SweepSp
     """Assert the sweeps that start from an image are the only ones declaring a source.
 
     A job that conditions on a control type has a source too, whatever it is sweeping: the picture
-    the detector reads is that source, so the strength strips carry one and the parameter alone
-    does not say whether a job should.
+    that the detector reads is that source, so the strength strips have one and the parameter
+    alone does not say whether a job should.
     """
     for job in spec.expand_jobs():
         expects_source = job.parameter in SOURCED_PARAMETERS or job.control_type is not None
@@ -404,9 +406,9 @@ def test_every_masked_job_carries_a_mask(spec: SweepSpec) -> None:
 def test_outpainting_stops_state_the_size_of_their_own_canvas(spec: SweepSpec) -> None:
     """Assert each extent renders at the size of the canvas it was given.
 
-    Nothing in the backends pads a canvas, so each stop sends a picture padded beforehand. The
+    The backends do not pad a canvas, so each stop sends a picture padded beforehand. The
     backends do resize a source to the requested dimensions, so a stop inheriting the scene's size
-    would have its padding squeezed straight back out and would teach nothing.
+    would have its padding squeezed straight back out and would not teach anything.
     """
     jobs = [job for job in spec.expand_jobs() if job.parameter is SweepParameter.OUTPAINT_EXTENT]
     assert jobs
@@ -460,12 +462,13 @@ def test_the_negative_prompt_strips_turn_one_prompt_on_and_off(spec: SweepSpec) 
         ) == {"negative_prompt"}
 
     # The exceptions are excused for stated reasons. The step-preview strips reproduce the txt2img
-    # tutorial's request verbatim, so the frames arrive at the picture the tutorial already showed
-    # the reader, and that request carries a negative prompt. The two QR strips carry the one the
-    # workflow's recipe was measured with: their stops were scan-tested with it, and dropping it
-    # would mean publishing a code nothing had decoded. The ControlNet galleries reproduce the
-    # request the ControlNet tutorial makes of each of its worlds, negative prompt included, so a
-    # reader comparing detectors is looking at the pictures that tutorial's recipe produces.
+    # tutorial's request verbatim, so the frames arrive at the picture that the tutorial already
+    # showed the reader, and that request includes a negative prompt. The two QR strips use the
+    # negative prompt that the workflow's recipe was measured with: their stops were scan-tested
+    # with it, and dropping it would mean publishing a code that was never decoded. The ControlNet
+    # galleries reproduce the request that the ControlNet tutorial makes for each of its worlds,
+    # negative prompt included, so a reader comparing detectors is looking at the pictures that
+    # tutorial's recipe produces.
     carry_a_negative_prompt = {
         SweepParameter.NEGATIVE_PROMPT,
         SweepParameter.STEP_PREVIEW,
@@ -520,7 +523,7 @@ def test_every_scene_belongs_to_one_of_the_three_anchor_worlds(spec: SweepSpec) 
     world_markers = ("skyharbor", "zeppelin", "shrine", "gardening robot", "rooftop")
 
     # The QR gallery's scene is a treatment rather than a place: it is three worlds in one strip,
-    # so each of its stops names its own world in the fragment and the scene prompt names none.
+    # so each of its stops names its own world in the fragment and the scene prompt does not name any.
     for scene in spec.scenes:
         if scene.scene_id == "qr-artwork":
             continue
@@ -576,11 +579,11 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
     """Assert every strength strip varies its ControlNet and holds everything else, seed included.
 
     A stop that reached its scan by changing seed as well as strength would be teaching two things
-    at once, so each strip is pinned to the one seed that holds across the whole range it publishes.
+    at once, so each strip is pinned to the one seed that holds across the whole range that it publishes.
     Every control type the horde serves has a strip of its own on each of world 1's three source
     subjects, all walking one ladder, so the grip of each detector is readable against every other
     and against what the same detector does to a different kind of picture. The QR strip walks a
-    narrower ladder on the QR workflow, which conditions on no detector at all.
+    narrower ladder on the QR workflow, which does not condition on any detector.
     """
     detector_ladder = [
         0.01,
@@ -677,7 +680,7 @@ def test_the_control_strength_strips_move_nothing_but_the_strength(spec: SweepSp
 
 
 def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> None:
-    """Assert a job states a map path when it conditions on a detector and none when it does not.
+    """Assert a job states a map path when it conditions on a detector, and does not state one otherwise.
 
     The map and the render are only meaningful as a pair, so a consumer holding the render's path
     holds the map's: same directory, same stem.
@@ -696,7 +699,7 @@ def test_a_control_map_is_filed_beside_the_render_it_guided(spec: SweepSpec) -> 
 
 
 def test_a_strip_held_to_one_detector_files_its_map_beside_its_source(spec: SweepSpec) -> None:
-    """Assert a strip states one map path when every stop shares a detector, and none when not.
+    """Assert a strip states one map path when every stop shares a detector, and does not state one otherwise.
 
     The reader of a strength strip is being asked to judge how hard a dial holds the render to a
     map, which is unreadable without the map. It is the same map at every stop, so the strip
@@ -721,7 +724,7 @@ def test_a_strip_held_to_one_detector_files_its_map_beside_its_source(spec: Swee
 
 
 def test_the_qr_gallery_shows_the_layout_knobs_it_claims_to(spec: SweepSpec) -> None:
-    """Assert each gallery stop states the knobs its caption names, and curates from a batch."""
+    """Assert each gallery stop states the knobs that its caption names, and curates from a batch."""
     jobs = [job for job in spec.expand_jobs() if job.parameter is SweepParameter.QR_STYLE]
     references = {job.stop_label: {extra_text.reference for extra_text in job.extra_texts} for job in jobs}
 
@@ -813,7 +816,7 @@ def one_sweep_spec(sweep: dict[str, Any]) -> dict[str, Any]:
 
 
 def hires_denoise_sweep(**holds: Any) -> dict[str, Any]:
-    """Return a two-stop strip sweeping what the hires pass redraws by, holding what is asked."""
+    """Return a two-stop strip sweeping what the hires pass redraws by, holding the requested values."""
     return {
         "kind": "strip",
         "parameter": "hires_fix_denoising_strength",
@@ -846,7 +849,7 @@ def test_the_hires_strength_reaches_the_resolved_job(spec: SweepSpec) -> None:
 
 
 def test_a_hires_strength_without_the_hires_pass_is_rejected() -> None:
-    """Assert the specification cannot publish a number no backend reads.
+    """Assert the specification cannot publish a number that no backend reads.
 
     The second pass is the only thing that reads this strength. Stating it on a job that never
     runs a second pass would render a strip whose stops are identical and whose captions claim
@@ -871,7 +874,7 @@ def test_the_hires_pass_is_rejected_where_the_backends_disable_it() -> None:
 def test_a_stop_may_start_from_its_own_picture() -> None:
     """Assert a stop can override the sweep's source, which is what outpainting extents need.
 
-    Nothing in the backends pads a canvas, so each extent is a picture that was padded before it
+    The backends do not pad a canvas, so each extent is a picture that was padded before it
     was sent. The stops of such a strip do not share an input, and the sweep's own source stays
     the picture a reader is shown as the starting point.
     """
@@ -922,7 +925,7 @@ def steps_sweep(*, preview: dict[str, Any] | None = None) -> dict[str, Any]:
 
 
 def preview_of(sweep: dict[str, Any]) -> tuple[int, int]:
-    """Return the preview positions the only strip of a specification built from this sweep resolves to."""
+    """Return the preview positions that the only strip of a specification built from this sweep resolves to."""
     (strip,) = SweepSpec.model_validate(one_sweep_spec(sweep)).expand_strips()
     return resolve_preview_indices(
         preview=strip.preview,
@@ -932,10 +935,10 @@ def preview_of(sweep: dict[str, Any]) -> tuple[int, int]:
 
 
 def test_an_unstated_preview_reads_the_held_value_against_the_top() -> None:
-    """Assert the pair a strip previews by default is the value it is read against, then the top.
+    """Assert the pair that a strip previews by default is the value that it is read against, then the top.
 
-    The anchor holds 30 steps and the ladder does not carry it, so the stop nearest it is the
-    one a reader is being shown a departure from.
+    The anchor holds 30 steps and the ladder does not include it, so the stop nearest it is the
+    one that a reader is shown a departure from.
     """
     assert preview_of(steps_sweep()) == (1, 2)
 
@@ -948,7 +951,7 @@ def test_a_preview_may_name_its_stops_by_value() -> None:
 def test_a_default_off_the_ladder_previews_the_first_stop() -> None:
     """Assert a strip whose held value is not on its ladder previews from the beginning.
 
-    A sampler cannot be nearer to one name than another, so a held value no stop carries leaves
+    A sampler cannot be nearer to one name than another, so a held value that no stop has leaves
     the strip read from its first stop rather than from an arbitrary neighbour.
     """
     sampler_sweep = {
@@ -987,7 +990,7 @@ def test_a_parameter_with_no_held_value_previews_from_the_first_stop() -> None:
 
 
 def test_a_preview_naming_a_stop_the_strip_does_not_render_is_rejected() -> None:
-    """Assert a preview cannot point at a value no stop carries, on either side."""
+    """Assert a preview cannot point at a value that no stop has, on either side."""
     with pytest.raises(ValueError, match="right side names 33"):
         SweepSpec.model_validate(one_sweep_spec(steps_sweep(preview={"left": 4, "right": 33})))
 
@@ -1005,7 +1008,7 @@ def test_a_preview_side_cannot_take_the_other_side_s_anchor() -> None:
 
 
 def test_a_grid_states_no_preview(spec: SweepSpec) -> None:
-    """Assert a two-dimensional sweep cannot carry a preview: it is not read by wiping."""
+    """Assert a two-dimensional sweep cannot have a preview: it is not read by wiping."""
     grid = {
         "kind": "grid",
         "parameter": "karras_grid",
@@ -1027,9 +1030,9 @@ def test_a_grid_states_no_preview(spec: SweepSpec) -> None:
 def test_every_strip_in_the_library_previews_two_different_stops(spec: SweepSpec) -> None:
     """Assert no strip's collapsed card would wipe a picture onto itself.
 
-    A pair that resolves to one stop twice is a card that teaches nothing, and it happens
-    silently: a ladder whose top is also the value the strip is read against resolves both sides
-    to the same place unless the sweep says otherwise.
+    A pair that resolves to one stop twice is a card that does not teach anything, and it happens
+    silently: a ladder whose top is also the value that the strip is read against resolves both
+    sides to the same place unless the sweep says otherwise.
     """
     for strip in spec.expand_strips():
         if strip.presentation not in PREVIEWABLE_PRESENTATIONS or len(strip.jobs) < 2:
@@ -1046,10 +1049,10 @@ def test_every_strip_in_the_library_previews_two_different_stops(spec: SweepSpec
 def test_the_control_strength_strips_read_the_dial_against_the_strength_a_job_gets_by_default(
     spec: SweepSpec,
 ) -> None:
-    """Assert a strength strip previews the strength a job gets when it sends none, against the top.
+    """Assert a strength strip previews the strength that a job gets when it does not send one, against the top.
 
-    Nothing in the specification holds a ControlNet strength, so the value the ladder is read
-    against is the one the backend applies on its own.
+    The specification does not hold a ControlNet strength, so the value that the ladder is read
+    against is the one that the backend applies on its own.
     """
     strength_strips = [
         strip

@@ -4,8 +4,8 @@
 """The schedule and solver-knob strips.
 
 These knobs differ from every parameter the library swept before in one way that matters: unset is
-not a value. A job that states none of them has to reach both backends exactly as it did before they
-existed, or every strip already published would be rendering something new.
+not a value. A job that does not state any of them has to reach both backends exactly as it did
+before they existed, or every strip already published would be rendering something new.
 """
 
 from __future__ import annotations
@@ -105,7 +105,7 @@ class TestSolverStrips:
         assert {"align_your_steps", "gits"} <= schedules
 
     def test_a_stated_knob_reaches_both_backends(self, sweep_spec: SweepSpec) -> None:
-        """Assert a job that states sampler_eta carries it into both payloads and into the unsupported list."""
+        """Assert a job that states sampler_eta passes it into both payloads and into the unsupported list."""
         job = next(job for job in sweep_spec.expand_jobs() if job.parameter is SweepParameter.SAMPLER_ETA)
 
         payload = HordelibPayload.from_job(job).as_hordelib_mapping()

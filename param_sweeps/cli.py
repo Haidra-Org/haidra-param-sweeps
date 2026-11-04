@@ -6,19 +6,18 @@
 Every rendering subcommand takes the same specification and the same filters, so "render the
 whole library" and "regenerate one strip" are the same command with the filters narrowed. The
 publishing subcommands (``manifest``, ``upload``, ``verify``) work from ``index.json`` alone and
-need no specification at all; the two of them that reach a bucket also need the tool's optional
+need no specification at all. The two of them that reach a bucket also need the tool's optional
 publish extra, and say so plainly when it is absent rather than failing on an import. ``qr-check``
 works from the rendered tree in the same way, and is the gate that every QR image the library and
-the tutorials publish still decodes to the payload it was asked to carry. ``flows`` is
+the tutorials publish still decodes to its requested payload. ``flows`` is
 the odd one out: it reads its own specification and writes the frontpage's tutorial asset tree
 rather than the sweep library. ``alchemy`` reads its own specification too, and writes both: the
-evidence tree the alchemy pages read, and the one strip in the sweep library whose stops are
+evidence tree that the alchemy pages read, and the one strip in the sweep library whose stops are
 upscalers rather than a generation parameter. ``gallery`` makes the promo pictures, texts and
 conversations through the live horde, and rebuilds their manifest from whatever is on disk.
-``review`` reads
-nothing but the specification and what is already on disk; ``choose`` closes that loop by
-writing the picks a reviewer saved from the sheet back into the specification. Nothing here
-ever prints the API key or the bucket's secret.
+``review`` reads only the specification and what is already on disk. ``choose`` closes that loop
+by writing the picks that a reviewer saved from the sheet back into the specification. These
+commands never print the API key or the bucket's secret.
 
 Critical public member: [`main`][param_sweeps.cli.main], the console entry point.
 """
@@ -126,13 +125,13 @@ DEFAULT_PROMO_OUTPUT_ROOT = TOOL_ROOT / "output" / PROMO_DIRECTORY_NAME
 """``<repository>/output/promo``: the share cards and gallery, beside the library rather than inside it."""
 
 DEFAULT_SAMPLER_COST_SPEC_PATH = TOOL_ROOT / "sweep_spec.json"
-"""The specification the sampler measurement takes its models, geometry, seed and cfg scale from."""
+"""The specification that the sampler measurement takes its models, geometry, seed and cfg scale from."""
 
 DEFAULT_SAMPLER_COST_MODEL_SLUGS = ("deliberate", "albedobase-xl")
 """One SD1.5 model and one SDXL model from the sweep specification."""
 
 DEFAULT_ALCHEMY_SPEC_PATH = TOOL_ROOT / "alchemy_spec.json"
-"""The specification placing every alchemy form the shared vocabulary names into a use case."""
+"""The specification placing every alchemy form that the shared vocabulary names into a use case."""
 
 DEFAULT_GALLERY_SPEC_PATH = TOOL_ROOT / "gallery_spec.json"
 """The gallery specification: the promo pictures, texts and conversations to make."""
@@ -146,7 +145,7 @@ DERIVATIVES_LEGACY_COMMAND = "crops"
 """What the derivatives command was called when it only cut crops, kept so scripts keep working."""
 
 DERIVATIVES_COMMANDS = frozenset({"derivatives", DERIVATIVES_LEGACY_COMMAND})
-"""Both names the derivatives command answers to."""
+"""Both names that the derivatives command responds to."""
 
 
 class AlchemyBackendChoice(StrEnum):
@@ -154,7 +153,7 @@ class AlchemyBackendChoice(StrEnum):
 
     The three are not interchangeable: the post-processors run locally, the describe family only
     runs on the horde, and the control maps only run on a horde-image-utilities service, so a full
-    campaign is three runs restricted to the forms each can answer.
+    campaign is three runs restricted to the forms each can run.
     """
 
     HORDELIB = "hordelib"
@@ -173,7 +172,7 @@ def resolve_promo_output_root() -> Path:
 
 
 def _root_from_environment(*, variable_name: str, fallback: Path) -> Path:
-    """Return the directory an environment variable names, or the fallback when it is unset or blank."""
+    """Return the directory named by an environment variable, or the fallback when it is unset or blank."""
     from_environment = os.environ.get(variable_name, "").strip()
     return Path(from_environment) if from_environment else fallback
 
@@ -811,7 +810,7 @@ def _build_runner(arguments: argparse.Namespace) -> SweepRunner:
 
     Raises:
         ValueError: If an unsupported GPU backend was named.
-        MissingApiKeyError: If the horde runner was asked for and no key could be found.
+        MissingApiKeyError: If the horde runner was requested and no key could be found.
     """
     if arguments.command == "horde":
         env_file = arguments.env_file if arguments.env_file is not None else default_env_file()
@@ -897,9 +896,9 @@ def _run_step_preview(arguments: argparse.Namespace, *, spec: SweepSpec, output_
     """Capture one render step by step, write both arcs, and return the exit code.
 
     This renders once however many stops the two strips declare, because the stops are moments of
-    a single render rather than renders of their own. Everything it can fail on is a
-    configuration problem or a pipeline that did not sample the way a step preview needs, so each
-    is reported as one line on stderr rather than a traceback.
+    a single render rather than renders of their own. Every failure here is a configuration
+    problem or a pipeline that did not sample the way a step preview needs, so each is reported
+    as one line on stderr rather than a traceback.
     """
     try:
         runner = _build_runner(arguments)
@@ -914,7 +913,7 @@ def _run_step_preview(arguments: argparse.Namespace, *, spec: SweepSpec, output_
 
 
 def _sampler_cost_models(*, spec: SweepSpec, requested_slugs: tuple[str, ...]) -> list[ModelSpec]:
-    """Return the models to measure, in the order they were asked for.
+    """Return the models to measure, in the order they were requested.
 
     Raises:
         KeyError: If a named slug is not in the specification.
@@ -937,7 +936,7 @@ def _alchemy_api_client(arguments: argparse.Namespace) -> HordeApiClient:
 
 
 def _alchemy_result_label(result: AlchemyResult) -> str:
-    """Return what to call one applied entry in a report, which for a control map is its detector."""
+    """Return the label of one applied entry in a report. For a control map, this is its detector."""
     return result.control_type if result.control_type is not None else result.form
 
 
@@ -966,7 +965,7 @@ def _run_alchemy(arguments: argparse.Namespace) -> int:
 
     drawing_control_maps = arguments.backend == AlchemyBackendChoice.IMAGE_UTILITIES
     # An unrestricted run through the control-map service would reach every other entry too and
-    # overwrite the reasons the backends that do serve them recorded, so it covers its own form.
+    # overwrite the reasons recorded by the backends that do serve them, so it covers its own form.
     forms = tuple(arguments.form) if arguments.form else (ANNOTATION_FORM,) if drawing_control_maps else ()
 
     client: HordeApiClient | None = None
@@ -1013,8 +1012,8 @@ def _run_alchemy(arguments: argparse.Namespace) -> int:
 def _run_control_maps(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Draw the control maps, and return the process exit code.
 
-    A detector the service will not run is published as a gap rather than as a failure, for the
-    same reason an unavailable alchemy form is: what this machine can serve is evidence about the
+    A detector that the service will not run is published as a gap rather than as a failure, for
+    the same reason as an unavailable alchemy form: what this machine can serve is evidence about the
     machine, and the renders those maps belong to are already on disk either way.
     """
     backend = HordeImageUtilitiesBackend(service_url=resolve_service_url(requested=arguments.hiu_url))
@@ -1085,7 +1084,7 @@ def _run_derivatives(arguments: argparse.Namespace, *, spec: SweepSpec, output_r
 
 
 def _run_promo(arguments: argparse.Namespace) -> int:
-    """Draw the cards a promo specification asks for, and return the process exit code."""
+    """Draw the cards that a promo specification requests, and return the process exit code."""
     promo_spec_path: Path = arguments.promo_spec
     try:
         promo_spec = load_promo_spec(promo_spec_path)
@@ -1111,7 +1110,7 @@ def _run_promo(arguments: argparse.Namespace) -> int:
 
 
 def _run_gallery(arguments: argparse.Namespace) -> int:
-    """Make the promo gallery the specification asks for, and return the process exit code.
+    """Make the promo gallery that the specification requests, and return the process exit code.
 
     A dry run needs a key all the same: which model a picture resolves to is a fact about what the
     horde is serving right now, so the plan is read from the horde even though nothing is submitted.
@@ -1197,8 +1196,8 @@ def _run_flows(arguments: argparse.Namespace) -> int:
 def _run_flows_locally(arguments: argparse.Namespace, *, flows_spec: FlowsSpec) -> list[FlowResult]:
     """Render the selected flows on this machine's GPU, and return what each one produced.
 
-    The local runner is prepared with a model entry per distinct model the selected flows name,
-    built from the flow requests themselves: the flows use models the sweep library does not
+    The local runner is prepared with a model entry per distinct model that the selected flows name,
+    built from the flow requests themselves: the flows use models that the sweep library does not
     (the inpainting checkpoints, Stable Cascade), so the sweep specification cannot supply them.
     Native sizes and the like are unused by the runner's preparation, which only fetches weights.
     """
@@ -1258,7 +1257,7 @@ def _run_qr_check(arguments: argparse.Namespace) -> int:
 def _run_choose(arguments: argparse.Namespace) -> int:
     """Apply a saved choices file to the specification, refresh the sheet, and return the exit code.
 
-    Every failure this can hit is a malformed choices file or a file problem the reviewer has to
+    Every failure here is a malformed choices file or a file problem that the reviewer has to
     act on, so each is reported as one line on stderr rather than a traceback.
     """
     try:
@@ -1276,7 +1275,7 @@ def _run_choose(arguments: argparse.Namespace) -> int:
 def _run_publishing_command(arguments: argparse.Namespace) -> int:
     """Run ``manifest``, ``upload`` or ``verify``, and return the process exit code.
 
-    Every failure these can hit is a configuration, dependency or bucket problem the operator has
+    Every failure here is a configuration, dependency or bucket problem that the operator has
     to act on, so each is reported as one line on stderr rather than a traceback.
     """
     try:
@@ -1395,7 +1394,7 @@ def _prefix_for_manifest(arguments: argparse.Namespace) -> str:
 
 
 def _print_plan(plan: SyncPlan, *, dry_run: bool) -> None:
-    """Print an upload plan in full, in the order it would be carried out."""
+    """Print an upload plan in full, in the order it would run."""
     heading = "Would upload" if dry_run else "Uploading"
     for upload in plan.uploads:
         print(f"{heading} [{upload.reason}] {upload.key} ({format_byte_size(upload.size_bytes)})")
@@ -1415,7 +1414,7 @@ def _print_plan(plan: SyncPlan, *, dry_run: bool) -> None:
 
 
 def _print_paths(heading: str, paths: list[str], *, to_stderr: bool = True) -> None:
-    """Print a heading and its paths, or nothing at all when there are none."""
+    """Print a heading and its paths, but do not print anything when there are none."""
     if not paths:
         return
 

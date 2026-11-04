@@ -4,13 +4,13 @@
 """Measure what a step of each sampler costs, through the same pipeline the sweeps render on.
 
 A cost figure taken from a single render is three different numbers added together: the model
-load, the fixed per-job overhead every render pays whatever the sampler, and the sampling itself.
-This mode separates them by rendering the same job at several step counts and fitting a line
-through the results. The slope is what a step costs, the intercept is everything that does not
-scale with steps, and the ratio of one sampler's slope to `k_euler`'s is the figure a cost model
-wants.
+load, the fixed per-job overhead that every render pays whatever the sampler, and the sampling
+itself. This mode separates them by rendering the same job at several step counts and fitting a
+line through the results. The slope is what a step costs, the intercept is everything that does
+not scale with steps, and the ratio of one sampler's slope to `k_euler`'s is the figure that a
+cost model needs.
 
-The measurement is arranged so nothing but the sampler differs: one seed, one prompt, one
+The measurement is arranged so that only the sampler differs: one seed, one prompt, one
 resolution and one cfg scale throughout, warmup renders discarded after every model load, and
 repeats reduced by median rather than mean so a single interrupted render cannot move the point.
 
@@ -20,10 +20,11 @@ Critical public members:
 - [`SamplerCostReport`][param_sweeps.sampler_cost.SamplerCostReport]: the artifact it writes.
 - [`derive_pairings`][param_sweeps.sampler_cost.derive_pairings]: which schedule each sampler is
   measured on, and why that one.
-- [`fit_line`][param_sweeps.sampler_cost.fit_line]: the ordinary least squares fit the slope and
-  intercept come from.
-- [`SchedulePolicy`][param_sweeps.sampler_cost.SchedulePolicy]: the sampler facts the derivation
-  reads, kept as plain data so it can be stated in a test as well as read from the shared table.
+- [`fit_line`][param_sweeps.sampler_cost.fit_line]: the ordinary least squares fit that the slope
+  and intercept come from.
+- [`SchedulePolicy`][param_sweeps.sampler_cost.SchedulePolicy]: the sampler facts that the
+  derivation reads, kept as plain data so it can be stated in a test as well as read from the
+  shared table.
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ MEASUREMENT_SCHEMA_VERSION = 1
 """The layout of the JSON artifact this module writes."""
 
 MEASUREMENT_DIRECTORY = "measurements"
-"""Where under the output root a measurement lands, beside the rendered library rather than in it."""
+"""Where under the output root a measurement is written, beside the rendered library rather than in it."""
 
 REFERENCE_SAMPLER = "k_euler"
 """The sampler every ratio is expressed against: one model evaluation per step, no correction."""
@@ -77,8 +78,9 @@ MEASUREMENT_PROMPT = (
 )
 """The prompt every timed render uses.
 
-Held identical across the whole measurement. What it depicts does not matter to a timing; that it
-never changes does, because prompt length moves the conditioning cost that lands in the intercept.
+Held identical across the whole measurement. What it depicts does not matter to a timing. What
+matters is that it never changes, because prompt length changes the conditioning cost that
+appears in the intercept.
 """
 
 MEASUREMENT_NEGATIVE_PROMPT = "cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers"
@@ -105,7 +107,7 @@ class SchedulePolicy(BaseModel):
     Attributes:
         rejected_pairings: Sampler and schedule pairs that produce no usable image.
         recommended_schedulers: The schedules advised for a sampler, best first, for the samplers
-            an advisory names. A sampler absent from the mapping has no advice.
+            that an advisory names. A sampler absent from the mapping has no advice.
         scheduler_baselines: The baselines a restricted schedule is defined for. A schedule absent
             from the mapping works on every baseline.
         evaluations_per_step: How many model evaluations one step of each sampler performs, for the
@@ -237,7 +239,7 @@ class SamplerCostReport(BaseModel):
 
 
 def horde_sdk_schedule_policy() -> SchedulePolicy:
-    """Return the schedule policy the shared constraints table states.
+    """Return the schedule policy that the shared constraints table states.
 
     The vocabulary and the constraints are read from `horde_sdk` rather than restated here, so a
     sampler added there is measured here without this module being touched.
@@ -320,9 +322,9 @@ def derive_pairings(
     """Return the schedule each sampler is measured on against this baseline, and why.
 
     Every sampler is measured on the default schedule, because a measurement whose schedule moves
-    with the sampler measures two things at once. A sampler the policy refuses that pairing for
-    takes the first schedule it advises that the policy does allow, and says so in the pairing, so
-    a substitution is visible in the artifact rather than folded into the number.
+    with the sampler measures two things at once. A sampler that the policy refuses that pairing
+    for takes the first advised schedule that the policy does allow, and the pairing records
+    this, so a substitution is visible in the artifact rather than folded into the number.
 
     Args:
         samplers: The samplers to measure, in the order they should be run.
@@ -334,8 +336,8 @@ def derive_pairings(
         One pairing per sampler, in the order given.
 
     Raises:
-        ValueError: If a sampler is allowed no schedule at all on this baseline, or the policy
-            states no evaluations per step for it.
+        ValueError: If a sampler is not allowed any schedule on this baseline, or the policy
+            does not state evaluations per step for it.
     """
     pairings: list[SamplerSchedulePairing] = []
     for sampler in samplers:
@@ -366,7 +368,7 @@ def _substitute_scheduler(*, sampler: str, baseline: str, policy: SchedulePolicy
     """Return the schedule to measure a sampler on when the default is refused.
 
     Raises:
-        ValueError: If the policy advises nothing this sampler and baseline can use.
+        ValueError: If the policy does not advise any schedule that this sampler and baseline can use.
     """
     for candidate in policy.recommended_schedulers.get(sampler, ()):
         if policy.allows(sampler=sampler, scheduler=candidate, baseline=baseline):
@@ -386,7 +388,7 @@ def fit_line(points: Sequence[tuple[int, float]]) -> LinearFit | None:
 
     Returns:
         The fit, or None when fewer than two distinct step counts were measured, which is the case
-        the slope is undefined in.
+        where the slope is undefined.
     """
     distinct_step_counts = {steps for steps, _ in points}
     if len(distinct_step_counts) < 2:
@@ -607,7 +609,7 @@ def measure_sampler_cost(
     The runner is prepared once with every model, then the models are measured one after another so
     the weights are loaded as few times as possible. Each model's timed renders are preceded by
     discarded warmup renders, because the first render after a model reaches the device pays for
-    the graph being built and would otherwise land in the intercept.
+    the graph being built and would otherwise be counted in the intercept.
 
     Args:
         runner: The backend to render through, unprepared.
@@ -624,8 +626,8 @@ def measure_sampler_cost(
         The finished report, including any render that failed.
 
     Raises:
-        ValueError: If no model or no sampler was given, or a sampler can be measured on no
-            schedule at all.
+        ValueError: If either the models or the samplers are empty, or a sampler cannot be
+            measured on any schedule.
 
     Side Effects:
         Renders on the accelerator, and on the local runner may download model weights.
@@ -754,8 +756,8 @@ def _measure_model(
 ) -> None:
     """Time every sampler, step count and repeat for one model, recording failures as failures.
 
-    A render that raises costs its repeat and nothing else: the point keeps the timings it did get,
-    the failure is carried into the record, and the rest of the measurement goes on.
+    A render that raises costs only its repeat. The point keeps the timings that it did get, the
+    failure is recorded, and the rest of the measurement goes on.
     """
     total = len(pairings) * len(step_counts) * repeats
     render_number = 0
@@ -798,9 +800,9 @@ def _measure_model(
 
 
 def write_report(*, report: SamplerCostReport, output_root: Path) -> Path:
-    """Write the measurement artifact under the output root, and return where it landed.
+    """Write the measurement artifact under the output root, and return its path.
 
-    The filename carries the run's start time, so a re-measurement never overwrites the one it is
+    The filename includes the run's start time, so a re-measurement never overwrites the one it is
     meant to be compared against.
 
     Side Effects:

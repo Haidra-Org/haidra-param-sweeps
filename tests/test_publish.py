@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check the publishing side: what the index says belongs, and what a sync would do about it.
+"""Check the publishing side: which files the index lists, and what a sync would do about them.
 
 Publishing is an optional extra, so this whole module is skipped where the object-storage SDK is
 not installed: there is no client to stub and nothing here would be exercising the tool. The one
-test that guards the extra's optionality lives here too, because the environment it can catch a
-regression in is exactly the one where the SDK is present and could be imported by accident.
+test that guards the extra's optionality lives here too, because the environment where it can
+catch a regression is the one where the SDK is present and could be imported by accident.
 """
 
 from __future__ import annotations
@@ -261,8 +261,9 @@ def _remote_mirror(root: Path, relative_paths: list[str], *, prefix: str = "") -
 def test_the_closure_carries_the_crops_and_the_bounded_copies(tmp_path: Path) -> None:
     """Assert what a page draws is published, and not only the frames the index names.
 
-    The closure once missed the control maps, which published an index whose own references
-    404ed. Every derived file the index or a manifest names belongs to it for the same reason.
+    The closure must include the control maps, because otherwise the published index has
+    references that return 404. Every derived file that the index or a manifest names belongs
+    to it for the same reason.
     """
     _write_library(tmp_path, with_derivatives=True)
     _write_manifests(tmp_path, with_derivatives=True)
@@ -577,7 +578,7 @@ def test_missing_settings_name_every_variable_that_is_unset(monkeypatch: pytest.
 
 
 def _stubbed_bucket(*, settings: S3Settings = TEST_SETTINGS) -> tuple[SweepLibraryBucket, Stubber]:
-    """Create a bucket whose client answers only the calls a test declares in advance."""
+    """Create a bucket whose client responds only to the calls that a test declares in advance."""
     client = create_s3_client(settings=settings)
     stubber = Stubber(client)
     return SweepLibraryBucket(settings=settings, client=client), stubber
@@ -637,7 +638,7 @@ def test_applying_a_plan_writes_every_object_with_its_headers_and_the_index_last
 
 
 class _RecordingBucket(SweepLibraryBucket):
-    """A bucket that records the order keys land in, from whichever thread puts them."""
+    """A bucket that records the order in which keys are written, from whichever thread writes them."""
 
     def __init__(self) -> None:
         super().__init__(settings=TEST_SETTINGS)
@@ -758,14 +759,14 @@ def test_verify_exits_non_zero_when_the_bucket_is_short_a_file(
 
 
 def test_nothing_a_render_imports_drags_in_the_object_storage_sdk() -> None:
-    """Assert importing the tool, including its command line, pulls in no publishing SDK.
+    """Assert importing the tool, including its command line, does not pull in a publishing SDK.
 
     The rendering environment shares an interpreter with the GPU stack and must not acquire an
     object-storage SDK by importing this tool. A module-level import anywhere on that path would
     put one there, which is invisible until an environment that lacks it fails to start at all.
     """
-    # The probe's answer is fenced with a sentinel because dependencies are allowed to emit their own
-    # import-time log lines on stdout; only the fenced line is this probe's output.
+    # The probe's output is marked with a sentinel because dependencies can emit their own
+    # import-time log lines on stdout. Only the marked line is this probe's output.
     probe = (
         "import sys\n"
         "import param_sweeps\n"
@@ -792,7 +793,7 @@ def test_a_bucket_command_without_the_extra_says_what_to_install(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Assert an environment without the extra is told what to install, not handed a traceback."""
+    """Assert an environment without the extra is told what to install instead of getting a traceback."""
     _write_library(tmp_path)
     monkeypatch.setitem(sys.modules, "boto3", None)
     monkeypatch.setenv(PublishEnvironment.ENDPOINT_URL, TEST_SETTINGS.endpoint_url)

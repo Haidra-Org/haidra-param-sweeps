@@ -103,7 +103,7 @@ REQUEST_ID = "0f8b1f16-0000-4000-8000-000000000000"
 
 
 class ScriptedTransport(requests.adapters.BaseAdapter):
-    """Answers the whole submit-and-poll path from a script, so a run needs no network.
+    """Responds to the whole submit-and-poll path from a script, so a run needs no network.
 
     Mounted on the session a real ``GalleryHorde`` opened, which is what makes this a test of the
     submitting code rather than of a stand-in for it. Every request finishes on its first poll:
@@ -117,7 +117,7 @@ class ScriptedTransport(requests.adapters.BaseAdapter):
         censored: frozenset[str] = frozenset(),
         replies: list[str] | None = None,
     ) -> None:
-        """Script what is served, which prompts come back censored, and what the text models say."""
+        """Script what is served, which prompts come back censored, and what the text models return."""
         self.served = served or dict.fromkeys(MODEL_REFERENCE, 1)
         self.censored = censored
         self.replies = list(replies or [])
@@ -188,8 +188,8 @@ class ScriptedTransport(requests.adapters.BaseAdapter):
         }
 
     def _text_result(self, url: str) -> dict[str, Any]:
-        # The text endpoint answers progress and result at one URL, so a request is read twice and
-        # the same answer has to come back both times.
+        # The text endpoint serves progress and result at one URL, so a request is read twice and
+        # the same reply has to come back both times.
         request_id = url.rsplit("/", 1)[-1]
         if request_id not in self._text_replies:
             self._text_replies[request_id] = (
@@ -265,7 +265,7 @@ def test_a_pinned_cfg_scale_replaces_what_was_asked_for() -> None:
 
 
 def test_a_run_writes_the_pictures_texts_conversations_and_a_manifest(tmp_path: Path) -> None:
-    """Assert one full scripted run lands every kind of entry, with the clamped request beside it."""
+    """Assert one full scripted run writes every kind of entry, with the clamped request beside it."""
     transport = ScriptedTransport()
     manifest_path = run_gallery(horde=_horde(transport), spec=SPEC, out=tmp_path / "gallery")
 
@@ -289,7 +289,7 @@ def test_a_run_writes_the_pictures_texts_conversations_and_a_manifest(tmp_path: 
 
 
 def test_the_manifest_is_rebuilt_from_disk_and_keeps_curation(tmp_path: Path) -> None:
-    """Assert a narrowed run republishes everything on disk, with the curation the manifest carried.
+    """Assert a narrowed run republishes everything on disk, with the curation that the manifest held.
 
     A rebuild from what one run touched would drop every entry that run passed over, which is how a
     curated gallery loses its curation and half its pictures at once.
@@ -365,7 +365,7 @@ def test_a_censored_entry_is_recorded_and_left_alone_until_it_is_retried(tmp_pat
 
 
 def test_an_instruct_conversation_carries_its_earlier_turns(tmp_path: Path) -> None:
-    """Assert the second turn is asked with the first turn and its answer inside the frame."""
+    """Assert the second turn is sent with the first turn and its reply inside the frame."""
     out = tmp_path / "gallery"
     transport = ScriptedTransport(replies=["Ember, who bakes at dawn.", "The oven will not light."])
     run_gallery(
@@ -440,7 +440,7 @@ def test_the_manifest_reads_an_entry_no_specification_lists(tmp_path: Path) -> N
     """Assert a picture on disk is published even when the specification no longer names it.
 
     What is on disk is the gallery: an entry dropped from the specification is still a render that
-    was paid for, and losing it from the manifest silently is worse than carrying it at the end.
+    was paid for, and silently losing it from the manifest is worse than listing it at the end.
     """
     out = tmp_path / "gallery"
     run_gallery(horde=_horde(ScriptedTransport()), spec=SPEC, out=out, skip_text=True, skip_conversations=True)
@@ -453,7 +453,7 @@ def test_the_manifest_reads_an_entry_no_specification_lists(tmp_path: Path) -> N
 
 
 def test_the_subcommand_is_wired_with_its_defaults() -> None:
-    """Assert the parser answers to ``gallery`` and carries the flags the runbook documents."""
+    """Assert the parser accepts ``gallery`` and has the flags that the runbook documents."""
     arguments = build_parser().parse_args(["gallery", "--dry-run", "--only", "fox-snow", "--retry-censored"])
 
     assert arguments.command == "gallery"

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Compose share cards and posters from the renders the library already holds.
 
-A link to a reference page unfurls on a chat or a feed as whatever ``og:image`` names, and a
+A link to a reference page unfurls on a chat or a feed as the image that ``og:image`` names, and a
 page whose evidence is a strip of renders has a better picture to offer than a logo: the strip
 itself. The same frames make a square poster for a forum, a tall card for a phone feed, or a
 two-frame comparison, so one composer serves every one of those from a small declarative
@@ -12,12 +12,12 @@ specification rather than a file per occasion.
 A card is one of a few templates drawn on one of a few canvases in one of two palettes. The
 template says how the frames are arranged, the format says the canvas, the theme says the
 colours, and the stop selection says which of a strip's frames take part. A job names one of
-each; a set names a template and format and asks for one card per parameter or per tutorial,
+each. A set names a template and format and produces one card per parameter or per tutorial,
 which is how the whole library gets a preview image without a job per page.
 
-Cards are promotional material cut from the evidence rather than evidence, so they land in a
-tree of their own beside the library, with a manifest at its root, and are published under a
-prefix of their own. A page names its card by convention rather than by lookup:
+Cards are promotional material cut from the evidence rather than evidence, so they are written
+to a separate tree beside the library, with a manifest at its root, and are published under a
+separate prefix. A page finds its card by naming convention rather than by lookup:
 ``sweeps/<parameter>.jpg`` for a setting, ``tutorials/<flow>.jpg`` for a worked example.
 
 Critical public members:
@@ -97,7 +97,7 @@ class CardFormat(StrEnum):
     """The canvas a card is drawn on, named by where it is meant to be seen."""
 
     OG = "og"
-    """The link-preview canvas every unfurler crops to."""
+    """The link-preview canvas that every unfurler crops to."""
 
     SQUARE = "square"
     WIDE = "wide"
@@ -187,14 +187,14 @@ class CardJob(BaseModel):
 
     A job names its frames one of four ways: a ``strip`` by the library's strip id, a
     ``parameter`` (resolved to that parameter's preferred strip), a ``tutorial`` by flow id, or a
-    ``gallery`` picture by its entry id. A gallery picture carries no words of its own, so a job
-    that names one must say its title and subtitle itself.
+    ``gallery`` picture by its entry id. A gallery picture has no words of its own, so a job
+    that names one must state its title and subtitle itself.
     """
 
     model_config = ConfigDict(frozen=True, populate_by_name=True)
 
     job_id: str = Field(alias="id")
-    """The key the manifest lists the card under, and the file's name unless ``output`` says otherwise."""
+    """The key that the manifest lists the card under, and the file's name unless ``output`` sets another."""
 
     template: CardTemplate
     format: CardFormat = CardFormat.OG
@@ -219,7 +219,7 @@ class CardJob(BaseModel):
 
     file_type: Literal["jpg", "png"] = "jpg"
     output: str | None = None
-    """The file's path under the promo tree; defaults to ``<id>.<file_type>``."""
+    """The file's path under the promo tree. Defaults to ``<id>.<file_type>``."""
 
     def output_path(self) -> str:
         """Return the card's path relative to the promo tree's root."""
@@ -238,10 +238,10 @@ class CardSet(BaseModel):
     stops: str | list[int] = "spread:6"
     file_type: Literal["jpg", "png"] = "jpg"
     directory: str | None = None
-    """The subtree the set writes to; defaults to ``sweeps`` or ``tutorials`` by kind."""
+    """The subtree the set writes to. Defaults to ``sweeps`` or ``tutorials`` by kind."""
 
     key_prefix: str | None = None
-    """What the manifest key starts with; defaults to ``sweep:`` or ``tutorial:`` by kind."""
+    """What the manifest key starts with. Defaults to ``sweep:`` or ``tutorial:`` by kind."""
 
     def resolved_directory(self) -> str:
         """Return the subtree this set writes to."""
@@ -264,11 +264,11 @@ class PromoSpec(BaseModel):
     schema_version: int = 1
     brand: BrandSpec
     fonts: FontSpec | None = None
-    """The brand's faces; None draws every card in Pillow's bundled face."""
+    """The brand's faces. None draws every card in Pillow's bundled face."""
 
     palettes: dict[CardTheme, Palette] = Field(default_factory=lambda: dict(DEFAULT_PALETTES))
     titles: dict[str, str] = Field(default_factory=dict)
-    """A parameter's name as a reader knows it (``cfg_scale`` reads as "Guidance"); unlisted
+    """A parameter's name as a reader knows it (``cfg_scale`` reads as "Guidance"). Unlisted
     parameters are humanised from their field name."""
 
     subtitles: dict[str, str] = Field(default_factory=dict)
@@ -277,7 +277,7 @@ class PromoSpec(BaseModel):
     frames came from rather than what they show."""
 
     preferred_strips: dict[str, str] = Field(default_factory=dict)
-    """The strip a per-parameter set draws for a parameter published as several; unlisted
+    """The strip a per-parameter set draws for a parameter published as several. Unlisted
     parameters take the first complete strip in index order."""
 
     skip_parameters: list[str] = Field(default_factory=list)
@@ -291,7 +291,7 @@ class PromoSpec(BaseModel):
 
 
 class CardOutcome(BaseModel):
-    """What became of one job."""
+    """The outcome of one job."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -330,14 +330,14 @@ class CardsManifest(BaseModel):
 
 
 class Fonts:
-    """The three faces, loaded at whatever sizes a card asks for.
+    """The three faces, loaded at the sizes a card requests.
 
     Without a specification every face is Pillow's bundled one, which is what lets the composer
     run, and be tested, where no brand face has been supplied.
     """
 
     def __init__(self, spec: FontSpec | None, *, base: Path) -> None:
-        """Remember where the faces are; nothing is read until a size is asked for."""
+        """Store where the faces are. No file is read until a size is requested."""
         self._paths: dict[str, Path] = {}
         if spec is not None:
             self._paths = {
@@ -348,7 +348,7 @@ class Fonts:
         self._cache: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 
     def get(self, face: str, size: int) -> ImageFont.FreeTypeFont:
-        """Return the face at the size, reading the file the first time it is asked for.
+        """Return the face at the size, reading the file the first time it is requested.
 
         Raises:
             RuntimeError: If no face was specified and Pillow's bundled one is not a scalable face
@@ -437,7 +437,7 @@ def find_flow(manifest: TutorialManifest, flow_id: str) -> ManifestFlow:
 
 
 def select_stops(strip: IndexStrip, selection: str | list[int]) -> list[IndexStop]:
-    """Return the stops a selection names, in strip order.
+    """Return the stops that a selection names, in strip order.
 
     Raises:
         ValueError: If the selection is not one of the recognised forms or names a stop the
@@ -457,7 +457,7 @@ def select_stops(strip: IndexStrip, selection: str | list[int]) -> list[IndexSto
         return list(strip.stops)
     if selection == "preview":
         # A strip whose held value is its last stop resolves its default preview to the same
-        # frame twice; a pair of one frame shows nothing, so the ends stand in.
+        # frame twice. A pair of one frame shows nothing, so the ends are used instead.
         if strip.preview is None or strip.preview.left_index == strip.preview.right_index:
             return [strip.stops[0], strip.stops[-1]]
         return [strip.stops[strip.preview.left_index], strip.stops[strip.preview.right_index]]
@@ -480,15 +480,15 @@ def spread_positions(count: int, wanted: int) -> list[int]:
 
 
 def expand_jobs(spec: PromoSpec, *, index: SweepIndex, manifest: TutorialManifest | None) -> list[CardJob]:
-    """Return the explicit jobs followed by the ones each set unfolds to.
+    """Return the explicit jobs followed by the jobs that each set unfolds to.
 
-    A per-parameter set yields one job for every parameter the index publishes a complete strip
-    for, keyed ``sweep:<parameter>``; a per-tutorial set yields one for every flow with a result,
-    keyed ``tutorial:<flow>``. A parameter the specification skips, or one with no complete strip,
-    is passed over with a log line rather than failing the run.
+    A per-parameter set yields one job for every parameter that the index publishes a complete
+    strip for, keyed ``sweep:<parameter>``. A per-tutorial set yields one for every flow with a
+    result, keyed ``tutorial:<flow>``. A parameter that the specification skips, or one without a
+    complete strip, is passed over with a log line rather than failing the run.
 
     Raises:
-        ValueError: If a tutorial set is asked for and there is no manifest.
+        ValueError: If a tutorial set is requested and there is no manifest.
     """
     jobs = list(spec.jobs)
     for card_set in spec.sets:
@@ -582,7 +582,7 @@ def resolve_content(
     library_root: Path,
     promo_root: Path | None = None,
 ) -> CardContent:
-    """Return the frames and words a job draws.
+    """Return the frames and words that a job draws.
 
     Args:
         job: The card to resolve.
@@ -590,7 +590,7 @@ def resolve_content(
         index: The library's index.
         manifest: The tutorial manifest, or None where the library has none.
         library_root: The root of the library on disk.
-        promo_root: The root of the promo tree, which gallery pictures are read from; None where
+        promo_root: The root of the promo tree, from which gallery pictures are read. None where
             no job names one.
 
     Raises:
@@ -738,7 +738,7 @@ def render_card(
 class _OverlayText:
     """White type set over a picture, each glyph ringed and shadowed in a dark tone.
 
-    The tones behind the type are whatever the picture has there, so the type carries its own
+    The tones behind the type are whatever the picture has there, so the type has its own
     relief: a soft glow in the shape of the letters, then an outline, then the fill. Runs are queued
     and drawn in those three passes so that one run's outline never covers a neighbouring run's fill.
     """
@@ -750,9 +750,9 @@ class _OverlayText:
     """Blur radius of the glow as a share of the largest queued face size."""
 
     def __init__(self, canvas: Image.Image, *, scale: float) -> None:
-        """Remember the canvas; nothing is drawn until ``draw``."""
+        """Store the canvas. Nothing is drawn until ``draw``."""
         self._canvas = canvas
-        # Small faces take the floor: a ring thinner than this gives no relief at preview size.
+        # Small faces use this minimum width: a ring thinner than this does not give relief at preview size.
         self._least_outline = round(3 * scale)
         self._runs: list[tuple[tuple[float, float], str, ImageFont.FreeTypeFont, str]] = []
 
@@ -797,7 +797,7 @@ def _draw_header(
     margin: int,
     width: int,
 ) -> int:
-    """Draw the title and subtitle at the top, and return the y the picture area starts under."""
+    """Draw the title and subtitle at the top, and return the y coordinate below which the picture area starts."""
     title_font = fonts.get("bold", round(54 * scale))
     subtitle_font = fonts.get("regular", round(24 * scale))
     y = margin
@@ -975,7 +975,7 @@ def _draw_pair(
         outline=palette.background,
         width=line_width,
     )
-    # Two small triangles in the handle, drawn rather than set in type so no face has to carry them.
+    # Two small triangles in the handle, drawn rather than set in type so no face has to include them.
     arrow = round(radius * 0.36)
     gap_from_centre = round(radius * 0.18)
     draw.polygon(
@@ -1173,7 +1173,7 @@ def write_cards(
 ) -> list[CardOutcome]:
     """Draw every job into the promo tree and write the manifest at its root.
 
-    A card already on disk is kept unless ``force`` asks for it again, so re-running after adding
+    A card already on disk is kept unless ``force`` is set, so re-running after adding
     one job draws one card. The manifest is rewritten from every job each time, whether or not its
     card was redrawn or the run was restricted to some jobs, so it always describes the whole set.
 

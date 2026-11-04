@@ -27,7 +27,7 @@ from param_sweeps.spec import ModelSpec, RenderJob
 
 
 class RenderOutcome(BaseModel):
-    """Represents what one job rendered, and what the runner knows about its provenance.
+    """Represents what one job rendered, and the runner's record of its provenance.
 
     A job usually produces one image. A curation batch produces several candidates from the one
     request, in the order the backend returned them, and a human picks the published one later.
@@ -60,7 +60,7 @@ class FetchPlanEntry(BaseModel):
     model_name: str
     approximate_size_gb: float
     already_present: bool | None
-    """``None`` when the runner cannot tell, which is the honest answer for the API runner."""
+    """``None`` when the runner cannot tell, which is always the case for the API runner."""
 
     image_count: int
 
@@ -91,7 +91,7 @@ class SweepRunner(ABC):
 
     @abstractmethod
     def render(self, job: RenderJob) -> RenderOutcome:
-        """Render one job, producing as many candidates as its ``batch_size`` asks for.
+        """Render one job, producing as many candidates as its ``batch_size`` requests.
 
         Raises:
             RuntimeError: If the backend could not produce an image for this job.
@@ -100,7 +100,7 @@ class SweepRunner(ABC):
     def close(self) -> None:
         """Release whatever the runner is holding.
 
-        The default releases nothing, because a runner that holds nothing should not have to
-        say so. It is not abstract for that reason.
+        The default does not release anything, so a runner that holds nothing does not have to
+        override it. It is not abstract for that reason.
         """
         return

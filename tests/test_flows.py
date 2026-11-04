@@ -50,7 +50,7 @@ def test_the_qr_flow_runs_the_recipe_that_was_scan_tested(flows_spec: FlowsSpec)
     """Assert the QR flow keeps the measured recipe rather than drifting back to the anchor's defaults.
 
     A QR code that does not scan is not a worked example of anything, so these five values are the
-    flow's teaching payload and not incidental parameters. The strength is stated at the workflow's
+    flow's teaching payload rather than incidental parameters. The strength is stated at the workflow's
     own baseline of 1.0, which is what a worker renders this code at, and the published example is
     the one that decoded through that path.
     """

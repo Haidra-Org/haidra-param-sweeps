@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Track which images a campaign has already produced, so an interrupted run resumes.
 
-A campaign is long and, on the API runner, is somebody else's compute being spent politely one
-job at a time. The checkpoint is written after every single image, keyed by the image's
-deterministic path, so stopping the run at any point and starting it again picks up at the next
-unrendered image rather than at the beginning.
+A campaign is long and, on the API runner, uses someone else's compute one job at a time.
+The checkpoint is written after every single image, keyed by the image's deterministic path,
+so a run that is stopped at any point and started again resumes at the next unrendered image
+rather than at the beginning.
 
 Critical public member: [`CampaignCheckpoint`][param_sweeps.checkpoint.CampaignCheckpoint].
 """

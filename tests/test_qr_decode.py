@@ -35,7 +35,7 @@ def spec() -> SweepSpec:
 
 
 def _code(payload: str = PAYLOAD) -> Image.Image:
-    """Return a plain, machine-drawn QR code: what a scanner is supposed to have no trouble with."""
+    """Return a plain, machine-drawn QR code, which a scanner should read without trouble."""
     drawn: PilImage = qrcode.make(payload, image_factory=PilImage)
     return drawn.get_image().convert("RGB")
 
@@ -103,8 +103,8 @@ def test_a_single_qr_render_that_scans_is_published() -> None:
 def test_a_curation_batch_is_reported_rather_than_rejected() -> None:
     """Assert a batch survives candidates that do not scan, because its pick is still to be made.
 
-    Rejecting the whole job would throw away the candidates a reviewer is meant to choose between,
-    and the choice is what decides which image is published; ``check_library`` gates that.
+    Rejecting the whole job would throw away the candidates that a reviewer is meant to choose
+    between, and the choice decides which image is published. ``check_library`` gates that.
     """
     job = _qr_job(batch_size=2)
     images = [Image.new("RGB", (512, 512), "white"), _code()]
@@ -138,7 +138,7 @@ def test_a_published_flow_is_scanned_against_the_payload_its_request_states(tmp_
 
 
 def test_every_qr_stop_in_the_specification_carries_the_payload(spec: SweepSpec) -> None:
-    """Assert no QR stop was written without the text it exists to encode."""
+    """Assert no QR stop was written without the text that it exists to encode."""
     qr_jobs = [job for job in spec.expand_jobs() if job.workflow is not None]
 
     assert qr_jobs, "the specification is supposed to render QR strips"

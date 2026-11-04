@@ -46,7 +46,7 @@ from param_sweeps.spec import (
 
 FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"
 BATCH_SPEC_PATH = FIXTURES_ROOT / "batch_spec.json"
-"""A small review batch with one job for each feature and curation case these tests exercise."""
+"""A small review batch with one job for each feature and curation case that these tests exercise."""
 
 RULED_BATCH_SPEC_PATH = FIXTURES_ROOT / "ruled_batch_spec.json"
 """A small review batch with two ruling sets, one of which uses every ruling control."""
@@ -221,7 +221,7 @@ def test_the_control_strength_a_job_states_reaches_the_request_body(batch_spec: 
 
 
 def test_a_plain_job_still_produces_the_payload_it_always_did(batch_spec: SweepSpec) -> None:
-    """Assert the feature fields stay out of the payload of a job that turns none of them on."""
+    """Assert the feature fields stay out of the payload of a job that does not turn any of them on."""
     plain_job = next(job for job in batch_spec.expand_jobs() if job.features().is_plain)
 
     api_params = HordeGenerationRequest.from_job(plain_job).as_request_body()["params"]
@@ -278,7 +278,7 @@ def test_the_contact_sheet_marks_which_candidate_was_chosen(batch_spec: SweepSpe
 
 
 def test_the_contact_sheet_makes_every_curation_candidate_pickable(batch_spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert each candidate carries the key and number the choose subcommand maps back to a job."""
+    """Assert each candidate has the key and number that the choose subcommand maps back to a job."""
     sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Sign-off")
     curation_jobs = [job for job in batch_spec.expand_jobs() if job.batch_size > 1]
 
@@ -332,9 +332,9 @@ def test_apply_choices_rejects_a_pick_the_batch_cannot_honour(batch_spec: SweepS
 
 
 def _probe_ruling_set() -> RulingSet:
-    """Return a ruling set exercising every control the sheet can render.
+    """Return a ruling set exercising every control that the sheet can render.
 
-    Its evidence names jobs the fixture batch really renders, so a link that goes nowhere is a
+    Its evidence names jobs that the fixture batch actually renders, so a link that goes nowhere is a
     test failure rather than something a reviewer discovers by clicking it.
     """
     return RulingSet(
@@ -425,7 +425,7 @@ def test_the_sheet_asks_every_ruling_with_the_control_it_states(ruled_spec: Swee
 
 
 def test_every_ruling_that_offers_options_offers_the_escape(ruled_spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert an answer the option set does not cover is still recordable, on every such ruling."""
+    """Assert an answer that the option set does not cover is still recordable, on every such ruling."""
     panel = _rulings_panel_of(build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off"))
 
     # Two option sets on the radio and checkbox rulings, and one per row of the per-row ruling.
@@ -443,7 +443,7 @@ def test_a_row_answers_from_its_own_options_when_it_states_them(ruled_spec: Swee
 
 
 def test_every_ruling_links_to_evidence_the_sheet_actually_carries(ruled_spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert each evidence link lands on an element the same page renders."""
+    """Assert each evidence link points to an element that the same page renders."""
     sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off")
 
     for anchor in (
@@ -606,7 +606,7 @@ def test_a_specification_file_holds_several_ruling_sets_in_order() -> None:
 
 
 def test_every_ruling_that_picks_from_a_set_presents_the_escape() -> None:
-    """Assert every ruling and every row offers the escape option, and a free-text ruling offers no options."""
+    """Assert every ruling and every row offers the escape option, and a free-text ruling has no choices."""
     ruled_spec_from_file = load_spec(RULED_BATCH_SPEC_PATH)
 
     for item in (item for ruling_set in ruled_spec_from_file.rulings for item in ruling_set.items):

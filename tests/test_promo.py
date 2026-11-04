@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check that the cards a specification asks for are the ones drawn, from the frames it names.
+"""Check that the cards that a specification requests are the ones drawn, from the frames that it names.
 
-The cards exist to be unfurled and posted, so the checks are about what lands on the canvas: that
-every chosen frame is on it, that the canvas is the size the format promises, that a set yields
-one card per parameter at the path a page can predict, and that the manifest lists it all.
+The cards exist to be unfurled and posted, so the checks are about what appears on the canvas: that
+every chosen frame is on it, that the canvas is the size that the format specifies, that a set
+yields one card per parameter at a path that a page can predict, and that the manifest lists it all.
 """
 
 from __future__ import annotations
@@ -265,8 +265,8 @@ def test_a_pair_takes_the_strips_own_preview_and_a_hero_takes_the_last_frame(lib
 def test_a_hero_can_draw_a_gallery_picture_and_a_parameter_takes_its_listed_subtitle(library: Path) -> None:
     spec = promo_spec(titles={"steps": "Steps"}, subtitles={"steps": "How many passes the model takes."})
     index = read_index(output_root=library)
-    # A promo tree of this test's own: the shared one beside the library is what a later test
-    # expects to find without a gallery in it.
+    # A promo tree dedicated to this test, because a later test requires the shared one beside
+    # the library to have no gallery in it.
     root = library / "promo-with-gallery"
     picture = root / "gallery" / "balloons" / "result.webp"
     picture.parent.mkdir(parents=True)
@@ -323,7 +323,7 @@ def test_type_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_left_a
     assert counted is not None
     colours = {colour for _, colour in counted}
     # The foot shade alone never reaches the outline tone over white, so finding it means the
-    # letters carry their own outline, and white beside it means their fill survived it.
+    # letters have their own outline, and white beside it means their fill survived it.
     assert OVERLAY_OUTLINE in colours
     assert (255, 255, 255) in colours
     assert card.getpixel((width // 2, height // 4)) == (255, 255, 255)

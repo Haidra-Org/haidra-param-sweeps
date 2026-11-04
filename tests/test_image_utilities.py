@@ -40,14 +40,14 @@ AVAILABLE_REPORT = [
 
 
 class ScriptedService(requests.adapters.BaseAdapter):
-    """Answers the backend from a script, so the whole exchange runs without a service.
+    """Responds to the backend from a script, so the whole exchange runs without a service.
 
     Mounted on a real session and handed to a real backend, which is what makes this a test of the
     transport rather than of a stand-in for it.
     """
 
     def __init__(self, *, annotate_status: int = 200, annotate_body: dict[str, Any] | None = None) -> None:
-        """Script the answers the backend can ask for."""
+        """Script the responses to the requests that the backend can make."""
         self.annotate_status = annotate_status
         self.annotate_body = annotate_body
         self.annotate_bodies: list[bytes] = []
@@ -169,7 +169,7 @@ def test_a_refused_detection_is_published_as_the_reason_the_service_gave(status_
 
 
 def test_a_form_that_is_not_a_control_map_is_left_to_the_backends_that_serve_it() -> None:
-    """Assert an upscaler asked of the control-map service is a gap rather than an approximation."""
+    """Assert an upscaler requested from the control-map service is a gap rather than an approximation."""
     backend = _backend(ScriptedService())
     backend.prepare()
 
@@ -181,7 +181,7 @@ def test_a_form_that_is_not_a_control_map_is_left_to_the_backends_that_serve_it(
 
 
 def test_a_service_that_cannot_be_reached_ends_the_run_rather_than_publishing_a_gap() -> None:
-    """Assert an unreachable service is an error, because it says nothing about what it serves.
+    """Assert an unreachable service is an error, because it does not show what it serves.
 
     Publishing that as a gap would put a claim about the horde's control maps into the manifest
     that only this machine's network supports.

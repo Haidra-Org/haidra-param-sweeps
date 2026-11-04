@@ -6,11 +6,11 @@
 Every image is written as a quality-tuned WebP with a JSON sidecar beside it recording the
 exact parameters, model, seed, runner and timestamps that produced it. The index collects the
 whole library into one file: a consumer that has ``index.json`` needs nothing else to draw a
-scrubber strip, because each strip carries what it holds and what varies, and each stop carries
+scrubber strip, because each strip states what it holds and what varies, and each stop has
 its value, caption and filename.
 
 Both on-disk shapes are declared as models rather than assembled as mappings, so the contract
-this tool offers its consumers is stated in one place and checked when it is written.
+that this tool offers its consumers is stated in one place and checked when it is written.
 
 Critical public members:
 
@@ -60,7 +60,7 @@ INDEX_FILENAME = "index.json"
 """The name of the top-level index, at the root of the output tree."""
 
 INDEX_SCHEMA_VERSION = 1
-"""The index layout consumers can expect."""
+"""The index layout that consumers can expect."""
 
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=())
 
@@ -79,8 +79,8 @@ class WebpEncoding:
     CROP_QUALITY = 98
     """What a hundred-percent crop is encoded at.
 
-    A crop exists to be read at its own pixels, so the encoder is given far less room to decide
-    what counts as texture than it has on a frame nobody is looking that closely at. The crops
+    A crop exists to be read at its own pixels, so the encoder is allowed far less room to decide
+    what counts as texture than on a frame that nobody is looking at that closely. The crops
     are a small part of the library by area, so the higher quality costs little.
     """
 
@@ -141,7 +141,7 @@ class IndexStop(BaseModel):
 
     The stop's own resolved parameters are deliberately not repeated here: the strip states
     what it holds and what varies, and the value is what a caption is written against. The full
-    set is a sidecar away for anyone who wants it, and carrying it per stop trebled the index.
+    set is a sidecar away for anyone who wants it, and including it per stop trebled the index.
     """
 
     model_config = FROZEN_MODEL_CONFIG
@@ -154,9 +154,9 @@ class IndexStop(BaseModel):
     width: int
     """The published frame's width in pixels, read from the file itself.
 
-    A consumer that knows the size can say what it is showing and can reserve the space before
-    the picture arrives. It is read rather than taken from the request, because a backend can
-    hand back a frame at a size nobody asked for and the file is what a reader is looking at.
+    A consumer that has the size can state what it is showing and can reserve the space before
+    the picture arrives. It is read from the file rather than taken from the request, because a
+    backend can return a frame at a size that was not requested, and the file is what a reader sees.
     """
 
     height: int
@@ -185,9 +185,9 @@ class IndexStop(BaseModel):
     control_map: str | None = None
     """The map the detector drew, relative to this index, or None when none was published.
 
-    None on a stop that has a control type is the honest report of a detector that would not
-    draw: the render is still here, guided by whatever the backend derived internally, and the
-    missing map is the thing a consumer says out loud rather than hides.
+    None on a stop that has a control type means that the detector would not draw a map. The
+    render is still present, guided by whatever the backend derived internally, and a consumer
+    should report the missing map rather than hide it.
     """
 
     crop: PublishedCrop | None = None
@@ -200,8 +200,8 @@ class IndexStop(BaseModel):
     """A copy of this frame bounded to a page-sized long edge, or None where the frame is already
     within it.
 
-    A consumer drawing the strip fetches this and leaves the full frame to the reader who asks
-    for it, which is the difference between a strip that loads and one that does not.
+    A consumer drawing the strip fetches this and leaves the full frame to the reader who requests
+    it, which is the difference between a strip that loads and one that does not.
     """
 
 
@@ -225,7 +225,7 @@ class IndexGrid(BaseModel):
 
 
 class IndexPreview(BaseModel):
-    """Represents the two stops a strip's collapsed card puts either side of the wipe handle."""
+    """Represents the two stops that a strip's collapsed card puts either side of the wipe handle."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -260,8 +260,8 @@ class IndexStrip(BaseModel):
     source_width: int | None = None
     """The source image's width in pixels, or None when the strip starts from noise.
 
-    Read from the published copy, which is what makes an image-to-image strip able to say that
-    its stops are four times the size of what they started from.
+    Read from the published copy, which lets an image-to-image strip state that its stops are
+    four times the size of what they started from.
     """
 
     source_height: int | None = None
@@ -279,7 +279,7 @@ class IndexStrip(BaseModel):
     """The map the detector drew from the strip's source, on strips held to one control type.
 
     None when none is published, which covers a strip that changes detector from stop to stop as
-    well as one no detector has been run for yet.
+    well as a strip for which no detector has been run yet.
     """
 
     grid: IndexGrid | None = None
@@ -320,8 +320,8 @@ def save_render(
 ) -> list[Path]:
     """Write every candidate a job rendered as WebP with its JSON sidecar, and return their paths.
 
-    A job that renders once writes one file under the plain stem it always had. A curation batch
-    writes every candidate it was given, each with its own sidecar saying which candidate it is
+    A job that renders once writes one file under the plain stem that it always had. A curation
+    batch writes every candidate that it was given, each with its own sidecar saying which candidate it is
     and whether it is the one the index publishes, so the choice a human makes later is a change
     to one field in the specification rather than a re-render.
 
@@ -491,7 +491,7 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
     """Copy each image-to-image sweep's source into the output tree, and return what was written.
 
     The library has to be self-contained: a consumer showing an image-to-image strip needs the
-    image it started from, and cannot be expected to reach back into this tool's inputs for it.
+    image that it started from, and cannot be expected to reach back into this tool's inputs.
 
     Args:
         spec: The specification the library was rendered from.
@@ -516,9 +516,9 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
 
         source = TOOL_ROOT / strip.source_image
         if not source.exists():
-            # A dependent job's source is staged only after the render it names
+            # A dependent job's source is staged only after the render that it names
             # exists, so an unstaged source is an incomplete strip rather than
-            # an error: the strip already reports itself incomplete through its
+            # an error. The strip already reports itself incomplete through its
             # missing stops, and the source follows on the next run.
             logger.info("Source not yet staged, skipping publish: %s", strip.source_image)
             continue
@@ -544,13 +544,13 @@ def published_crop(*, file: str, root: Path, region: CropRegion, frame_relative_
     """Return the record of a crop on disk, or None when the crop or its frame is not there.
 
     Read from the files rather than computed from the specification alone, so what the index and
-    the manifest report is the crop that exists rather than the one a run meant to write.
+    the manifest report is the crop that exists rather than the one that a run intended to write.
 
     Args:
         file: How the index or manifest names the crop, relative to itself.
         root: What both paths are relative to.
         region: The region the crop was cut from.
-        frame_relative_path: The frame it was cut from, whose pixels the box is stated in.
+        frame_relative_path: The frame that it was cut from, in whose pixels the box is stated.
 
     Returns:
         The record, or None when either file is missing.
@@ -616,8 +616,8 @@ def _varying_field_names(strip: RenderStrip) -> list[str]:
 
     Features are named here alongside the parameters because the two are one question for a
     consumer: what is this strip changing from stop to stop. A QR strip that sweeps its
-    ControlNet's strength changes a feature and nothing else, and would otherwise report that it
-    varies nothing at all.
+    ControlNet's strength changes only a feature, and would otherwise report that nothing
+    varies at all.
     """
     if not strip.jobs:
         return []
@@ -650,7 +650,7 @@ def _index_features(strip: RenderStrip) -> JobFeatures | None:
     """Return the features the strip holds across every stop, or None when it turns none on.
 
     A feature the strip varies is reported at its default here rather than at the first stop's
-    value, and its name is in ``varying`` instead: this block is what a consumer labels "held at",
+    value, and its name is in ``varying`` instead. This block is what a consumer labels "held at",
     so a strip that sweeps a ControlNet's strength must not appear to hold it at its lowest. The
     per-stop truth stays in the sidecars, as it does for the parameters.
     """
@@ -693,7 +693,7 @@ def _index_preview(*, strip: RenderStrip, stops: Sequence[IndexStop]) -> IndexPr
     """Return the pair of stops the strip's collapsed card previews, or None where it has no pair.
 
     Resolved against the stops that were actually published rather than the ladder the
-    specification declares, so a strip missing an image still names two pictures that exist.
+    specification declares, so a strip missing an image still refers to two pictures that exist.
     """
     if strip.presentation not in PREVIEWABLE_PRESENTATIONS:
         return None

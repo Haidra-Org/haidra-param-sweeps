@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """The sampler cost measurement: its fit, its schedule pairings and the artifact it writes.
 
-Nothing here renders. The measurement's whole value is that the numbers it reports can be traced,
-so the arithmetic, the pairing rules and the shape of the artifact are checked against stated
-inputs rather than against whatever a GPU happened to do.
+These tests do not render anything. The measurement is only useful if the numbers that it reports
+can be traced, so the arithmetic, the pairing rules and the shape of the artifact are checked
+against stated inputs rather than against whatever a GPU happened to do.
 """
 
 from __future__ import annotations
@@ -287,7 +287,7 @@ class TestReportArtifact:
     """The report as it is written to disk, and what a reader of that file can rely on finding in it."""
 
     def test_the_written_artifact_carries_its_schema_version_and_reloads(self, tmp_path: Path) -> None:
-        """Assert a written report lands under measurements/, states its schema version and round-trips."""
+        """Assert a written report is written under measurements/, states its schema version and round-trips."""
         report = _report()
 
         report_path = write_report(report=report, output_root=tmp_path)
@@ -318,7 +318,7 @@ class TestReportArtifact:
 
 
 def _report() -> SamplerCostReport:
-    """Return a report built from stated timings, with one honest discrepancy in it."""
+    """Return a report built from stated timings, with one discrepancy in it."""
     pairings = derive_pairings(samplers=["k_euler", "k_heun"], baseline=SD15_BASELINE, policy=POLICY)
     records = build_records(
         timings={

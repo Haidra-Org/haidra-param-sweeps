@@ -4,16 +4,16 @@
 """Draw the control maps through horde-image-utilities, the service an alchemist worker runs.
 
 The control maps are not horde-engine's and are not the public API's. A worker that serves the
-``annotation`` form runs horde-image-utilities beside itself as its own process, and asking that
-service is the only way to publish a detector's output without approximating it with something
-else that happens to be installed. This module is the transport and the backend for that: one
-``POST /annotators/{control_type}`` per detector, with the source as a file upload.
+``annotation`` form runs horde-image-utilities beside itself as its own process, and requesting
+maps from that service is the only way to publish a detector's output without approximating it
+with something else that happens to be installed. This module is the transport and the backend
+for that: one ``POST /annotators/{control_type}`` per detector, with the source as a file upload.
 
-The service says out loud what it can do, so the published gaps are its words rather than this
+The service reports what it can do, so the published gaps are its own messages rather than this
 tool's guesses. ``GET /annotators`` reports every registered detector's runtime, whether its
-dependencies import, and whether its weights are on disk; a detector it will not run answers the
-annotate call with a status and a ``detail`` sentence. Both go into the manifest as the reason a
-control map is missing.
+dependencies import, and whether its weights are on disk. For a detector that it will not run,
+the annotate call returns a status and a ``detail`` sentence. Both go into the manifest as the
+reason a control map is missing.
 
 A detector's first call can be slow: weights are fetched on demand, and the segmentation and depth
 models are large. The annotate timeout is sized for that rather than for a warm call.
@@ -44,7 +44,7 @@ from param_sweeps.alchemy import AlchemyBackend, AlchemyOutcome
 logger = logging.getLogger(__name__)
 
 DEFAULT_SERVICE_URL = "http://127.0.0.1:7860"
-"""Where horde-image-utilities listens when nothing says otherwise."""
+"""Where horde-image-utilities listens when nothing else is configured."""
 
 SERVICE_URL_ENVIRONMENT_VARIABLE = "PARAM_SWEEPS_HIU_URL"
 """Environment variable naming the horde-image-utilities service to draw the control maps on."""
@@ -61,7 +61,7 @@ DETECTION_RESOLUTION_CEILING = 1024
 
 
 class ImageUtilitiesPacing:
-    """How long the service is given to answer."""
+    """How long the service is given to respond."""
 
     REQUEST_TIMEOUT_SECONDS = 30.0
     """For the calls that only read what the service already knows."""
@@ -99,16 +99,16 @@ def resolve_service_url(*, requested: str | None) -> str:
 
 
 class HordeImageUtilitiesBackend(AlchemyBackend):
-    """Draws control maps by asking a horde-image-utilities service, and publishes what it drew.
+    """Draws control maps by requesting them from a horde-image-utilities service, and publishes the result.
 
-    This backend answers the ``annotation`` form and nothing else. Every other form is served by
+    This backend handles only the ``annotation`` form. Every other form is served by
     horde-engine or by the live horde, and is reported unavailable here rather than approximated.
 
     Network Behavior:
         ``prepare`` reads the detector report once, and the version if the service states one. Each
-        form is one ``POST /annotators/{control_type}`` carrying the source as a file upload. A
-        status the service explains is published as a gap carrying its explanation; a transport
-        failure is raised, because a dropped connection says nothing about what the service serves.
+        form is one ``POST /annotators/{control_type}`` with the source as a file upload. A
+        status that the service explains is published as a gap with its explanation. A transport
+        failure is raised, because a dropped connection does not show what the service serves.
 
     Thread Safety:
         Not thread-safe: the detector report is per-backend state, written once in ``prepare``.
@@ -143,7 +143,7 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
     @property
     @override
     def service_version(self) -> str | None:
-        """Return the version the service reports, or None when it was not asked or did not say."""
+        """Return the version the service reports, or None when it was not requested or not reported."""
         return self._service_version
 
     @override
@@ -152,7 +152,7 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
 
         Raises:
             RuntimeError: If the service cannot be reached or will not report its detectors. It
-                holds every control map, so a run that cannot ask it has nothing to publish.
+                holds every control map, so a run that cannot query it has no control maps to publish.
         """
         try:
             response = self._session.get(
@@ -182,8 +182,8 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
 
         The version is only stated in the OpenAPI document, and it is worth having in the sidecar
         because a control map is the output of a particular build of a particular detector. It is
-        not worth failing a run over, so a service that will not serve the document is recorded as
-        having stated no version rather than as being unusable.
+        not worth failing a run over, so a service that does not serve the document is recorded as
+        not having stated a version rather than as being unusable.
         """
         try:
             response = self._session.get(
@@ -202,7 +202,7 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
 
     @override
     def apply(self, *, form: str, control_type: str | None, source_image: Image.Image) -> AlchemyOutcome:
-        """Draw one control map, and say what came of it.
+        """Draw one control map, and return the outcome.
 
         Raises:
             RuntimeError: If the service could not be reached at all.
@@ -245,10 +245,10 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
         return None
 
     def _annotated(self, *, control_type: str, source_image: Image.Image) -> requests.Response:
-        """Return the service's answer for one detection, whatever that answer is.
+        """Return the service's response for one detection, whatever that response is.
 
         Raises:
-            RuntimeError: On any transport failure, which says nothing about what the service
+            RuntimeError: On any transport failure, which does not show what the service
                 serves and so is not published as a gap.
         """
         upload = io.BytesIO()
@@ -276,18 +276,19 @@ class HordeImageUtilitiesBackend(AlchemyBackend):
 def _detection_resolution(source_image: Image.Image) -> int:
     """Return the resolution to detect at: the source's longer side, up to the ceiling.
 
-    Detecting above the source's own size invents detail the picture does not carry, and the
-    service caps what it accepts, so the ask is bounded on both sides.
+    Detecting above the source's own size invents detail that the picture does not contain, and
+    the service caps the resolution it accepts, so the requested resolution is bounded on both
+    sides.
     """
     return min(max(source_image.width, source_image.height), DETECTION_RESOLUTION_CEILING)
 
 
 def _stated_detail(*, response: requests.Response, control_type: str) -> str:
-    """Return, in one sentence, what the service said about a detection it would not do.
+    """Return, in one sentence, the service's message about a detection that it would not run.
 
-    The service answers a missing weight, an unimplemented detector and a full queue with its own
-    ``detail`` sentence, which is the most useful thing the published evidence can say about the
-    gap, so it is kept verbatim rather than summarised.
+    For a missing weight, an unimplemented detector or a full queue, the service responds with its
+    own ``detail`` sentence, which is the most useful thing the published evidence can say about
+    the gap, so it is kept verbatim rather than summarised.
     """
     try:
         body: Any = response.json()

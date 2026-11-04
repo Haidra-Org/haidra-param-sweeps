@@ -3,18 +3,18 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Drive a campaign: filter the specification, render what is missing, keep the index current.
 
-The driver is the only place that knows about resumption and file layout. It asks the runner
-for a fetch plan and prints it before anything is generated, skips every job the checkpoint
-already accounts for, and writes the checkpoint and the index as it goes, so the tree on disk
-is a usable library at every point during a long run rather than only at the end.
+Only the driver handles resumption and file layout. It requests a fetch plan from the runner
+and prints it before anything is generated, skips every job that the checkpoint already
+accounts for, and writes the checkpoint and the index as it goes, so the tree on disk is a
+usable library at every point during a long run rather than only at the end.
 
 Critical public members:
 
 - [`run_campaign`][param_sweeps.campaign.run_campaign]: render a (possibly filtered) campaign.
 - [`JobFilter`][param_sweeps.campaign.JobFilter]: which subset of the specification to run.
 - [`format_fetch_plan`][param_sweeps.campaign.format_fetch_plan]: the pre-run report's text.
-- [`stage_dependent_source`][param_sweeps.campaign.stage_dependent_source]: put the render a
-  dependent job starts from where that job says it will be.
+- [`stage_dependent_source`][param_sweeps.campaign.stage_dependent_source]: put the render that a
+  dependent job starts from at the path that the job names.
 """
 
 from __future__ import annotations
@@ -136,9 +136,9 @@ def image_count(jobs: Sequence[RenderJob]) -> int:
 
 
 def stage_dependent_source(*, job: RenderJob, spec: SweepSpec, output_root: Path) -> Path | None:
-    """Copy the render a dependent job starts from into the input path it names, and return it.
+    """Copy the render that a dependent job starts from into the input path that it names, and return it.
 
-    A few jobs cannot render from noise: the ControlNet triptych conditions on a render an
+    A few jobs cannot render from noise: the ControlNet triptych conditions on a render that an
     earlier job in the same batch produced. Rather than teaching the runners about the output
     tree, the dependent job names an ordinary input path and this stages the producing job's
     chosen image into it just before the render, which keeps a single ``local`` run able to
@@ -246,7 +246,7 @@ def run_campaign(
                 stage_dependent_source(job=job, spec=spec, output_root=output_root)
                 outcome = runner.render(job)
             except RuntimeError as render_error:
-                # One unlucky job should not end a campaign that resumes cleanly; the failure is
+                # One unlucky job should not end a campaign that resumes cleanly. The failure is
                 # reported at the end and the checkpoint leaves the job pending for the next run.
                 logger.error("Render failed: job=%s error=%s", job.relative_image_path, render_error)
                 failed_jobs.append(job.relative_image_path)
