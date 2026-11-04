@@ -5,9 +5,9 @@
 
 The API runner exists so the library can be produced without a local GPU, and so a strip can be
 re-rendered from anywhere. The queueing, polling, retrying and downloading all live in
-[`HordeApiClient`][param_sweeps.horde_client.HordeApiClient], which the tutorial flows share; what
-is left here is the one thing that is specific to sweeps, which is turning a
-[`RenderJob`][param_sweeps.spec.RenderJob] into a request body.
+[`HordeApiClient`][param_sweeps.horde_client.HordeApiClient], which the tutorial flows also use.
+This module only turns a [`RenderJob`][param_sweeps.spec.RenderJob] into a request body, which is
+the part that is specific to sweeps.
 
 The API key is read from the environment or a ``.env`` file, and is never
 printed, logged, or written to any output.
@@ -63,7 +63,7 @@ __all__ = [
 ]
 
 IMG2IMG_SOURCE_PROCESSING = "img2img"
-"""What the API calls starting from a source image rather than from noise."""
+"""The API's name for starting from a source image instead of from noise."""
 
 RECENTLY_ADDED_PARAMETERS: tuple[str, ...] = (
     "scheduler",
@@ -74,14 +74,14 @@ RECENTLY_ADDED_PARAMETERS: tuple[str, ...] = (
     "sampler_order",
     "flow_shift",
 )
-"""Parameters that a deployed API may not accept yet, which a job is allowed to request anyway.
+"""Parameters that a deployed API may not accept yet. A job can still request them.
 
 The public API validates its request body strictly and refuses the whole request over a field
-that it does not recognize, so a job that sets one of these fails as a job rather than rendering
+that it does not recognize, so a job that sets one of these fails as a job instead of rendering
 something different without notice. That is the intended failure, but it should be reported
-before a campaign spends its queue time on it, which is the purpose of
+before a campaign spends its queue time on it.
 [`unsupported_parameters_in`][param_sweeps.horde_runner.unsupported_parameters_in] and the
-preflight warning. Rendering these strips locally needs no server support at all.
+preflight warning report it. Rendering these strips locally does not need server support.
 """
 
 
@@ -89,22 +89,22 @@ SILENTLY_IGNORED_FEATURES: tuple[str, ...] = ()
 """Features that do not have a field in the public API's request payload, so a request cannot include them.
 
 This is the worse failure of the two. A parameter that the API refuses fails the job and reports
-the failure. A feature without a field is dropped on the way in, and the render is produced with
-whatever the backend's own graph does. A strip that swept such a feature would publish the same
-image at every stop, so the runner reports this before it queues anything and the strip is
-rendered locally instead. The tuple is empty at present: ``control_strength`` was listed until
-the API added a field for it, and it now reaches the request body like any other per-job feature.
+the failure. A feature without a field is dropped by the API, and the render uses the backend's
+own defaults. A strip that swept such a feature would publish the same image at every stop, so
+the runner reports this before it queues anything, and the strip is rendered locally instead.
+The tuple is empty when every feature has a field. ``control_strength`` has a field and is sent
+in the request body like any other per-job feature.
 """
 
 
 def unsupported_parameters_in(job: RenderJob) -> list[str]:
-    """Return the recently added parameters this job sets, which a deployed API may refuse."""
+    """Return the recently added parameters that this job sets, which a deployed API may refuse."""
     stated = job.solver_parameters()
     return [name for name in RECENTLY_ADDED_PARAMETERS if stated.get(name) is not None]
 
 
 def silently_ignored_features_in(job: RenderJob) -> list[str]:
-    """Return the features this job sets that the public API's payload cannot include."""
+    """Return the features set by this job that the public API's payload cannot include."""
     stated = job.features().model_dump()
     return [name for name in SILENTLY_IGNORED_FEATURES if stated.get(name) is not None]
 
@@ -122,7 +122,7 @@ class HordeGenerationParams(BaseModel):
     """Represents the ``params`` object of an image generation request.
 
     Every feature field is left unset unless the job turns it on, and the request body is dumped
-    without its unset fields, so a plain job's payload is exactly the payload it always was.
+    without its unset fields, so a job without features sends only the base fields.
     """
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
@@ -163,8 +163,8 @@ class HordeGenerationParams(BaseModel):
 class HordeGenerationRequest(BaseModel):
     """Represents the body of a ``POST /generate/async`` request.
 
-    The API takes the negative prompt as a ``###``-separated suffix of the prompt rather than
-    as a field of its own, which is the one place a job's parameters are not passed through
+    The API takes the negative prompt as a ``###``-separated suffix of the prompt instead of as
+    its own field. This is the only place where a job's parameters are not passed through
     unchanged.
     """
 
@@ -188,7 +188,7 @@ class HordeGenerationRequest(BaseModel):
         """Create a request body from a render job.
 
         Raises:
-            RuntimeError: If the job names an input image that is not where it says it is.
+            RuntimeError: If an input image named by the job does not exist.
         """
         source_image = _encoded_image(
             job.source_image_path, description=f"the source image for {job.relative_image_path}"
@@ -237,7 +237,7 @@ class HordeGenerationRequest(BaseModel):
         )
 
     def as_request_body(self) -> dict[str, Any]:
-        """Return the body to post, with every field the job did not state left out."""
+        """Return the body to post, without the fields that the job did not set."""
         return self.model_dump(exclude_none=True)
 
 
@@ -254,7 +254,7 @@ def _encoded_image(image_path: Path | None, *, description: str) -> str | None:
     """Return an input image as bare base64, or None when there is no image.
 
     Raises:
-        RuntimeError: If the path names a file that is not there.
+        RuntimeError: If the file does not exist.
     """
     if image_path is None:
         return None
@@ -266,10 +266,10 @@ def _encoded_image(image_path: Path | None, *, description: str) -> str | None:
 
 
 def _encoded_extra_source_images(job: RenderJob) -> list[HordeExtraSourceImage] | None:
-    """Return this job's additional inputs, encoded, or None when it declares none.
+    """Return this job's additional inputs, encoded, or None when it does not declare any.
 
     Raises:
-        RuntimeError: If an input names a file that is not there.
+        RuntimeError: If an input file does not exist.
     """
     if not job.extra_source_images:
         return None
@@ -307,8 +307,8 @@ class HordeApiRunner(SweepRunner):
 
         Args:
             api_key: The AI Horde API key. Held only in the session header.
-            api_base_url: The API root to talk to.
-            session: An existing session to use, which is how the tests substitute a transport.
+            api_base_url: The API root to use.
+            session: An existing session to use. The tests use it to substitute a transport.
         """
         self._client = HordeApiClient(api_key=api_key, api_base_url=api_base_url, session=session)
 
@@ -323,9 +323,8 @@ class HordeApiRunner(SweepRunner):
         for job in jobs:
             image_counts[job.model_slug] = image_counts.get(job.model_slug, 0) + job.batch_size
 
-        # Nothing is downloaded locally, and whether any worker currently serves a model is a
-        # question about the horde's live state rather than about this machine, so presence is
-        # reported as unknown rather than implied.
+        # Nothing is downloaded locally. Whether a worker currently serves a model depends on the
+        # horde's live state, not on this machine, so presence is reported as unknown.
         return [
             FetchPlanEntry(
                 model_name=image_model.horde_name,
@@ -341,17 +340,17 @@ class HordeApiRunner(SweepRunner):
         jobs_with_new_parameters = {parameter for job in jobs for parameter in unsupported_parameters_in(job)}
         if jobs_with_new_parameters:
             logger.warning(
-                "These strips ask for parameters a deployed API may not accept yet, and those jobs will"
-                " be reported as failures if it refuses them; the local runner needs no server support:"
-                " parameters=%s",
+                "These strips set parameters that a deployed API may not accept yet. Those jobs are"
+                " reported as failed if the API refuses them. The local runner does not need server"
+                " support: parameters=%s",
                 ", ".join(sorted(jobs_with_new_parameters)),
             )
 
         ignored_features = {feature for job in jobs for feature in silently_ignored_features_in(job)}
         if ignored_features:
             logger.warning(
-                "These strips set features this API has no field for, so the renders will come back at the"
-                " backend's own defaults rather than at what was asked for; render them locally instead:"
+                "These strips set features that do not have a field in this API, so the renders use the"
+                " backend's defaults instead of the requested values. Render them locally instead:"
                 " features=%s",
                 ", ".join(sorted(ignored_features)),
             )
@@ -378,13 +377,13 @@ class HordeApiRunner(SweepRunner):
                 expected_image_count=job.batch_size,
             )
         except RuntimeError as generate_error:
-            # A refusal reads as an opaque request failure, so the parameters that most likely
-            # caused it are named here rather than left for someone to guess at from a 400.
+            # A refusal looks like an opaque request failure, so the error names the parameters
+            # that most likely caused it instead of leaving only a 400 to go on.
             recently_added = unsupported_parameters_in(job)
             if not recently_added:
                 raise
             raise RuntimeError(
-                f"{generate_error}; this job asks for {', '.join(recently_added)}, which this API may not accept yet",
+                f"{generate_error}; this job sets {', '.join(recently_added)}, which this API may not accept yet",
             ) from generate_error
 
         model_used = completed.model_generated_with or job.horde_model_name

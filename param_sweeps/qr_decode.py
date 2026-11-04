@@ -1,26 +1,26 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Decode the QR codes this tool renders, and check that every published one still scans.
+"""Decode the QR codes that this tool renders, and check that every published one still scans.
 
-A QR render is the one image in the library whose correctness is not a matter of taste: either a
-scanner reads the payload back out of it or the picture is decoration. So the check is a real
-decode through ``zbar`` rather than a contrast heuristic, run against the image exactly as it is
-published: the same pixels a reader points a phone at, with no upscaling, sharpening or repeated
-attempts at different scales. A gate that preprocesses until something reads is measuring the
-preprocessing.
+A QR render is the one image in the library whose correctness is not a matter of taste. Either a
+scanner reads the payload from it, or the picture is only decoration. The check is therefore a
+real decode through ``zbar`` rather than a contrast heuristic, run against the image exactly as
+it is published: the same pixels that a reader scans with a phone, without upscaling, sharpening
+or repeated attempts at different scales. A check that preprocesses the image until it decodes
+only tests the preprocessing.
 
-The gate is applied in two places. A single-image render is decoded as it comes off the runner and
-the job fails if it does not scan, so a code that cannot be read is never written into the library.
-A curation batch is not failed that way, because the point of rendering candidates is that a human
-picks one afterwards. Every candidate's decode is reported instead, and
-[`check_library`][param_sweeps.qr_decode.check_library] is the gate over what was actually
-published, run from ``param-sweeps qr-check`` once the picks are in.
+The check runs in two places. A single-image render is decoded when the runner returns it, and
+the job fails if it does not scan, so an unreadable code is not written into the library. A
+curation batch is not failed that way, because a human picks one of its candidates afterwards.
+Every candidate's decode is reported instead, and
+[`check_library`][param_sweeps.qr_decode.check_library] checks what was published. It runs from
+``param-sweeps qr-check`` once the picks are made.
 
 Critical public members:
 
 - [`decode_qr`][param_sweeps.qr_decode.decode_qr]: the decode itself, text or None.
-- [`payload_in`][param_sweeps.qr_decode.payload_in]: the payload an ``extra_texts`` list encodes.
+- [`payload_in`][param_sweeps.qr_decode.payload_in]: the payload in an ``extra_texts`` list.
 - [`decode_candidates`][param_sweeps.qr_decode.decode_candidates]: what a job's renders decoded to.
 - [`check_library`][param_sweeps.qr_decode.check_library]: decode every published QR image.
 """
@@ -51,7 +51,7 @@ FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespac
 
 
 class QrCheck(BaseModel):
-    """Represents one published image put to a scanner, and what came back."""
+    """Represents one published image and the scanner's result for it."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -62,7 +62,7 @@ class QrCheck(BaseModel):
     """The payload that the request specified for encoding."""
 
     decoded: str | None
-    """What the scanner read, or None when it read nothing at all."""
+    """What the scanner read, or None when it did not read anything."""
 
     @property
     def scans(self) -> bool:
@@ -71,7 +71,7 @@ class QrCheck(BaseModel):
 
 
 class QrReport(BaseModel):
-    """Represents every published QR image that was checked, and how it did."""
+    """Represents every published QR image that was checked, and the results."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -89,7 +89,7 @@ class QrReport(BaseModel):
 
 
 def decode_qr(image: Image.Image) -> str | None:
-    """Return the text a scanner reads out of this image, or None when it reads nothing.
+    """Return the text that a scanner reads from this image, or None.
 
     Args:
         image: The image to scan, at its published size.
@@ -105,18 +105,18 @@ def decode_qr(image: Image.Image) -> str | None:
     try:
         return str(symbols[0].data.decode("utf-8"))
     except UnicodeDecodeError:
-        logger.warning("A QR symbol decoded to bytes that are not UTF-8, which no payload here is")
+        logger.warning("A QR symbol decoded to bytes that are not UTF-8, and every payload here is UTF-8 text")
         return None
 
 
 def decode_image_file(image_path: Path) -> str | None:
-    """Return what a scanner reads out of the image at this path, or None."""
+    """Return what a scanner reads from the image at this path, or None."""
     with Image.open(image_path) as opened:
         return decode_qr(opened)
 
 
 def payload_in(extra_texts: Iterable[ExtraText]) -> str | None:
-    """Return the payload that these extra texts specify for the QR workflow to encode, or None when none do."""
+    """Return the payload that these extra texts specify for the QR workflow to encode, or None."""
     for extra_text in extra_texts:
         if extra_text.reference in QR_TEXT_REFERENCES:
             return extra_text.text
@@ -128,11 +128,11 @@ def decode_candidates(*, job: RenderJob, images: Sequence[Image.Image]) -> list[
 
     Args:
         job: The job that produced them.
-        images: Its candidates, in the order the backend produced them.
+        images: Its candidates, in the backend's order.
 
     Returns:
         One entry per candidate: the decoded text, or None. An empty list when the job is not a
-        QR render at all, so a caller can treat "nothing to check" and "nothing passed" apart.
+        QR render, so a caller can tell "nothing to check" apart from "nothing passed".
     """
     if job.workflow is not WorkflowName.QR_CODE:
         return []
@@ -143,17 +143,16 @@ def decode_candidates(*, job: RenderJob, images: Sequence[Image.Image]) -> list[
 def failed_gate_reason(*, job: RenderJob, images: Sequence[Image.Image]) -> str | None:
     """Return why this render must not be published, or None when it may be.
 
-    A single-image QR render is gated: it is published as it is, so a code that does not scan is
-    a failed render rather than a picture worth keeping. A curation batch is never gated here,
-    because which of its candidates is published is a decision that a human has not made yet.
-    Its decodes are logged so that decision can be an informed one.
+    A single-image QR render is checked here because it is published as it is, so a code that
+    does not scan is a failed render. A curation batch is not checked here, because a human has
+    not yet chosen which candidate to publish. Its decodes are logged to inform that choice.
 
     Args:
         job: The job that was rendered.
-        images: What the runner returned for it.
+        images: The images that the runner returned for it.
 
     Returns:
-        A one-line reason the campaign can report, or None when the render passes.
+        A one-line reason that the campaign can report, or None when the render passes.
     """
     decoded = decode_candidates(job=job, images=images)
     if not decoded:
@@ -179,13 +178,13 @@ def failed_gate_reason(*, job: RenderJob, images: Sequence[Image.Image]) -> str 
 
 
 def check_library(*, output_root: Path) -> QrReport:
-    """Decode every published QR image under this output root, and report what each read.
+    """Decode every published QR image under this output root, and report each result.
 
-    Both trees are covered, because both publish QR images that a reader will point a phone at:
-    the sweep library, whose sidecars state the request that each image came from, and the
-    tutorial flows, whose ``request.json`` does the same. The index and the manifest are what
-    "published" means here, so a candidate that a human passed over is not checked, and neither
-    is a stop that is not in the index.
+    Both trees are covered, because both publish QR images that a reader scans with a phone: the
+    sweep library, whose sidecars state each image's request, and the tutorial flows, whose
+    ``request.json`` does the same. Only images in the index and in the tutorial directories count
+    as published, so a candidate that a human did not pick is not checked, and neither is a stop
+    that is not in the index.
 
     Args:
         output_root: The root of the output tree.
@@ -197,7 +196,7 @@ def check_library(*, output_root: Path) -> QrReport:
 
 
 def _library_checks(output_root: Path) -> list[QrCheck]:
-    """Return a check for every QR image the sweep index publishes."""
+    """Return a check for every QR image published in the sweep index."""
     index_path = output_root / INDEX_FILENAME
     if not index_path.is_file():
         logger.info("No index to check QR images against: %s", index_path)
@@ -226,7 +225,7 @@ def _library_checks(output_root: Path) -> list[QrCheck]:
 
 
 def _tutorial_checks(output_root: Path) -> list[QrCheck]:
-    """Return a check for every QR image a tutorial flow published."""
+    """Return a check for every QR image that a tutorial flow published."""
     tutorials_root = output_root / TUTORIALS_DIRECTORY_NAME
     if not tutorials_root.is_dir():
         return []

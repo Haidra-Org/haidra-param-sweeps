@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Render sweep jobs on this machine's GPU through horde-engine (``hordelib``).
 
-This is the primary runner: it is the same inference stack that an AI Horde worker runs, so what
-it produces is what the horde produces. The GPU backend is always stated rather than guessed, and
+This is the primary runner. It is the same inference stack that an AI Horde worker runs, so its
+results match the horde's. The GPU backend is always stated rather than guessed, and
 model weights come from the standard ``AIWORKER_CACHE_HOME`` location, so an existing worker
 cache is reused instead of re-downloaded.
 
@@ -17,7 +17,7 @@ Critical public members:
 - [`LocalRunner`][param_sweeps.local_runner.LocalRunner]: the runner itself.
 - [`GpuBackend`][param_sweeps.local_runner.GpuBackend]: the compute backends that can be selected.
 - [`resolve_gpu_backend`][param_sweeps.local_runner.resolve_gpu_backend]: the flag/environment
-  resolution, with CUDA as the documented default for this machine.
+  resolution, with CUDA as the documented default.
 """
 
 from __future__ import annotations
@@ -41,11 +41,13 @@ GPU_BACKEND_ENVIRONMENT_VARIABLE = "PARAM_SWEEPS_GPU_BACKEND"
 """Environment variable naming the compute backend, when the flag is not given."""
 
 COMPVIS_MODEL_MANAGER = "compvis"
+"""The model manager for plain checkpoint image models."""
+
 MISCELLANEOUS_MODEL_MANAGER = "miscellaneous"
-"""The only model manager these sweeps need: plain checkpoint image models."""
+"""The model manager for the layer-diffusion weights that the ``transparent`` pipeline loads."""
 
 POST_PROCESSOR_MODEL_MANAGERS = ("gfpgan", "codeformer", "esrgan")
-"""The managers a post-processor is resolved against: face fixers and upscalers.
+"""The managers that resolve a post-processor's model: face fixers and upscalers.
 
 Post-processing looks up its model across these three and fails outright when none of them is
 loaded, so they are loaded up front. They hold only their references until a job names one of
@@ -53,11 +55,11 @@ their models, at which point the weights (tens of megabytes) are fetched on dema
 """
 
 IMG2IMG_SOURCE_PROCESSING = "img2img"
-"""What ``hordelib`` calls starting from a source image rather than from noise."""
+"""The ``hordelib`` name for starting from a source image instead of from noise."""
 
 
 class GpuBackend(StrEnum):
-    """The compute backends a local run can be pointed at.
+    """The compute backends that a local run can use.
 
     These mirror ``hordelib.utils.torch_memory.AcceleratorKind``. They are restated here so that
     the command line can be parsed, and an unsupported choice rejected, without importing torch.
@@ -78,7 +80,7 @@ DEFAULT_GPU_BACKEND = GpuBackend.CUDA
 
 
 class HordelibPayload(BaseModel):
-    """Represents one job in the payload shape ``hordelib`` accepts.
+    """Represents one job in the payload shape that ``hordelib`` accepts.
 
     ``hordelib`` takes a plain Horde-style payload mapping, so this model exists to build that
     mapping in one checked place rather than assembling a dictionary at the call site. Note the
@@ -140,10 +142,10 @@ class HordelibPayload(BaseModel):
 
         Args:
             job: The job to render.
-            source_image: The already-loaded image the job starts from, when it declares one.
+            source_image: The already-loaded image that the job starts from, when it declares one.
             source_mask: The already-loaded mask, when the job declares one.
             extra_source_images: The already-loaded additional inputs and their strengths, in the
-                order the job declares them.
+                job's order.
         """
         return cls(
             prompt=job.prompt,
@@ -160,8 +162,8 @@ class HordelibPayload(BaseModel):
             hires_fix=job.hires_fix,
             clip_skip=job.clip_skip,
             hires_fix_denoising_strength=job.hires_fix_denoising_strength,
-            # A named schedule is more specific than the karras flag and wins over it in hordelib.
-            # An unset schedule leaves the flag in effect, which is what every earlier sweep relied on.
+            # A named schedule is more specific than the karras flag and takes precedence in hordelib.
+            # An unset schedule leaves the karras flag in effect, which the sweeps without a schedule use.
             scheduler=str(job.scheduler) if job.scheduler is not None else None,
             sampler_eta=job.sampler_eta,
             sampler_s_noise=job.sampler_s_noise,
@@ -194,9 +196,9 @@ class HordelibPayload(BaseModel):
     def as_hordelib_mapping(self) -> dict[str, Any]:
         """Return the payload in the mapping form that ``hordelib`` accepts.
 
-        Keys whose value is None are dropped rather than passed through: ``hordelib`` reads the
-        presence of a key as the feature being requested in several places, so a payload that
-        states every feature as absent is not the same thing as one that never mentions them.
+        Keys whose value is None are dropped. In several places ``hordelib`` treats the presence
+        of a key as a request for the feature, so a payload that lists every feature as None is
+        not the same as one that omits them.
         """
         return {key: value for key, value in self.model_dump().items() if value is not None}
 
@@ -220,7 +222,7 @@ def resolve_gpu_backend(*, requested: str | None) -> GpuBackend:
         The selected backend.
 
     Raises:
-        ValueError: If a backend was named that this tool does not support.
+        ValueError: If the named backend is not supported by this tool.
     """
     candidate = requested if requested is not None else os.environ.get(GPU_BACKEND_ENVIRONMENT_VARIABLE)
     if candidate is None or not candidate.strip():
@@ -330,7 +332,7 @@ class LocalRunner(SweepRunner):
         result = self._horde.basic_inference_single_image(mapping)
         rendered_image: Image.Image | None = result.image
         if rendered_image is None:
-            raise RuntimeError(f"hordelib returned no image for {job.relative_image_path}")
+            raise RuntimeError(f"hordelib did not return an image for {job.relative_image_path}")
 
         fault_note = "; ".join(str(fault) for fault in result.faults) if result.faults else None
         return RenderOutcome(images=[rendered_image], model_name_used=job.horde_model_name, note=fault_note)
@@ -338,10 +340,10 @@ class LocalRunner(SweepRunner):
     def _render_post_processed(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render one image through the entry point that also applies the requested post-processors.
 
-        The single-image entry point runs only the sampler: only the multi-image call reads
+        The single-image entry point runs only the sampler. Only the multi-image call reads
         ``post_processing``. A face fixer or upscaler requested through the single-image call is
-        dropped without a warning, and the render is returned byte-identical to one that never
-        requested it. A post-processing comparison cannot tolerate that silent failure.
+        dropped without a warning, and the render is byte-identical to one without it. A
+        post-processing comparison cannot tolerate that silent failure.
 
         Raises:
             RuntimeError: If the backend did not return exactly one image.
@@ -363,8 +365,8 @@ class LocalRunner(SweepRunner):
     def _render_candidates(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render a curation batch through the multi-image entry point.
 
-        The single-image entry point is kept for the jobs that request one image, because it is
-        the call that the whole library was rendered with and there is no reason to change it.
+        The single-image entry point is kept for the jobs that request one image, because the
+        whole library was rendered with that call.
 
         Raises:
             RuntimeError: If the backend returned fewer images than the batch requested.
@@ -379,7 +381,7 @@ class LocalRunner(SweepRunner):
         rendered_images = [result.image for result in results if result.image is not None]
         if len(rendered_images) != job.batch_size:
             raise RuntimeError(
-                f"hordelib returned {len(rendered_images)} of the {job.batch_size} candidates asked for"
+                f"hordelib returned {len(rendered_images)} of the {job.batch_size} candidates requested"
                 f" for {job.relative_image_path}",
             )
 
@@ -390,11 +392,10 @@ class LocalRunner(SweepRunner):
     def _render_candidates_one_by_one(self, job: RenderJob, mapping: dict[str, Any]) -> RenderOutcome:
         """Render a curation batch as separate single calls, stepping the seed per candidate.
 
-        Workflow pipelines (the QR overlay among them) generate one image per request whatever
-        ``n_iter`` is set to, the same way the horde itself refuses to batch them. Separate calls
-        with the same seed would be the same picture eight times, so each candidate takes the job's
-        seed plus its zero-based index, and the sidecars record the seed that each candidate
-        actually used.
+        Workflow pipelines (including the QR overlay) generate one image per request whatever the
+        ``n_iter`` value, and the horde also refuses to batch them. Separate calls with the same
+        seed would produce the same picture for every candidate, so each candidate uses the job's
+        seed plus its zero-based index, and the sidecars record each candidate's seed.
         """
         if self._horde is None:
             raise RuntimeError("prepare() must be called before render()")
@@ -408,7 +409,7 @@ class LocalRunner(SweepRunner):
             result = self._horde.basic_inference_single_image(candidate_mapping)
             if result.image is None:
                 raise RuntimeError(
-                    f"hordelib returned no image for candidate {offset + 1} of {job.relative_image_path}",
+                    f"hordelib did not return an image for candidate {offset + 1} of {job.relative_image_path}",
                 )
             rendered_images.append(result.image)
             faults.extend(str(fault) for fault in result.faults)
@@ -422,10 +423,10 @@ class LocalRunner(SweepRunner):
         self._source_images.clear()
 
     def _source_image_for(self, job: RenderJob) -> Image.Image | None:
-        """Return the image this job starts from, decoded once and kept for the strip's other stops.
+        """Return the image that this job starts from, decoded once and kept for the strip's other stops.
 
         Raises:
-            RuntimeError: If the job names a source image that is not where it says it is.
+            RuntimeError: If the job's source image does not exist.
         """
         source_path = job.source_image_path
         if source_path is None:
@@ -437,7 +438,7 @@ class LocalRunner(SweepRunner):
         """Return this job's mask, decoded once, or None when it has none.
 
         Raises:
-            RuntimeError: If the job names a mask that is not where it says it is.
+            RuntimeError: If the job's mask does not exist.
         """
         mask_path = job.source_mask_path
         if mask_path is None:
@@ -446,10 +447,10 @@ class LocalRunner(SweepRunner):
         return self._decoded(mask_path, description=f"the mask for {job.relative_image_path}")
 
     def _extra_source_images_for(self, job: RenderJob) -> list[tuple[Image.Image, float]]:
-        """Return this job's additional inputs and their strengths, in the order it declares them.
+        """Return this job's additional inputs and their strengths, in the job's order.
 
         Raises:
-            RuntimeError: If the job names an input that is not where it says it is.
+            RuntimeError: If one of the job's inputs does not exist.
         """
         return [
             (
@@ -465,11 +466,11 @@ class LocalRunner(SweepRunner):
     def _decoded(self, image_path: Path, *, description: str) -> Image.Image:
         """Return an input image, decoded once and kept for every job that names the same file.
 
-        One decode per path is safe because a staged input is written once per run: the job ids
-        that name one are unique across the specification.
+        One decode per path is safe because a staged input is written once per run. The ids of
+        the jobs that use staged inputs are unique across the specification.
 
         Raises:
-            RuntimeError: If the file is not where the specification says it is.
+            RuntimeError: If the file does not exist.
         """
         cached = self._source_images.get(image_path)
         if cached is not None:
@@ -529,7 +530,7 @@ class LocalRunner(SweepRunner):
 
 
 def _image_counts_by_model(jobs: Sequence[RenderJob]) -> dict[str, int]:
-    """Return how many images each model slug is responsible for, counting batch candidates."""
+    """Return the number of images for each model slug, counting batch candidates."""
     counts: dict[str, int] = {}
     for job in jobs:
         counts[job.model_slug] = counts.get(job.model_slug, 0) + job.batch_size

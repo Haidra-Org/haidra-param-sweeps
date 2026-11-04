@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Measure what a step of each sampler costs, through the same pipeline the sweeps render on.
+"""Measure what a step of each sampler costs, through the same pipeline that renders the sweeps.
 
 A cost figure taken from a single render is three different numbers added together: the model
 load, the fixed per-job overhead that every render pays whatever the sampler, and the sampling
@@ -19,7 +19,7 @@ Critical public members:
 - [`measure_sampler_cost`][param_sweeps.sampler_cost.measure_sampler_cost]: run the measurement.
 - [`SamplerCostReport`][param_sweeps.sampler_cost.SamplerCostReport]: the artifact it writes.
 - [`derive_pairings`][param_sweeps.sampler_cost.derive_pairings]: which schedule each sampler is
-  measured on, and why that one.
+  measured on, and why.
 - [`fit_line`][param_sweeps.sampler_cost.fit_line]: the ordinary least squares fit that the slope
   and intercept come from.
 - [`SchedulePolicy`][param_sweeps.sampler_cost.SchedulePolicy]: the sampler facts that the
@@ -45,19 +45,19 @@ from param_sweeps.spec import ModelSpec, RenderJob, SweepParameter
 logger = logging.getLogger(__name__)
 
 MEASUREMENT_SCHEMA_VERSION = 1
-"""The layout of the JSON artifact this module writes."""
+"""The layout of the JSON artifact that this module writes."""
 
 MEASUREMENT_DIRECTORY = "measurements"
-"""Where under the output root a measurement is written, beside the rendered library rather than in it."""
+"""The directory under the output root for measurements, beside the rendered library and not inside it."""
 
 REFERENCE_SAMPLER = "k_euler"
-"""The sampler every ratio is expressed against: one model evaluation per step, no correction."""
+"""The reference sampler for every ratio: one model evaluation per step, no correction."""
 
 DEFAULT_SCHEDULER = "karras"
-"""The schedule every sampler is measured on unless it is constrained away from it."""
+"""The schedule for every sampler, unless the sampler's constraints rule it out."""
 
 DEFAULT_STEP_COUNTS: tuple[int, ...] = (10, 20, 30, 40)
-"""The step counts the line is fitted through."""
+"""The step counts that the line is fitted through."""
 
 DEFAULT_REPEATS = 3
 """How many times each point is rendered before its median is taken."""
@@ -66,17 +66,17 @@ DEFAULT_WARMUP_RENDERS = 1
 """How many discarded renders each model gets before anything is timed."""
 
 WARMUP_STEPS = 10
-"""The step count warmup renders use: enough to fault the whole path in, cheap enough to waste."""
+"""The step count for warmup renders: enough to load the whole path, and cheap enough to discard."""
 
 DISCREPANCY_TOLERANCE = 0.20
-"""How far a measured ratio may sit from its evaluations-per-step family before it is flagged."""
+"""How far a measured ratio can be from its evaluations-per-step family before it is flagged."""
 
 MEASUREMENT_PROMPT = (
     "a woman in her 30s at the wooden railing of an airship gondola at sunset, brass fittings,"
     " taut rigging, a sea of clouds below, photograph, 35mm, natural light, sharp focus, highly"
     " detailed, realistic skin texture"
 )
-"""The prompt every timed render uses.
+"""The prompt for every timed render.
 
 Held identical across the whole measurement. What it depicts does not matter to a timing. What
 matters is that it never changes, because prompt length changes the conditioning cost that
@@ -84,28 +84,28 @@ appears in the intercept.
 """
 
 MEASUREMENT_NEGATIVE_PROMPT = "cartoon, illustration, painting, lowres, blurry, deformed hands, extra fingers"
-"""The negative prompt every timed render uses, from the same batch and held identical for the same reason."""
+"""The negative prompt for every timed render, from the same batch and held identical for the same reason."""
 
 
 class ScheduleChoiceReason(StrEnum):
-    """Why a sampler is measured on the schedule it is measured on."""
+    """Why a sampler is measured on its schedule."""
 
     DEFAULT = "default"
-    """The default schedule, which is what nearly every sampler is measured on."""
+    """The default schedule, used for nearly every sampler."""
 
     SUBSTITUTED = "substituted"
-    """The default pairing is one the shared table refuses, so a compatible schedule stands in."""
+    """The shared table refuses the default pairing, so a compatible schedule replaces it."""
 
 
 class SchedulePolicy(BaseModel):
-    """Represents the sampler facts a measurement plan is derived from.
+    """Represents the sampler facts that a measurement plan is derived from.
 
-    This is plain data rather than a call into the shared constraints table so that the derivation
-    can be exercised against a stated policy, and so a table that grows a sampler cannot change
-    what an already-written test asserts.
+    This is plain data rather than a call into the shared constraints table, so the derivation can
+    be tested against a stated policy, and a sampler added to the table cannot change an existing
+    test's assertions.
 
     Attributes:
-        rejected_pairings: Sampler and schedule pairs that produce no usable image.
+        rejected_pairings: Sampler and schedule pairs that do not produce a usable image.
         recommended_schedulers: The schedules advised for a sampler, best first, for the samplers
             that an advisory names. A sampler absent from the mapping has no advice.
         scheduler_baselines: The baselines a restricted schedule is defined for. A schedule absent
@@ -134,7 +134,7 @@ class SchedulePolicy(BaseModel):
 
 
 class SamplerSchedulePairing(BaseModel):
-    """Represents one sampler, the schedule it is measured on, and what a step of it should cost."""
+    """Represents one sampler, its measurement schedule, and the expected cost of one step."""
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
 
@@ -156,7 +156,7 @@ class LinearFit(BaseModel):
 
 
 class StepPoint(BaseModel):
-    """Represents every timing taken at one step count, and the median the fit uses."""
+    """Represents every timing taken at one step count, and the median that the fit uses."""
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
 
@@ -180,17 +180,17 @@ class SamplerCostRecord(BaseModel):
     fit: LinearFit | None = None
     ratio_vs_k_euler: float | None = None
     expected_ratio: float | None = None
-    """What the ratio should be if a step costs its evaluations, relative to the reference sampler."""
+    """The expected ratio to the reference sampler, if a step's cost is proportional to its evaluations."""
 
     is_discrepant: bool = False
-    """Whether the measured ratio sits further from the expected one than the tolerance allows."""
+    """Whether the measured ratio is further from the expected one than the tolerance allows."""
 
     failed_renders: tuple[str, ...] = ()
-    """One entry per render that raised, so a thin point is visible rather than merely narrow."""
+    """One entry per render that raised, so a point with fewer timings than planned is visible."""
 
 
 class MeasurementSettings(BaseModel):
-    """Represents everything held constant across a measurement, as it was actually run."""
+    """Represents everything held constant across a measurement, as it was run."""
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
 
@@ -208,7 +208,7 @@ class MeasurementSettings(BaseModel):
 
 
 class MeasuredModel(BaseModel):
-    """Represents one model a measurement covered, at the geometry it was measured at."""
+    """Represents one model in a measurement, at its measured geometry."""
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
 
@@ -234,22 +234,22 @@ class SamplerCostReport(BaseModel):
 
     @property
     def discrepancies(self) -> tuple[SamplerCostRecord, ...]:
-        """Return the records whose measured ratio disagrees with their evaluations per step."""
+        """Return the records whose measured ratio does not match their evaluations per step."""
         return tuple(record for record in self.records if record.is_discrepant)
 
 
 def horde_sdk_schedule_policy() -> SchedulePolicy:
-    """Return the schedule policy that the shared constraints table states.
+    """Return the schedule policy from the shared constraints table.
 
     The vocabulary and the constraints are read from `horde_sdk` rather than restated here, so a
-    sampler added there is measured here without this module being touched.
+    sampler added there is measured here without changes to this module.
 
     Returns:
-        The policy, covering every sampler the installed vocabulary knows.
+        The policy, covering every sampler in the installed vocabulary.
 
     Raises:
-        RuntimeError: If the installed `horde_sdk` predates the constraints table, which is the
-            one thing that cannot be worked around from here.
+        RuntimeError: If the installed `horde_sdk` predates the constraints table. This module
+            cannot work around that.
     """
     try:
         from horde_sdk.generation_parameters.image.constraints import (
@@ -262,8 +262,8 @@ def horde_sdk_schedule_policy() -> SchedulePolicy:
     except ImportError as missing_table:
         raise RuntimeError(
             "the installed horde_sdk has no image sampler constraints table, so the sampler"
-            " vocabulary and the schedule pairings cannot be read from it; install the horde_sdk"
-            " that carries horde_sdk.generation_parameters.image.constraints",
+            " vocabulary and the schedule pairings cannot be read from it; install a horde_sdk"
+            " that includes horde_sdk.generation_parameters.image.constraints",
         ) from missing_table
 
     recommended: dict[str, list[str]] = {}
@@ -297,7 +297,7 @@ def horde_sdk_schedule_policy() -> SchedulePolicy:
 
 
 def horde_sdk_samplers() -> tuple[str, ...]:
-    """Return every sampler the installed vocabulary knows, in its own order.
+    """Return every sampler in the installed vocabulary, in vocabulary order.
 
     Raises:
         RuntimeError: If the installed `horde_sdk` has no image sampler vocabulary.
@@ -322,12 +322,12 @@ def derive_pairings(
     """Return the schedule each sampler is measured on against this baseline, and why.
 
     Every sampler is measured on the default schedule, because a measurement whose schedule moves
-    with the sampler measures two things at once. A sampler that the policy refuses that pairing
-    for takes the first advised schedule that the policy does allow, and the pairing records
-    this, so a substitution is visible in the artifact rather than folded into the number.
+    with the sampler measures two things at once. If the policy refuses that pairing for a
+    sampler, the sampler uses the first advised schedule that the policy allows. The pairing
+    records the substitution, so it is visible in the artifact instead of hidden in the number.
 
     Args:
-        samplers: The samplers to measure, in the order they should be run.
+        samplers: The samplers to measure, in run order.
         baseline: The baseline of the model they will be measured on.
         policy: The sampler facts to derive from.
         default_scheduler: The schedule to use wherever it is allowed.
@@ -343,7 +343,7 @@ def derive_pairings(
     for sampler in samplers:
         evaluations = policy.evaluations_per_step.get(sampler)
         if evaluations is None and sampler not in policy.adaptive_samplers:
-            raise ValueError(f"the policy states no evaluations per step for {sampler!r}")
+            raise ValueError(f"the policy does not state evaluations per step for {sampler!r}")
 
         if policy.allows(sampler=sampler, scheduler=default_scheduler, baseline=baseline):
             scheduler = default_scheduler
@@ -375,20 +375,20 @@ def _substitute_scheduler(*, sampler: str, baseline: str, policy: SchedulePolicy
             return candidate
 
     raise ValueError(
-        f"{sampler!r} is refused the {DEFAULT_SCHEDULER} schedule on {baseline} and the policy advises"
-        " no schedule it can be measured on instead",
+        f"{sampler!r} cannot use the {DEFAULT_SCHEDULER} schedule on {baseline}, and the policy does not"
+        " advise another schedule that it can be measured on",
     )
 
 
 def fit_line(points: Sequence[tuple[int, float]]) -> LinearFit | None:
-    """Return the ordinary least squares fit of seconds against steps, or None when it has no meaning.
+    """Return the ordinary least squares fit of seconds against steps, or None when it is undefined.
 
     Args:
         points: One (steps, seconds) pair per step count, in any order.
 
     Returns:
-        The fit, or None when fewer than two distinct step counts were measured, which is the case
-        where the slope is undefined.
+        The fit, or None when fewer than two distinct step counts were measured, because the slope
+        is then undefined.
     """
     distinct_step_counts = {steps for steps, _ in points}
     if len(distinct_step_counts) < 2:
@@ -411,8 +411,8 @@ def fit_line(points: Sequence[tuple[int, float]]) -> LinearFit | None:
         (seconds - (slope * steps + intercept)) ** 2 for steps, seconds in zip(step_values, second_values, strict=True)
     )
     total_sum = sum((seconds - mean_seconds) ** 2 for seconds in second_values)
-    # A perfectly flat set of timings has nothing for the line to explain: the fit is exact when it
-    # reproduces them and worthless otherwise, and the usual ratio would divide by zero either way.
+    # A perfectly flat set of timings has no variance for the line to explain. The fit is exact when
+    # it reproduces them and useless otherwise, and the usual ratio would divide by zero in both cases.
     r_squared = (1.0 if residual_sum == 0 else 0.0) if total_sum == 0 else 1.0 - residual_sum / total_sum
 
     return LinearFit(slope_seconds_per_step=slope, intercept_seconds=intercept, r_squared=r_squared)
@@ -430,13 +430,13 @@ def build_records(
 
     Args:
         timings: Every timing taken, keyed by (model slug, sampler) and then by step count.
-        pairings_by_model: The pairings each model was measured with, in run order.
+        pairings_by_model: Each model's pairings, in run order.
         failures: The renders that raised, keyed the same way as the timings.
-        reference_sampler: The sampler every ratio is expressed against.
-        tolerance: How far a ratio may sit from its evaluations-per-step family before it is flagged.
+        reference_sampler: The reference sampler for every ratio.
+        tolerance: How far a ratio can be from its evaluations-per-step family before it is flagged.
 
     Returns:
-        The records, model by model in the order the pairings were given.
+        The records, model by model, in the order of the given pairings.
     """
     resolved_failures = failures if failures is not None else {}
     records: list[SamplerCostRecord] = []
@@ -504,7 +504,7 @@ def _ratio(*, fit: LinearFit | None, reference_fit: LinearFit | None) -> float |
 
 
 def _is_discrepant(*, ratio: float | None, expected: float | None, tolerance: float) -> bool:
-    """Return whether a measured ratio sits further from its expected one than the tolerance allows."""
+    """Return whether a measured ratio is further from its expected one than the tolerance allows."""
     if ratio is None or expected is None or expected <= 0:
         return False
 
@@ -514,8 +514,8 @@ def _is_discrepant(*, ratio: float | None, expected: float | None, tolerance: fl
 def format_summary_table(report: SamplerCostReport) -> str:
     """Return the compact table printed when a measurement finishes.
 
-    One line per sampler and model, in the order the records were produced, plus a closing count of
-    the ratios that disagree with their evaluations-per-step family.
+    One line per sampler and model, in record order, then a count of the ratios that do not match
+    their evaluations-per-step family.
     """
     header = (
         f"{'sampler':<32}{'model':<16}{'sched':<10}{'sec/step':>10}{'fixed':>9}"
@@ -559,11 +559,11 @@ def measurement_job(
     cfg_scale: float,
     stop_index: int,
 ) -> RenderJob:
-    """Return the render job one timing is taken from.
+    """Return the render job for one timing.
 
     Every field except the sampler, the schedule and the step count is the same for every job in a
-    measurement, which is what makes the timings comparable. The job renders at the model's native
-    size, because that is the size the horde prices these models at.
+    measurement, so the timings are comparable. The job renders at the model's native size,
+    because the horde prices these models at that size.
     """
     return RenderJob(
         parameter=SweepParameter.SAMPLER,
@@ -604,22 +604,22 @@ def measure_sampler_cost(
     repeats: int = DEFAULT_REPEATS,
     warmup_renders: int = DEFAULT_WARMUP_RENDERS,
 ) -> SamplerCostReport:
-    """Render the measurement and return what it cost, without writing an image anywhere.
+    """Render the measurement and return the costs, without writing any images.
 
-    The runner is prepared once with every model, then the models are measured one after another so
-    the weights are loaded as few times as possible. Each model's timed renders are preceded by
-    discarded warmup renders, because the first render after a model reaches the device pays for
-    the graph being built and would otherwise be counted in the intercept.
+    The runner is prepared once with every model, then the models are measured one after another,
+    so the weights are loaded as few times as possible. Each model's timed renders follow
+    discarded warmup renders, because the first render after a model reaches the device includes
+    building the graph, which would otherwise be counted in the intercept.
 
     Args:
         runner: The backend to render through, unprepared.
         models: The models to measure, each at its own native size.
-        policy: The sampler facts the schedule pairings are derived from.
+        policy: The sampler facts that the schedule pairings are derived from.
         samplers: The samplers to measure, in run order.
-        seed: The seed every render uses.
-        cfg_scale: The cfg scale every render uses.
-        step_counts: The step counts the line is fitted through.
-        repeats: How many timings each point is the median of.
+        seed: The seed for every render.
+        cfg_scale: The cfg scale for every render.
+        step_counts: The step counts that the line is fitted through.
+        repeats: How many timings to take the median of at each point.
         warmup_renders: How many discarded renders each model gets first.
 
     Returns:
@@ -754,10 +754,10 @@ def _measure_model(
     timings: dict[tuple[str, str], dict[int, list[float]]],
     failures: dict[tuple[str, str], list[str]],
 ) -> None:
-    """Time every sampler, step count and repeat for one model, recording failures as failures.
+    """Time every sampler, step count and repeat for one model, and record any failed render.
 
-    A render that raises costs only its repeat. The point keeps the timings that it did get, the
-    failure is recorded, and the rest of the measurement goes on.
+    A render that raises loses only its repeat. The point keeps its other timings, the failure is
+    recorded, and the rest of the measurement continues.
     """
     total = len(pairings) * len(step_counts) * repeats
     render_number = 0
@@ -802,8 +802,8 @@ def _measure_model(
 def write_report(*, report: SamplerCostReport, output_root: Path) -> Path:
     """Write the measurement artifact under the output root, and return its path.
 
-    The filename includes the run's start time, so a re-measurement never overwrites the one it is
-    meant to be compared against.
+    The filename includes the run's start time, so a re-measurement does not overwrite the earlier
+    measurement that it is compared against.
 
     Side Effects:
         Creates the measurement directory and writes one JSON file into it.

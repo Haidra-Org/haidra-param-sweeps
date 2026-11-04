@@ -56,7 +56,7 @@ class SolidColourRunner(SweepRunner):
     """A runner that produces one solid colour per candidate, so the driver runs without a GPU."""
 
     def __init__(self) -> None:
-        """Create a runner that records every job it was handed."""
+        """Create a runner that records every job that it renders."""
         self.rendered_paths: list[str] = []
 
     @property
@@ -152,7 +152,9 @@ def test_a_curation_batch_writes_every_candidate_and_indexes_the_chosen_one(
     stop = index.strips[0].stops[0]
     assert stop.batch_size == 4
     job = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-fox")
-    assert stop.file.endswith(f"_{job.chosen_candidate_number:02d}.webp"), "the recorded choice is what publishes"
+    assert stop.file.endswith(f"_{job.chosen_candidate_number:02d}.webp"), (
+        "the recorded choice is the published candidate"
+    )
     assert index.strips[0].features is not None
     assert index.strips[0].features.transparent is True
     assert index.strips[0].batch_section is BatchSection.FEATURE_PROBES
@@ -181,12 +183,11 @@ def test_a_dependent_job_is_staged_from_the_render_it_names(batch_spec: SweepSpe
         staged.unlink()
 
 
-def test_both_runners_carry_the_same_features_into_their_own_payloads(batch_spec: SweepSpec) -> None:
+def test_both_runners_send_the_same_features_in_their_payloads(batch_spec: SweepSpec) -> None:
     """Assert a feature stated once in the specification reaches both backends.
 
-    The two payloads have different field names and different shapes, which is exactly why this
-    is worth asserting: a feature added to one mapping and forgotten in the other would only show
-    up as a silently plainer image.
+    The two payloads have different field names and different shapes, so a feature added to one
+    mapping and missed in the other would only show up as a plainer image, without an error.
     """
     qr_job = next(job for job in batch_spec.expand_jobs() if job.workflow is WorkflowName.QR_CODE)
 
@@ -204,8 +205,8 @@ def test_both_runners_carry_the_same_features_into_their_own_payloads(batch_spec
 def test_the_control_strength_a_job_states_reaches_the_request_body(batch_spec: SweepSpec) -> None:
     """Assert a stated control strength is posted and an unstated one leaves the key out.
 
-    The API takes ``control_strength`` in its params, so nothing is dropped on the way in and the
-    runner has no ignored feature left to name.
+    The API takes ``control_strength`` in its params, so the API does not drop it, and the runner
+    does not report any ignored feature.
     """
     qr_job = next(job for job in batch_spec.expand_jobs() if job.workflow is WorkflowName.QR_CODE)
     plain_job = next(job for job in batch_spec.expand_jobs() if job.features().is_plain)
@@ -220,7 +221,7 @@ def test_the_control_strength_a_job_states_reaches_the_request_body(batch_spec: 
     assert silently_ignored_features_in(plain_job) == []
 
 
-def test_a_plain_job_still_produces_the_payload_it_always_did(batch_spec: SweepSpec) -> None:
+def test_a_plain_job_payload_has_only_the_base_fields(batch_spec: SweepSpec) -> None:
     """Assert the feature fields stay out of the payload of a job that does not turn any of them on."""
     plain_job = next(job for job in batch_spec.expand_jobs() if job.features().is_plain)
 
@@ -260,7 +261,7 @@ def test_the_contact_sheet_groups_the_batch_by_section_and_states_the_payload(
         output_root=tmp_path,
         job_filter=JobFilter(scene_ids=("b-deck-prose", "c-qr-forest")),
     )
-    sheet_path = write_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Sign-off")
+    sheet_path = write_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Review")
 
     assert sheet_path.name == CONTACT_SHEET_FILENAME
     sheet = sheet_path.read_text(encoding="utf-8")
@@ -273,13 +274,13 @@ def test_the_contact_sheet_groups_the_batch_by_section_and_states_the_payload(
 
 
 def test_the_contact_sheet_marks_which_candidate_was_chosen(batch_spec: SweepSpec, tmp_path: Path) -> None:
-    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Review")
     assert 'class="candidate chosen"' in sheet
 
 
 def test_the_contact_sheet_makes_every_curation_candidate_pickable(batch_spec: SweepSpec, tmp_path: Path) -> None:
     """Assert each candidate has the key and number that the choose subcommand maps back to a job."""
-    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Review")
     curation_jobs = [job for job in batch_spec.expand_jobs() if job.batch_size > 1]
 
     assert curation_jobs, "the batch is expected to curate something"
@@ -303,7 +304,7 @@ def test_apply_choices_writes_the_picks_back_into_the_specification(batch_spec: 
 
     updated = next(job for job in load_spec(spec_copy).expand_jobs() if job.scene_id == "c-transparent-lantern")
     assert updated.chosen_candidate == 3
-    assert apply_choices(spec_path=spec_copy, choices_path=choices_path) == 0, "the same picks twice change nothing"
+    assert apply_choices(spec_path=spec_copy, choices_path=choices_path) == 0, "repeated picks do not change anything"
 
 
 def test_apply_choices_rejects_a_pick_the_batch_cannot_honour(batch_spec: SweepSpec, tmp_path: Path) -> None:
@@ -325,22 +326,22 @@ def test_apply_choices_rejects_a_pick_the_batch_cannot_honour(batch_spec: SweepS
         json.dumps({"schema_version": 1, "choices": {"batch/nowhere/001_nothing_01.webp": 1}}),
         encoding="utf-8",
     )
-    with pytest.raises(ValueError, match="names no curation job"):
+    with pytest.raises(ValueError, match="does not name a curation job"):
         apply_choices(spec_path=spec_copy, choices_path=unknown_job)
 
-    assert spec_copy.read_text(encoding="utf-8") == before, "a rejected choices file must touch nothing"
+    assert spec_copy.read_text(encoding="utf-8") == before, "a rejected choices file must not change the specification"
 
 
 def _probe_ruling_set() -> RulingSet:
-    """Return a ruling set exercising every control that the sheet can render.
+    """Return a ruling set that uses every control that the sheet can render.
 
-    Its evidence names jobs that the fixture batch actually renders, so a link that goes nowhere is a
-    test failure rather than something a reviewer discovers by clicking it.
+    Its evidence names jobs that the fixture batch renders, so a broken link fails the test
+    instead of being found by a reviewer.
     """
     return RulingSet(
-        ruling_set_id="probe-wave",
+        ruling_set_id="probe-review",
         title="Rulings this probe needs",
-        intro="Nothing here ships until every question below carries an answer.",
+        intro="Nothing here is published until every question below has an answer.",
         items=[
             RulingItem(
                 ruling_id="single-answer",
@@ -369,7 +370,7 @@ def _probe_ruling_set() -> RulingSet:
                 ruling_id="per-row",
                 title="One answer per row",
                 question="Is each description accurate?",
-                note="The shared options answer the first row; the second states its own.",
+                note="The first row uses the shared options. The second row has its own.",
                 control=RulingControl.ROW_SELECT,
                 options=[
                     RulingChoice(choice_id="accurate", label="Accurate"),
@@ -405,8 +406,8 @@ def _rulings_panel_of(sheet: str) -> str:
     return sheet.split('<section class="rulings"')[1].split("</section>")[0]
 
 
-def test_the_sheet_asks_every_ruling_with_the_control_it_states(ruled_spec: SweepSpec, tmp_path: Path) -> None:
-    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off")
+def test_the_sheet_renders_every_ruling_with_its_stated_control(ruled_spec: SweepSpec, tmp_path: Path) -> None:
+    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Review")
 
     assert "Rulings this probe needs" in sheet
     assert '<span class="rulings-count">0 of 4 ruled</span>' in sheet
@@ -421,20 +422,20 @@ def test_the_sheet_asks_every_ruling_with_the_control_it_states(ruled_spec: Swee
     assert 'data-answer-text="written-out"' in sheet
 
     for ruling_id in ("single-answer", "approvals", "per-row", "written-out"):
-        assert f'<textarea data-comment="{ruling_id}"' in sheet, "every ruling takes a comment"
+        assert f'<textarea data-comment="{ruling_id}"' in sheet, "every ruling has a comment box"
 
 
 def test_every_ruling_that_offers_options_offers_the_escape(ruled_spec: SweepSpec, tmp_path: Path) -> None:
     """Assert an answer that the option set does not cover is still recordable, on every such ruling."""
-    panel = _rulings_panel_of(build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off"))
+    panel = _rulings_panel_of(build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Review"))
 
     # Two option sets on the radio and checkbox rulings, and one per row of the per-row ruling.
     assert panel.count(f'value="{RULING_OTHER_OPTION_ID}"') == 4
     assert "Other / see comments" in panel
 
 
-def test_a_row_answers_from_its_own_options_when_it_states_them(ruled_spec: SweepSpec, tmp_path: Path) -> None:
-    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off")
+def test_a_row_uses_its_own_options_when_it_states_them(ruled_spec: SweepSpec, tmp_path: Path) -> None:
+    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Review")
     own_row = sheet.split('<select data-row="its_own">')[1].split("</select>")[0]
 
     assert 'value="authorised"' in own_row
@@ -442,9 +443,9 @@ def test_a_row_answers_from_its_own_options_when_it_states_them(ruled_spec: Swee
     assert f'value="{RULING_OTHER_OPTION_ID}"' in own_row
 
 
-def test_every_ruling_links_to_evidence_the_sheet_actually_carries(ruled_spec: SweepSpec, tmp_path: Path) -> None:
+def test_every_ruling_links_to_evidence_on_the_sheet(ruled_spec: SweepSpec, tmp_path: Path) -> None:
     """Assert each evidence link points to an element that the same page renders."""
-    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Review")
 
     for anchor in (
         section_anchor(BatchSection.FEATURE_PROBES),
@@ -456,12 +457,12 @@ def test_every_ruling_links_to_evidence_the_sheet_actually_carries(ruled_spec: S
 
 
 def test_the_panel_states_its_rulings_as_data_for_the_script(ruled_spec: SweepSpec, tmp_path: Path) -> None:
-    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=ruled_spec, output_root=tmp_path, title="Review")
     descriptor = json.loads(
         sheet.split('<script type="application/json" data-rulings-descriptor>')[1].split("</script>")[0],
     )
 
-    assert descriptor["ruling_set_id"] == "probe-wave"
+    assert descriptor["ruling_set_id"] == "probe-review"
     assert [item["ruling_id"] for item in descriptor["items"]] == [
         "single-answer",
         "approvals",
@@ -469,7 +470,7 @@ def test_the_panel_states_its_rulings_as_data_for_the_script(ruled_spec: SweepSp
         "written-out",
     ]
     assert descriptor["items"][2]["rows"] == ["shared", "its_own"]
-    assert 'data-ruling-set="probe-wave"' in sheet, "the answers are keyed by the set, not by the browser"
+    assert 'data-ruling-set="probe-review"' in sheet, "the answers are keyed by the set, not by the browser"
 
 
 def test_two_ruling_sets_render_as_two_independently_keyed_panels(
@@ -482,11 +483,11 @@ def test_two_ruling_sets_render_as_two_independently_keyed_panels(
     )
     spec = batch_spec.model_copy(update={"rulings": [_probe_ruling_set(), follow_up]})
 
-    sheet = build_contact_sheet(spec=spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=spec, output_root=tmp_path, title="Review")
 
     assert sheet.count('<section class="rulings"') == 2
     assert sheet.count('<script type="application/json" data-rulings-descriptor>') == 2
-    assert 'data-ruling-set="probe-wave"' in sheet
+    assert 'data-ruling-set="probe-review"' in sheet
     assert 'data-ruling-set="probe-follow-up"' in sheet
 
 
@@ -494,7 +495,7 @@ def test_two_ruling_sets_may_not_share_an_identifier() -> None:
     """Assert a repeated set id is rejected, since answers are keyed by it and would collide."""
     raw = json.loads(BATCH_SPEC_PATH.read_text(encoding="utf-8"))
     one_set = {
-        "ruling_set_id": "probe-wave",
+        "ruling_set_id": "probe-review",
         "title": "Rulings this probe needs",
         "items": [
             {
@@ -512,11 +513,11 @@ def test_two_ruling_sets_may_not_share_an_identifier() -> None:
         SweepSpec.model_validate(raw)
 
 
-def test_a_sheet_for_a_specification_with_no_rulings_carries_no_panel(
+def test_a_sheet_for_a_specification_without_rulings_has_no_panel(
     batch_spec: SweepSpec,
     tmp_path: Path,
 ) -> None:
-    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Sign-off")
+    sheet = build_contact_sheet(spec=batch_spec, output_root=tmp_path, title="Review")
 
     assert 'class="rulings"' not in sheet
     assert "Save choices" in sheet, "the candidate-choose flow does not depend on there being rulings"
@@ -525,8 +526,8 @@ def test_a_sheet_for_a_specification_with_no_rulings_carries_no_panel(
 @pytest.mark.parametrize(
     ("fields", "message"),
     [
-        ({"control": "radio", "options": []}, "with nothing to pick from"),
-        ({"control": "row-select", "rows": []}, "with no rows to answer for"),
+        ({"control": "radio", "options": []}, "without options"),
+        ({"control": "row-select", "rows": []}, "without rows"),
         ({"control": "text", "options": [{"choice_id": "affirm", "label": "Affirm"}]}, "answered in free text"),
         (
             {"control": "radio", "options": [{"choice_id": RULING_OTHER_OPTION_ID, "label": "Other"}]},
@@ -554,7 +555,7 @@ def test_a_sheet_for_a_specification_with_no_rulings_carries_no_panel(
         ),
     ],
 )
-def test_a_ruling_the_sheet_could_not_render_is_rejected(fields: dict[str, object], message: str) -> None:
+def test_a_ruling_that_the_sheet_cannot_render_is_rejected(fields: dict[str, object], message: str) -> None:
     with pytest.raises(ValidationError, match=message):
         RulingItem.model_validate(
             {
@@ -568,11 +569,11 @@ def test_a_ruling_the_sheet_could_not_render_is_rejected(fields: dict[str, objec
 
 
 def test_a_ruling_citing_evidence_the_batch_does_not_render_is_rejected() -> None:
-    """Assert a dead evidence link is caught here rather than by the reviewer clicking it."""
+    """Assert a broken evidence link is caught when the specification loads instead of by a reviewer."""
     raw = json.loads(BATCH_SPEC_PATH.read_text(encoding="utf-8"))
     raw["rulings"] = [
         {
-            "ruling_set_id": "probe-wave",
+            "ruling_set_id": "probe-review",
             "title": "Rulings this probe needs",
             "items": [
                 {
@@ -587,7 +588,7 @@ def test_a_ruling_citing_evidence_the_batch_does_not_render_is_rejected() -> Non
         },
     ]
 
-    with pytest.raises(ValidationError, match="cites jobs no batch renders"):
+    with pytest.raises(ValidationError, match="cites jobs that are not in any batch"):
         SweepSpec.model_validate(raw)
 
 
@@ -615,10 +616,10 @@ def test_every_ruling_that_picks_from_a_set_presents_the_escape() -> None:
         elif item.control is RulingControl.ROW_SELECT:
             for row in item.rows:
                 offered = [option.choice_id for option in item.presented_options(row=row)]
-                assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id}/{row.row_id} offers no escape"
+                assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id}/{row.row_id} lacks the escape option"
         else:
             offered = [option.choice_id for option in item.presented_options()]
-            assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id} offers no escape"
+            assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id} lacks the escape option"
 
     per_row = next(item for item in ruled_spec_from_file.rulings[0].items if item.ruling_id == "per-row")
     shared_row, own_row = per_row.rows
@@ -634,7 +635,7 @@ def test_every_ruling_that_picks_from_a_set_presents_the_escape() -> None:
 
 
 def _minimal_job_fields() -> dict[str, object]:
-    """Return the fields every render job needs, for the validation cases to build on."""
+    """Return the fields that every render job needs, for the validation cases to build on."""
     return {
         "parameter": SweepParameter.BATCH,
         "model_slug": "probe-model",

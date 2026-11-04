@@ -3,31 +3,31 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Capture the in-progress latents of one render and publish them as two strips.
 
-Every other strip in this library is N separate renders. This one is not: a strip showing what a
-render looks like part-way through has to come from a single render, because thirty renders
-stopped at thirty step counts are thirty different pictures rather than thirty moments of one.
+Every other strip in this library is N separate renders. This one is not. A strip that shows a
+render part-way through has to come from a single render, because thirty renders stopped at
+thirty step counts are thirty different pictures, not thirty moments of one.
 
-The capture works by wrapping the two seams that the sampling graph already goes through.
-ComfyUI's sampler calls ``callback(step, x0, x, total_steps)`` once per step, and builds that
-callback by looking ``prepare_callback`` up on the ``latent_preview`` module at call time.
-Wrapping that attribute puts a recorder in front of the callback that the graph would have used
-anyway, and the original is still called, so nothing that the pipeline depends on is removed. The
-decode seam is wrapped for one reason only: the graph hands its VAE to ``VAEDecode.decode``, and
-the same VAE is what turns the stashed latents into pictures whose last frame is the delivered
-image rather than an approximation of it. ``comfy.utils.PROGRESS_BAR_HOOK`` is deliberately
-untouched: horde-engine owns that hook and installs it once.
+The capture wraps two seams that the sampling graph already calls. ComfyUI's sampler calls
+``callback(step, x0, x, total_steps)`` once per step, and builds that callback by looking up
+``prepare_callback`` on the ``latent_preview`` module at call time. Wrapping that attribute puts a
+recorder in front of the callback that the graph would have used anyway, and the original is
+still called, so nothing that the pipeline depends on is removed. The decode seam is wrapped only
+to capture the VAE. The graph passes its VAE to ``VAEDecode.decode``, and that VAE decodes the
+stored latents into pictures whose last frame is the delivered image, not an approximation of it.
+``comfy.utils.PROGRESS_BAR_HOOK`` is deliberately untouched, because horde-engine owns that hook
+and installs it once.
 
 Two arcs come out of one render, because the sampler holds two different values at each step:
 
-- ``x``, the canvas: what is actually there, still holding the noise that the remaining steps
-  burn off.
-- ``x0``, the guess: the model's current estimate of where the whole picture is heading.
+- ``x``, the canvas: what is on the canvas, including the noise that the remaining steps remove.
+- ``x0``, the guess: the model's current estimate of the finished picture.
 
 Critical public members:
 
 - [`armed_step_capture`][param_sweeps.step_preview.armed_step_capture]: the context manager that
   arms both seams and restores them afterwards.
-- [`StepPreviewCapture`][param_sweeps.step_preview.StepPreviewCapture]: what a capture stashed.
+- [`StepPreviewCapture`][param_sweeps.step_preview.StepPreviewCapture]: the latents and VAE that a
+  capture stored.
 - [`LatentArc`][param_sweeps.step_preview.LatentArc]: the two arcs, and the parameter each
   publishes under.
 - [`decode_latent_frames`][param_sweeps.step_preview.decode_latent_frames]: turn stashed latents
@@ -59,17 +59,17 @@ PREPARE_CALLBACK_ATTRIBUTE = "prepare_callback"
 """The module attribute that the sampling node uses to look up its per-step callback."""
 
 DECODE_ATTRIBUTE = "decode"
-"""The method on the decode node that the graph hands its VAE to."""
+"""The method on the decode node that receives the graph's VAE."""
 
 
 class LatentArc(StrEnum):
-    """The two values a sampler holds at every step, each published as its own strip."""
+    """The two values that a sampler holds at every step, each published as its own strip."""
 
     CANVAS = "canvas"
-    """``x``: what is actually on the canvas at this step, static included."""
+    """``x``: what is on the canvas at this step, noise included."""
 
     GUESS = "guess"
-    """``x0``: the model's current guess at the finished picture, from where it stands."""
+    """``x0``: the model's guess at the finished picture, at this step."""
 
 
 ARC_PARAMETERS: dict[LatentArc, SweepParameter] = {
@@ -80,20 +80,20 @@ ARC_PARAMETERS: dict[LatentArc, SweepParameter] = {
 
 
 class SamplerPass:
-    """The latents one run of one sampler stashed, in step order.
+    """The latents stored from one run of one sampler, in step order.
 
-    A pass per ``prepare_callback`` call rather than one buffer for the whole render: a pipeline
-    that samples twice (the hires-fix path does) would otherwise interleave two arcs into one
-    list, and a strip built from that would show the wrong content in a valid file format.
+    There is one pass per ``prepare_callback`` call, not one buffer for the whole render.
+    Otherwise a pipeline that samples twice (as the hires-fix path does) would interleave two arcs
+    into one list, and a strip built from it would show the wrong content in valid files.
     """
 
     def __init__(self, *, requested_steps: int, process_latent_out: Callable[[Any], Any]) -> None:
-        """Open a pass that expects this many steps.
+        """Open a pass for this many steps.
 
         Args:
             requested_steps: The step count that the callback is built for.
-            process_latent_out: The model's own conversion from the space it samples in to the
-                space a VAE decodes from.
+            process_latent_out: The model's conversion from its sampling space to the space that
+                a VAE decodes from.
         """
         self.requested_steps = requested_steps
         self.process_latent_out = process_latent_out
@@ -102,17 +102,17 @@ class SamplerPass:
         self.total_steps: int | None = None
 
     def record(self, *, canvas_latent: Any, guess_latent: Any, total_steps: int) -> None:
-        """Stash one step's pair of latents, detached onto the host and in the decoder's space.
+        """Store one step's pair of latents, detached onto the host and in the decoder's space.
 
-        The tensors are copied off the accelerator immediately. Keeping the sampler's own tensors
-        would keep the whole arc resident in video memory for the length of the render, and the
-        sampler reuses its buffers besides, so a reference would not preserve the values.
+        The tensors are copied off the accelerator immediately. Keeping the sampler's tensors
+        would keep the whole arc in video memory for the whole render. The sampler also reuses
+        its buffers, so a reference would not preserve the values.
 
-        A sampler works in a scaled latent space and the model's ``process_latent_out`` is what
-        takes a result back out of it. The sampling path applies it to the finished result on the
-        way to the decode node. A latent taken mid-flight has not been through it, and a VAE handed
-        one anyway returns flat grey rather than a picture, so each stashed latent goes through the
-        same conversion that the delivered one did.
+        A sampler works in a scaled latent space, and the model's ``process_latent_out`` converts
+        a result back out of it. The sampling path applies it to the finished result on the way
+        to the decode node. A latent taken mid-render has not been converted, and a VAE given an
+        unconverted latent returns flat grey instead of a picture, so each stored latent goes
+        through the same conversion as the delivered one.
         """
         self.total_steps = total_steps
         self.canvas_latents.append(self.process_latent_out(_stashed(canvas_latent)))
@@ -129,10 +129,10 @@ class SamplerPass:
 
 
 class StepPreviewCapture:
-    """What one armed window stashed: every sampler pass, and the VAE the graph decoded with.
+    """The data stored by one armed window: every sampler pass, and the VAE that the graph decoded with.
 
     Thread Safety:
-        Not thread-safe, and not meant to be. The window is armed around a single render.
+        Not thread-safe, by design. The window is armed around a single render.
     """
 
     def __init__(self) -> None:
@@ -147,11 +147,11 @@ class StepPreviewCapture:
         return sampler_pass
 
     def record_vae(self, vae: Any) -> None:
-        """Remember the VAE the graph decoded its result with."""
+        """Store the VAE that the graph decoded its result with."""
         self.vae = vae
 
     def single_pass(self) -> SamplerPass:
-        """Return the only sampler pass this capture recorded.
+        """Return the only sampler pass that this capture recorded.
 
         Raises:
             RuntimeError: If the render did not sample exactly once, which means the pipeline was
@@ -168,8 +168,8 @@ class StepPreviewCapture:
         """Return the captured VAE.
 
         Raises:
-            RuntimeError: If the graph never reached the decode node that the capture wraps, which
-                leaves the stashed latents undecodable in the space the render used.
+            RuntimeError: If the graph did not reach the decode node that the capture wraps. The
+                stored latents then cannot be decoded in the render's space.
         """
         if self.vae is None:
             raise RuntimeError(
@@ -180,10 +180,10 @@ class StepPreviewCapture:
 
 
 class CaptureTargets:
-    """The two objects that an armed window patches, held together so a test can state its own."""
+    """The two objects that an armed window patches, held together so a test can supply its own."""
 
     def __init__(self, *, latent_preview_module: Any, decode_node_class: Any) -> None:
-        """Name what to patch.
+        """Store the objects to patch.
 
         Args:
             latent_preview_module: The module that has ``prepare_callback``.
@@ -196,10 +196,9 @@ class CaptureTargets:
 def comfyui_capture_targets() -> CaptureTargets:
     """Return the seams inside the vendored ComfyUI, imported at call time.
 
-    Both imports only resolve once horde-engine has initialised, because that is what puts the
+    Both imports only resolve once horde-engine has initialised, because initialisation puts the
     vendored ComfyUI on the import path. Calling this before
-    [`prepare`][param_sweeps.local_runner.LocalRunner.prepare] is therefore an error rather than
-    an ordering nicety.
+    [`prepare`][param_sweeps.local_runner.LocalRunner.prepare] is therefore an error.
 
     Raises:
         RuntimeError: If the modules are not importable, which means the GPU backend was never
@@ -221,9 +220,9 @@ def comfyui_capture_targets() -> CaptureTargets:
 def armed_step_capture(*, targets: CaptureTargets) -> Iterator[StepPreviewCapture]:
     """Context manager that records every sampler step of the renders run inside it.
 
-    Both patches are removed on the way out however the block ends, because they are
-    process-wide: a wrapper left armed would go on stashing latents for every later render in the
-    process and hold them until it exited.
+    Both patches are removed when the block exits, however it ends, because they are
+    process-wide. A wrapper left armed would keep storing latents for every later render in the
+    process until the process exited.
 
     Args:
         targets: The module and node class to patch.
@@ -256,7 +255,7 @@ def armed_step_capture(*, targets: CaptureTargets) -> Iterator[StepPreviewCaptur
 
 
 def _recording_prepare_callback(*, capture: StepPreviewCapture, original: Any) -> Callable[..., Any]:
-    """Return a ``prepare_callback`` that stashes each step before delegating to the real one."""
+    """Return a ``prepare_callback`` that stores each step before calling the original callback."""
 
     def prepare_callback(model: Any, steps: int, *args: Any, **kwargs: Any) -> Callable[..., Any]:
         delegate = original(model, steps, *args, **kwargs)
@@ -276,7 +275,7 @@ def _recording_prepare_callback(*, capture: StepPreviewCapture, original: Any) -
 
 
 def _vae_remembering_decode(*, capture: StepPreviewCapture, original: Any) -> Callable[..., Any]:
-    """Return a ``decode`` that remembers the VAE it was handed before decoding as usual."""
+    """Return a ``decode`` that stores the VAE that it receives, then decodes as usual."""
 
     def decode(node: Any, *args: Any, **kwargs: Any) -> Any:
         vae = kwargs.get("vae", args[0] if args else None)
@@ -290,12 +289,12 @@ def _vae_remembering_decode(*, capture: StepPreviewCapture, original: Any) -> Ca
 def _process_latent_out_of(model: Any) -> Callable[[Any], Any]:
     """Return the model's conversion out of the space that its sampler works in.
 
-    Taken from the patcher that the callback is being built for, which is the same object and the
-    same method that the sampling path itself applies to the finished result.
+    Taken from the patcher that the callback is built for, which is the same object and method
+    that the sampling path applies to the finished result.
 
     Raises:
-        RuntimeError: If the object handed to ``prepare_callback`` does not have such a conversion,
-            which would leave every stashed latent in a space that no VAE can decode.
+        RuntimeError: If the object passed to ``prepare_callback`` does not have this conversion.
+            Every stored latent would then be in a space that a VAE cannot decode.
     """
     process_latent_out = getattr(getattr(model, "model", None), "process_latent_out", None)
     if process_latent_out is None:
@@ -311,8 +310,8 @@ def _process_latent_out_of(model: Any) -> Callable[[Any], Any]:
 def _stashed(latent: Any) -> Any:
     """Return a latent copied onto the host as float32, detached from the sampler's own buffer.
 
-    A nested tensor is unwrapped to its first tensor, which is what the preview path that this
-    wraps does with the same value.
+    A nested tensor is unwrapped to its first tensor, as the wrapped preview path does with the
+    same value.
     """
     if getattr(latent, "is_nested", False):
         latent = latent.tensors[0]
@@ -320,14 +319,14 @@ def _stashed(latent: Any) -> Any:
 
 
 def decode_latent_frames(*, vae: Any, latents: Sequence[Any]) -> list[Image.Image]:
-    """Return one image per latent, decoded with the VAE the render itself used.
+    """Return one image per latent, decoded with the VAE that the render used.
 
-    Decoding one latent at a time rather than as a batch: a thirty-frame batch of SDXL latents is
-    a large allocation for no gain, and a frame that fails is then a frame rather than the arc.
+    Latents are decoded one at a time instead of as a batch. A thirty-frame batch of SDXL latents
+    is a large allocation for no gain, and a failure then loses one frame instead of the arc.
 
-    The decode runs under inference mode, as the render's own decode did. The stashed latents were
-    taken from inside that mode and have no version counter, so a VAE writing its output in place
-    (as the decode does) rejects them anywhere else.
+    The decode runs under inference mode, as the render's own decode did. The stored latents were
+    taken inside that mode and do not have a version counter, so a VAE that writes its output in
+    place (as the decode does) rejects them outside it.
 
     Args:
         vae: The VAE captured from the render's own graph.
@@ -356,7 +355,7 @@ def _as_image(decoded: Any) -> Image.Image:
     The decode returns pixels as height, width, channel floats in 0..1 with any leading batch and
     frame axes still on the front, so the leading axes are dropped before the conversion. The
     channel axis is moved into place rather than copied, which leaves a strided view that an image
-    cannot be built from, so the bytes are made contiguous before they are handed over.
+    cannot be built from, so the bytes are made contiguous before the conversion.
     """
     frame = decoded
     while frame.ndim > 3:
@@ -367,11 +366,11 @@ def _as_image(decoded: Any) -> Image.Image:
 
 
 def step_preview_strips(*, spec: SweepSpec) -> dict[LatentArc, RenderStrip]:
-    """Return the strip each arc publishes to, read from the specification.
+    """Return the strip for each arc, read from the specification.
 
     Raises:
-        ValueError: If the specification does not describe exactly one strip per arc, which is
-            what lets one render cover both of them.
+        ValueError: If the specification does not describe exactly one strip per arc. One strip
+            per arc lets one render cover both.
     """
     strips: dict[LatentArc, RenderStrip] = {}
     for arc, parameter in ARC_PARAMETERS.items():
@@ -387,17 +386,17 @@ def check_arcs_agree(strips: dict[LatentArc, RenderStrip]) -> RenderJob:
     """Return the job whose render covers both arcs, after checking that it does.
 
     The two strips are two views of a single render, so every stop of both has to state the same
-    parameters. A specification that let them drift would publish two arcs of two different
-    pictures and label them as one.
+    parameters. A specification in which they differ would publish arcs of two different pictures
+    and label them as one.
 
     Args:
-        strips: The strips each arc publishes to.
+        strips: The strip for each arc.
 
     Returns:
-        The first stop's job, which is the render every stop of both strips is a moment of.
+        The first stop's job, whose render provides every stop of both strips.
 
     Raises:
-        ValueError: If a stop states parameters differing from the first stop's, or if the two
+        ValueError: If a stop states parameters that differ from the first stop's, or if the two
             strips do not have the same number of stops.
     """
     canvas_jobs = strips[LatentArc.CANVAS].jobs
@@ -431,8 +430,8 @@ def run_step_preview(
     """Render once with the capture armed, then write both arcs into the library.
 
     The one render is the canvas strip's first stop.
-    [`check_arcs_agree`][param_sweeps.step_preview.check_arcs_agree] has already established that
-    every other stop of both strips agrees with it. Each frame is then written through the
+    [`check_arcs_agree`][param_sweeps.step_preview.check_arcs_agree] has already checked that
+    every other stop of both strips matches it. Each frame is then written through the
     ordinary save path against its own stop's job, so a step-preview image has the same sidecar,
     filename and checkpoint entry as an ordinary stop.
 
@@ -448,7 +447,7 @@ def run_step_preview(
     Raises:
         RuntimeError: If the render did not produce an image, did not sample exactly once, or
             never reached a decode node.
-        ValueError: If the specification's two strips disagree.
+        ValueError: If the specification's two strips do not match.
 
     Side Effects:
         Renders on the accelerator, writes images, sidecars, the checkpoint and the index.
@@ -514,8 +513,8 @@ def _write_arc(
     """Write one arc's frames against its strip's stops, and return their paths.
 
     Raises:
-        RuntimeError: If the capture produced a different number of frames than the strip declares
-            stops, which would silently publish an arc against the wrong step numbers.
+        RuntimeError: If the number of captured frames differs from the strip's stop count.
+            Publishing them would label frames with the wrong step numbers.
     """
     if len(frames) != len(strip.jobs):
         raise RuntimeError(

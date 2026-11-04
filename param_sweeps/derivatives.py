@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Cut the crops and write the bounded copies a page needs to show what a render actually holds.
+"""Cut the crops and write the bounded copies that a page needs to show a render's full detail.
 
 A page draws a picture at the width that it has, and a 512-pixel render and a 2048-pixel upscale
 of it look identical once both are scaled to fit. That makes the evidence for upscalers, the hires
-pass and face restoration unreadable: the whole difference is in pixels that the reader never
-sees. Two files beside each render address this.
+pass and face restoration unreadable, because the difference is in pixels that the reader does
+not see. Two files beside each render address this.
 
-A crop is the part of the frame that the strip is actually about, cut at the frame's own pixels,
-so a reader looking at it is looking at what the model produced rather than at a resampling of
-it. The region is stated in fractions of the frame, so one region can serve stops published at
-different sizes.
+A crop is the part of the frame that the strip is about, cut at the frame's own pixels, so the
+reader sees the model's output instead of a resampled copy. The region is stated in fractions of
+the frame, so one region can serve stops published at different sizes.
 
-A bounded copy is the whole frame with its long edge brought down to
+A bounded copy is the whole frame with its long edge scaled down to
 [`FIT_LONG_EDGE_PIXELS`][param_sweeps.derivatives.FIT_LONG_EDGE_PIXELS], which a page can draw
 without fetching several megabytes and discarding most of them. The full frame stays published
 beside it for anyone who wants it.
@@ -23,13 +22,13 @@ read of the specification and the files on disk.
 
 Critical public members:
 
-- [`DerivativeOutcome`][param_sweeps.derivatives.DerivativeOutcome]: what became of one file.
+- [`DerivativeOutcome`][param_sweeps.derivatives.DerivativeOutcome]: the result for one file.
 - [`write_sweep_derivatives`][param_sweeps.derivatives.write_sweep_derivatives]: the crops and
   bounded copies that every published render needs.
-- [`write_alchemy_crops`][param_sweeps.derivatives.write_alchemy_crops]: the crops that the
-  alchemy entries declaring a region need, cut from both the source and the result.
+- [`write_alchemy_crops`][param_sweeps.derivatives.write_alchemy_crops]: the crops for alchemy
+  entries that declare a region, cut from both the source and the result.
 - [`write_alchemy_result_fits`][param_sweeps.derivatives.write_alchemy_result_fits]: the bounded
-  copies that alchemy results over the bound need.
+  copies of alchemy results that are larger than the bound.
 """
 
 from __future__ import annotations
@@ -55,41 +54,41 @@ from param_sweeps.outputs import WebpEncoding, image_size
 from param_sweeps.spec import FROZEN_MODEL_CONFIG, CropRegion, SweepParameter, SweepSpec
 
 MINIMUM_CROPPABLE_PIXELS = 256
-"""The smallest side a frame can have and still be worth cutting a crop from.
+"""The shortest frame side that is worth cutting a crop from.
 
-Below this a page draws the frame at or near its own pixels already, so a crop of it shows the
-reader nothing new. A region that has something to show anyway says so with
+Below this, a page already draws the frame at or near its own pixels, so a crop does not show
+the reader anything new. A region that is still worth cutting sets
 [`CropRegion.even_when_small`][param_sweeps.spec.CropRegion.even_when_small].
 """
 
 FIT_LONG_EDGE_PIXELS = 1024
-"""What a bounded copy's long edge is brought down to. Frames at or under it get no copy."""
+"""The long edge of a bounded copy. Frames at or under this size do not get a copy."""
 
 
 class DerivativeKind(StrEnum):
-    """What kind of file a derivative is, which is what a report groups by."""
+    """The kind of file that a derivative is, used to group the report."""
 
     CROP = auto()
     FIT = auto()
 
 
 class DerivativeOutcome(BaseModel):
-    """Represents what became of one crop or bounded copy."""
+    """Represents the result for one crop or bounded copy."""
 
     model_config = FROZEN_MODEL_CONFIG
 
     kind: DerivativeKind
     relative_path: str
-    """Where the file is published, relative to the root that it was requested under."""
+    """Where the file is published, relative to the requested root."""
 
     written: bool
-    """Whether this run wrote it, as opposed to skipping it or leaving one already there alone."""
+    """Whether this run wrote the file, instead of skipping it or reusing a file already on disk."""
 
     reused: bool = False
-    """Whether a file already on disk was left alone."""
+    """Whether a file already on disk was reused."""
 
     skipped_reason: str | None = None
-    """Why nothing was written, when nothing was."""
+    """Why the file was not written, when it was not."""
 
     width: int = 0
     height: int = 0
@@ -103,10 +102,10 @@ def write_sweep_derivatives(
     parameters: Sequence[SweepParameter] | None = None,
     force: bool = False,
 ) -> list[DerivativeOutcome]:
-    """Cut every crop and write every bounded copy the published renders need.
+    """Cut every crop and write every bounded copy that the published renders need.
 
-    A render with no image on disk is passed over rather than reported: an unrendered stop is
-    already reported as an incomplete strip by the index, and saying it twice helps nobody.
+    A render without an image on disk is skipped without a report, because the index already
+    reports an unrendered stop as an incomplete strip.
 
     Args:
         spec: The specification to read the jobs from.
@@ -161,16 +160,16 @@ def write_alchemy_crops(
     output_root: Path,
     force: bool = False,
 ) -> list[DerivativeOutcome]:
-    """Cut the crops that the alchemy entries declaring a region need, and return what became of them.
+    """Cut the crops for alchemy entries that declare a region, and return the outcomes.
 
-    Both sides are cut: what a restorer or an upscaler did is a comparison, and a reader holding
-    the result at its own pixels with nothing to hold it against learns only that the picture is
-    detailed. The same fractional region serves both, which is what makes the pair comparable
-    when the result is four times the size of the source.
+    Both sides are cut, because the effect of a restorer or an upscaler is a comparison. A reader
+    who sees only the result at its own pixels learns only that the picture is detailed. The same
+    fractional region is used for both, so the pair stays comparable when the result is four
+    times the size of the source.
 
     Args:
         spec: The alchemy specification.
-        output_root: The root of the sweep library, which the alchemy tree sits inside.
+        output_root: The root of the sweep library, which contains the alchemy tree.
         force: Rewrite crops that are already on disk.
 
     Returns:
@@ -215,12 +214,12 @@ def write_alchemy_result_fits(
 ) -> list[DerivativeOutcome]:
     """Write the bounded copy of every raster alchemy result over the bound, and return the outcomes.
 
-    Only the raster result is considered: the forms that return words or vectors have
-    nothing to bound, and are passed over rather than reported.
+    Only the raster result is considered. The forms that return words or vectors do not have a
+    raster to scale, and are skipped without a report.
 
     Args:
         spec: The alchemy specification.
-        output_root: The root of the sweep library, which the alchemy tree sits inside.
+        output_root: The root of the sweep library, which contains the alchemy tree.
         force: Rewrite copies that are already on disk.
 
     Returns:
@@ -258,7 +257,7 @@ def _cut_one_crop(
     region: CropRegion,
     force: bool,
 ) -> DerivativeOutcome:
-    """Cut one region out of one frame at its own pixels, and return what became of it."""
+    """Cut one region out of one frame at its own pixels, and return the outcome."""
     if destination.is_file() and not force:
         width, height = image_size(destination)
         return DerivativeOutcome(
@@ -279,8 +278,8 @@ def _cut_one_crop(
                 relative_path=relative_path,
                 written=False,
                 skipped_reason=(
-                    f"the frame is {frame_width}x{frame_height}, under the {MINIMUM_CROPPABLE_PIXELS}"
-                    f" pixels a crop is worth cutting from"
+                    f"the frame is {frame_width}x{frame_height}, under the {MINIMUM_CROPPABLE_PIXELS}-pixel"
+                    f" minimum for a crop"
                 ),
             )
 
@@ -306,7 +305,7 @@ def _write_one_bounded_copy(
     relative_path: str,
     force: bool,
 ) -> DerivativeOutcome:
-    """Write one frame down to the bound if it is over it, and return what became of it."""
+    """Write a copy of one frame scaled down to the bound, if the frame is larger, and return the outcome."""
     if destination.is_file() and not force:
         width, height = image_size(destination)
         return DerivativeOutcome(

@@ -46,7 +46,7 @@ ALCHEMY_SPEC_PATH = TOOL_ROOT / "alchemy_spec.json"
 SWEEP_SPEC_PATH = TOOL_ROOT / "sweep_spec.json"
 
 UPSCALER_FORM = "RealESRGAN_x4plus"
-"""An upscaler the strip declares a stop for, which is what makes it the one worth asserting on."""
+"""An upscaler with a stop in the strip, so assertions on it also cover the strip."""
 
 TEXT_FORM = "caption"
 """A describe-family form, whose result is words rather than pixels."""
@@ -54,12 +54,12 @@ TEXT_FORM = "caption"
 CUT_OUT_FORM = "strip_background"
 
 CONTROL_TYPE = "canny"
-"""One control map, which is the whole result for the form that all thirty-three of them share."""
+"""One detector. All thirty-three detectors share the annotation form, and each map is a whole result."""
 
 REFUSED_FORM = "palette"
-"""A form to script a refusal for, standing in for whatever the deployed API's schema lacks."""
+"""A form with a scripted refusal, in place of any form that the deployed API's schema does not include."""
 
-PICTURE_ANSWERING_FORM = "vectorize"
+PICTURE_RESULT_FORM = "vectorize"
 """A form whose result is a picture, which the API returns as a URL rather than as bytes."""
 
 
@@ -68,8 +68,8 @@ def fast_webp_encoder(monkeypatch: pytest.MonkeyPatch) -> None:
     """Encode with the fastest WebP method while these tests run.
 
     The scripted campaigns write dozens of results enlarged from the real 1024px anchor, and the
-    library's slowest-method encoder turns each into seconds. Nothing here asserts on encoder
-    quality, only on what is written where.
+    library's slowest encoder method takes seconds for each. These tests do not check encoder
+    quality, only which files are written where.
     """
     monkeypatch.setattr(WebpEncoding, "METHOD", 0)
 
@@ -142,12 +142,12 @@ class FakeAlchemyBackend(AlchemyBackend):
 
 
 def test_every_known_form_is_placed_in_exactly_one_use_case(alchemy_spec: AlchemySpec) -> None:
-    """Assert the specification covers the shared vocabulary once each and adds nothing to it.
+    """Assert the specification places each form of the shared vocabulary once, and does not add any.
 
-    The loader enforces this, so reaching this assertion at all means the file is complete. The
-    counts are asserted separately because a form silently moving between use cases would still
-    load and would quietly change which page a reader finds it on. The ``annotation`` form is held
-    to the same rule one level down, by the control-map coverage test.
+    The loader enforces this, so reaching this assertion means the file is complete. The counts
+    are asserted separately, because a form moved between use cases would still load, and would
+    change the page that a reader finds it on without a warning. The control-map coverage test
+    applies the same rule to the ``annotation`` form's control types.
     """
     placed = [entry.form for entry in alchemy_spec.entries if entry.form != ANNOTATION_FORM]
     assert sorted(placed) == sorted(form for form in known_alchemy_forms() if form != ANNOTATION_FORM)
@@ -159,7 +159,7 @@ def test_every_known_form_is_placed_in_exactly_one_use_case(alchemy_spec: Alchem
 
 
 def test_a_form_the_vocabulary_names_and_the_specification_omits_fails_to_load() -> None:
-    """Assert an incomplete specification is a read error rather than a quiet gap in the evidence."""
+    """Assert an incomplete specification is a read error rather than a silent gap in the evidence."""
     complete = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     complete["entries"] = complete["entries"][1:]
 
@@ -177,7 +177,7 @@ def test_a_form_placed_twice_fails_to_load() -> None:
 
 
 def test_forms_are_classified_by_the_vocabulary_rather_than_by_name() -> None:
-    """Assert the execution kind comes from the SDK's own membership tests."""
+    """Assert the execution kind comes from the SDK's membership tests."""
     assert classify_form(UPSCALER_FORM) is not classify_form(CUT_OUT_FORM)
     assert classify_form("GFPGAN") is not classify_form(UPSCALER_FORM)
     assert str(classify_form(TEXT_FORM)) == "unsupported"
@@ -187,12 +187,11 @@ def test_the_upscaler_strip_holds_only_forms_the_manifest_also_lists(
     sweep_spec: SweepSpec,
     alchemy_spec: AlchemySpec,
 ) -> None:
-    """Assert every stop is an upscaler the manifest places, and that the rest stay disclosed.
+    """Assert every stop is an upscaler in the manifest, and that the other upscalers are still listed.
 
-    The strip is a scrubber that the page hides unless it is whole, so it includes the upscalers
-    that have weights behind them and no others. The upscalers that the vocabulary names and that
-    no weights back are not dropped: they stay in the specification, which is what puts them in the manifest
-    as entries that say they could not be run.
+    The strip is a scrubber that the page hides unless it is complete, so it includes only the
+    upscalers that have weights. The upscalers in the vocabulary without weights are not dropped.
+    They stay in the specification, so the manifest lists them as entries that could not be run.
     """
     strip = upscaler_form_strip(sweep_spec=sweep_spec)
     assert strip.parameter is SweepParameter.UPSCALER_FORM
@@ -206,7 +205,7 @@ def test_the_upscaler_strip_holds_only_forms_the_manifest_also_lists(
     }
     assert stop_forms <= upscaler_entries
     assert stop_forms, "the strip has to compare something"
-    assert upscaler_entries - stop_forms, "an upscaler off the strip is still owed a manifest entry"
+    assert upscaler_entries - stop_forms, "an upscaler that is not on the strip still needs a manifest entry"
 
     for job in strip.jobs:
         assert job.stop_label == job.stop_label.lower()
@@ -216,7 +215,7 @@ def test_the_upscaler_strip_holds_only_forms_the_manifest_also_lists(
     assert sources == {strip.source_image}, "the strip and its manifest entries must share one source"
 
 
-def test_a_run_writes_the_manifest_the_frontpage_reads(
+def test_a_run_writes_the_alchemy_manifest(
     tmp_path: Path,
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
@@ -244,7 +243,7 @@ def test_a_run_writes_the_manifest_the_frontpage_reads(
 
     caption_entry = by_form[TEXT_FORM]
     assert caption_entry["files"]["result_text"].endswith(RESULT_TEXT_FILENAME)
-    assert "result" not in caption_entry["files"], "a text answer must not claim an image result"
+    assert "result" not in caption_entry["files"], "a text result must not list an image result"
     text_path = alchemy_root(tmp_path) / caption_entry["files"]["result_text"]
     assert text_path.read_text(encoding="utf-8").strip() == "a woman on the deck of an airship at sunset"
     assert caption_entry["files"]["result_json"].endswith(RESULT_JSON_FILENAME)
@@ -309,9 +308,9 @@ def test_an_unavailable_form_publishes_no_strip_stop(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert a form the backend could not run leaves its stop empty and the strip incomplete.
+    """Assert a form that the backend could not run leaves its stop empty and the strip incomplete.
 
-    The strip is allowed to be short. It is not allowed to be short and say it is whole.
+    The strip can be incomplete, but it must not be marked as complete.
     """
     missing_form = "NMKD_Siax"
     run_alchemy(
@@ -368,11 +367,10 @@ def test_a_form_that_stops_being_available_loses_the_result_it_used_to_have(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert a stale result cannot outlive the availability that produced it.
+    """Assert a stale result is removed when its form stops being available.
 
-    A manifest built from the files on disk would otherwise list a result beside a note saying
-    the form could not be run, which is the one contradiction that the gap reporting is meant to
-    prevent.
+    Otherwise a manifest built from the files on disk would list a result beside a note that the
+    form could not be run.
     """
     run_alchemy(spec=alchemy_spec, sweep_spec=sweep_spec, backend=FakeAlchemyBackend(), output_root=tmp_path)
     run_alchemy(
@@ -404,8 +402,8 @@ SCRIPTED_REQUEST_ID = "0f8b1f16-0000-4000-8000-000000000000"
 class ScriptedTransport(requests.adapters.BaseAdapter):
     """Responds to the client from a script, so the whole submit-and-poll path runs without a network.
 
-    Mounted on a real session and handed to a real client, which is what makes this a test of the
-    transport rather than of a stand-in for it.
+    It is mounted on a real session and passed to a real client, so the test covers the real
+    transport instead of a substitute.
     """
 
     def __init__(self, *, submit_status: int, submit_body: dict[str, Any], status_body: dict[str, Any]) -> None:
@@ -455,7 +453,7 @@ def _live_backend(transport: ScriptedTransport) -> LiveHordeAlchemyBackend:
     return LiveHordeAlchemyBackend(client=HordeApiClient(api_key="not-a-real-key", session=session))
 
 
-def test_the_live_backend_publishes_what_the_horde_said() -> None:
+def test_the_live_backend_publishes_the_horde_result() -> None:
     """Assert a text result comes back as text, and that the form and the image were submitted."""
     said = "a woman on the deck of an airship at sunset"
     transport = ScriptedTransport(
@@ -473,20 +471,20 @@ def test_the_live_backend_publishes_what_the_horde_said() -> None:
 
     assert outcome.is_available
     assert outcome.text == said
-    assert outcome.structured == {TEXT_FORM: said}, "the answer is published as it arrived as well as as text"
+    assert outcome.structured == {TEXT_FORM: said}, "the result is published in the API's shape as well as text"
     assert outcome.image is None
-    assert outcome.model_name_used is None, "the response names no weights, so the manifest claims none"
+    assert outcome.model_name_used is None, "the response does not include the weights, so the model is unset"
 
     submitted = transport.submitted_bodies[0]
     assert submitted["forms"] == [{"name": TEXT_FORM}]
-    assert submitted["source_image"], "the image travels as the base64 the API's source_image takes"
+    assert submitted["source_image"], "the image is sent as base64 in the API's source_image field"
 
 
-def test_a_form_the_api_refuses_is_published_as_a_gap_carrying_the_reason_it_gave() -> None:
-    """Assert a form the live alchemist does not serve ends the entry rather than the run.
+def test_a_form_the_api_refuses_is_published_as_a_gap_with_the_api_reason() -> None:
+    """Assert a form that the live alchemist does not serve ends the entry instead of the run.
 
-    The reason is the API's own, listing what it does accept, because a manifest that says only
-    "unavailable" tells a reader nothing about whether the horde ever offered the form.
+    The reason is the API's error, which lists the accepted forms, because a manifest with only
+    "unavailable" does not tell a reader whether the horde offered the form.
     """
     transport = ScriptedTransport(submit_status=400, submit_body=REFUSAL_BODY, status_body={})
     backend = _live_backend(transport)
@@ -499,7 +497,7 @@ def test_a_form_the_api_refuses_is_published_as_a_gap_carrying_the_reason_it_gav
     assert REFUSED_FORM in outcome.unavailable_reason
 
 
-def test_an_answer_that_is_a_picture_is_downloaded_rather_than_written_down() -> None:
+def test_a_picture_result_is_downloaded_rather_than_written_as_text() -> None:
     """Assert a form that responds with an image URL is written as a result image, not as its URL in text."""
     transport = ScriptedTransport(
         submit_status=202,
@@ -508,23 +506,23 @@ def test_an_answer_that_is_a_picture_is_downloaded_rather_than_written_down() ->
             "state": "done",
             "forms": [
                 {
-                    "form": PICTURE_ANSWERING_FORM,
+                    "form": PICTURE_RESULT_FORM,
                     "state": "done",
-                    "result": {PICTURE_ANSWERING_FORM: "https://example.invalid/vectorized.webp"},
+                    "result": {PICTURE_RESULT_FORM: "https://example.invalid/vectorized.webp"},
                 },
             ],
         },
     )
     backend = _live_backend(transport)
 
-    outcome = backend.apply(form=PICTURE_ANSWERING_FORM, control_type=None, source_image=Image.new("RGB", (16, 16)))
+    outcome = backend.apply(form=PICTURE_RESULT_FORM, control_type=None, source_image=Image.new("RGB", (16, 16)))
 
     assert outcome.is_available
     assert outcome.image is not None
     assert outcome.text is None
 
 
-def test_an_answer_with_nothing_in_it_is_a_gap_rather_than_an_empty_result() -> None:
+def test_an_empty_result_is_a_gap_rather_than_an_empty_entry() -> None:
     """Assert a form that finishes without a result does not publish a result and reports why."""
     transport = ScriptedTransport(
         submit_status=202,
@@ -541,20 +539,20 @@ def test_an_answer_with_nothing_in_it_is_a_gap_rather_than_an_empty_result() -> 
     assert TEXT_FORM in outcome.unavailable_reason
 
 
-def test_a_sentence_answer_is_published_as_the_sentence() -> None:
-    """Assert the captioner's result is not dressed up with the field name that it arrived under."""
+def test_a_sentence_result_is_published_as_the_sentence() -> None:
+    """Assert the captioner's result is published without its field name."""
     said = "a woman standing on a wooden deck next to a metal railing"
     assert render_form_answer(form="caption", result={"caption": said}) == said
 
 
-def test_a_judgement_answer_keeps_the_spelling_the_horde_used() -> None:
-    """Assert a boolean reads as the JSON it arrived as, and a score keeps every digit that it had."""
+def test_a_single_value_result_keeps_the_horde_spelling() -> None:
+    """Assert a boolean is written as JSON, and a score keeps all of its digits."""
     assert render_form_answer(form="nsfw", result={"nsfw": False}) == "nsfw: false"
     assert render_form_answer(form="aesthetic", result={"aesthetic": 6.3933}) == "aesthetic: 6.3933"
 
 
-def test_a_data_answer_is_published_a_field_to_a_line() -> None:
-    """Assert the technical description reads as its own fields rather than as a JSON blob."""
+def test_a_mapping_result_is_published_one_field_per_line() -> None:
+    """Assert the technical description is written one field per line instead of as a JSON blob."""
     rendered = render_form_answer(
         form="describe",
         result={"describe": {"width": 1024, "format": "WEBP", "has_alpha": False}},
@@ -563,8 +561,8 @@ def test_a_data_answer_is_published_a_field_to_a_line() -> None:
     assert rendered.splitlines() == ["width: 1024", "format: WEBP", "has_alpha: false"]
 
 
-def test_a_listed_answer_names_each_item_and_how_strongly_it_holds() -> None:
-    """Assert the two listed shapes, CLIP's phrases and the palette's colours, both read plainly."""
+def test_a_listed_result_names_each_item_and_its_weight() -> None:
+    """Assert the two listed shapes, CLIP's phrases and the palette's colours, are both written as plain lines."""
     interrogation = render_form_answer(
         form="interrogation",
         result={
@@ -583,15 +581,15 @@ def test_a_listed_answer_names_each_item_and_how_strongly_it_holds() -> None:
     assert palette == "colors: #0d1c1e (0.2389)"
 
 
-def test_a_vector_answer_publishes_as_a_drawable_result(
+def test_a_vector_result_is_published_as_a_drawable_result(
     alchemy_spec: AlchemySpec,
     sweep_spec: SweepSpec,
     tmp_path: Path,
 ) -> None:
-    """Assert an SVG result is written as the entry's result rather than as a transcript.
+    """Assert an SVG result is written as the entry's result instead of as text.
 
-    The vectorizer returns the picture itself, as markup. A page handed that markup as
-    result_text would print a wall of path data. Filed as the result, a browser draws it.
+    The vectorizer returns the picture as markup. A page given that markup as result_text would
+    print a wall of path data. As the result, a browser draws it.
     """
     markup = '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>'
     run_alchemy(
@@ -610,7 +608,7 @@ def test_a_vector_answer_publishes_as_a_drawable_result(
 
 
 def test_every_control_map_the_vocabulary_names_is_placed_exactly_once(alchemy_spec: AlchemySpec) -> None:
-    """Assert the control-map page shows every detector the horde knows, on one shared source."""
+    """Assert the control-map page shows every detector in the horde's vocabulary, on one shared source."""
     placed = [entry.control_type for entry in alchemy_spec.entries if entry.control_type is not None]
 
     assert sorted(placed) == sorted(known_annotation_control_types())
@@ -623,7 +621,7 @@ def test_every_control_map_the_vocabulary_names_is_placed_exactly_once(alchemy_s
 
 
 def test_a_control_map_the_vocabulary_names_and_the_specification_omits_fails_to_load() -> None:
-    """Assert a detector the SDK gains cannot quietly go missing from the published evidence."""
+    """Assert a detector added to the SDK cannot go missing from the published evidence unnoticed."""
     incomplete = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     incomplete["entries"] = [entry for entry in incomplete["entries"] if entry.get("control_type") != CONTROL_TYPE]
 
@@ -632,7 +630,7 @@ def test_a_control_map_the_vocabulary_names_and_the_specification_omits_fails_to
 
 
 def test_a_control_map_the_vocabulary_does_not_name_fails_to_load() -> None:
-    """Assert the specification cannot invent a detector the horde has no name for."""
+    """Assert the specification cannot add a detector that is not in the horde's vocabulary."""
     invented = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     placed = next(entry for entry in invented["entries"] if entry.get("control_type") == CONTROL_TYPE)
     invented["entries"].append({**placed, "control_type": "sobel", "title": "sobel"})
@@ -642,13 +640,13 @@ def test_a_control_map_the_vocabulary_does_not_name_fails_to_load() -> None:
 
 
 def test_a_control_type_on_a_form_that_is_not_the_annotation_form_fails_to_load() -> None:
-    """Assert a control type belongs to the one form whose result identifies which detector ran."""
+    """Assert only the annotation form, whose result depends on the detector, can have a control type."""
     misplaced = json.loads(ALCHEMY_SPEC_PATH.read_text(encoding="utf-8"))
     for entry in misplaced["entries"]:
         if entry["form"] == UPSCALER_FORM:
             entry["control_type"] = CONTROL_TYPE
 
-    with pytest.raises(ValueError, match="disagree"):
+    with pytest.raises(ValueError, match="break that rule"):
         AlchemySpec.model_validate(misplaced)
 
 
@@ -659,9 +657,8 @@ def test_the_control_maps_are_told_apart_by_their_detector_in_the_tree_and_in_th
 ) -> None:
     """Assert each detector gets its own directory and its own manifest entry naming it.
 
-    Every control map is the same form, so the form cannot tell the entries apart. The detector
-    is what distinguishes them, and a consumer that cannot read which one drew a map cannot
-    label it.
+    Every control map has the same form, so the form does not distinguish the entries. The
+    detector does, and a consumer that cannot see which detector drew a map cannot label it.
     """
     run_alchemy(
         spec=alchemy_spec,
@@ -676,7 +673,7 @@ def test_the_control_maps_are_told_apart_by_their_detector_in_the_tree_and_in_th
     drawn_by = [entry["control_type"] for entry in control_maps]
     assert sorted(drawn_by) == sorted(known_annotation_control_types())
     placed = [entry.control_type for entry in alchemy_spec.entries if entry.control_type is not None]
-    assert placed == drawn_by, "the manifest lists the detectors in the order the specification groups them"
+    assert placed == drawn_by, "the manifest lists the detectors in the specification's order"
 
     drawn = next(entry for entry in control_maps if entry["control_type"] == CONTROL_TYPE)
     assert drawn["files"]["result"] == f"{AlchemyUseCase.CONTROL_MAP}/{CONTROL_TYPE}/{RESULT_IMAGE_FILENAME}"
@@ -714,11 +711,11 @@ def test_a_strength_strip_draws_one_map_and_a_strip_with_no_detector_draws_none(
     tmp_path: Path,
     sweep_spec: SweepSpec,
 ) -> None:
-    """Assert a strip held to one detector publishes one map, beside its source, and only one.
+    """Assert a strip with one detector publishes exactly one map, beside its source.
 
-    Every stop of a strength strip is held to the same map, so drawing it per stop would request the
-    same picture from the service a dozen times and publish a dozen copies of it. A strip that
-    conditions on nothing has nothing for a detector to draw.
+    Every stop of a strength strip uses the same map, so drawing it per stop would request the same
+    picture from the service a dozen times and publish a dozen copies. A strip without a ControlNet
+    does not need a map.
     """
     backend = FakeAlchemyBackend()
     held_strips = [strip for strip in sweep_spec.expand_strips() if strip.relative_control_map_path is not None]
@@ -744,7 +741,7 @@ def test_a_strength_strip_draws_one_map_and_a_strip_with_no_detector_draws_none(
     sidecar = json.loads((tmp_path / published).with_suffix(".json").read_text(encoding="utf-8"))
     assert sidecar["control_type"] == first.jobs[0].control_type
     assert sidecar["source"] == first.source_image
-    assert sidecar["render"] is None, "the map stands for the whole strip rather than for one render"
+    assert sidecar["render"] is None, "the map belongs to the whole strip, not to one render"
 
     reused = draw_control_maps(
         spec=sweep_spec,
@@ -774,8 +771,8 @@ def test_a_strength_strip_draws_one_map_and_a_strip_with_no_detector_draws_none(
     )
 
 
-def test_a_backend_that_does_not_draw_control_maps_says_where_they_are_drawn() -> None:
-    """Assert the live-horde backend points at the service that serves the form it cannot."""
+def test_a_backend_that_does_not_draw_control_maps_names_the_service_that_does() -> None:
+    """Assert the live-horde backend names the service for the form that it cannot serve."""
     outcome = _live_backend(ScriptedTransport(submit_status=202, submit_body={}, status_body={})).apply(
         form=ANNOTATION_FORM,
         control_type=CONTROL_TYPE,

@@ -1,39 +1,37 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Apply every alchemy form the horde knows to a shared source, and write the evidence manifest.
+"""Apply every alchemy form in the horde's vocabulary to a shared source, and write the evidence manifest.
 
-Alchemy is the half of the horde that takes an image in rather than a prompt: upscalers, face
-restorers, background removal, and the describe family that responds in words instead of pixels.
-This tool does not define the form vocabulary, so it is read directly from
-``horde_sdk``'s ``KNOWN_ALCHEMY_TYPES`` and the specification is checked against it. A form that
-the SDK gains and the specification has not placed is a failure to load the file, not a silent
-gap in the published evidence.
+Alchemy is the half of the horde that takes an image as input instead of a prompt: upscalers, face
+restorers, background removal, and the describe family, which returns words instead of pixels.
+The form vocabulary is read from ``horde_sdk``'s ``KNOWN_ALCHEMY_TYPES``, and the specification
+is checked against it. If the SDK adds a form that the specification does not place, loading
+the specification fails, so the published evidence cannot have a silent gap.
 
-Every form in a use case runs on the *same* source image. A reader comparing two upscalers is
-comparing upscalers only if the picture underneath them is the same picture, so the sources are
-published once at the root of the tree and every entry points at one of them rather than
-holding its own copy.
+Every form in a use case runs on the *same* source image. A comparison of two upscalers only
+compares the upscalers if both start from the same picture, so the sources are published once at
+the root of the tree, and every entry points at one of them instead of holding its own copy.
 
-A form that this machine cannot run is published as an entry whose ``notes`` say so and whose
-``files`` have no result. That is deliberate: the consumer draws an accurate empty state from a
-manifest that records the gap, and cannot draw one at all from a manifest that omits the form.
+A form that this machine cannot run is published as an entry whose ``notes`` give the reason and
+whose ``files`` have no result. A consumer can draw an accurate empty state from a manifest that
+records the gap, but cannot draw one for a form that the manifest omits.
 
 Three backends apply the forms, because the horde runs them in three places. The post-processors
-belong to horde-engine, and are applied on this machine's GPU with the same stack a worker runs.
-The describe family belongs to the alchemist worker, has no local surface, and is run by
-submitting the image to the live horde and publishing what came back. The control maps belong to
+belong to horde-engine, and are applied on this machine's GPU with the same stack that a worker
+runs. The describe family belongs to the alchemist worker and cannot run locally. It is run by
+submitting the image to the live horde and publishing the result. The control maps belong to
 horde-image-utilities, which the worker runs as a separate service, and are produced by
 [`HordeImageUtilitiesBackend`][param_sweeps.image_utilities.HordeImageUtilitiesBackend].
 
-The ``annotation`` form is the one form that is not one comparison. It has a control type, and
-each of the detectors that ``horde_sdk``'s ``KNOWN_ANNOTATION_CONTROL_TYPES`` names reads something
-different out of the same picture, so the specification places the form once per detector and the
-entries are told apart by their control type rather than by their form.
+The ``annotation`` form is the only form with more than one comparison. It has a control type,
+and each detector in ``horde_sdk``'s ``KNOWN_ANNOTATION_CONTROL_TYPES`` extracts something
+different from the same picture. The specification places the form once per detector, and the
+entries are distinguished by control type instead of by form.
 
-The upscalers additionally publish into the sweep library as an ordinary strip, under
-[`SweepParameter.UPSCALER_FORM`][param_sweeps.spec.SweepParameter]. One source, one stop per
-upscaler, so the enlarge page gets a scrubber over the same comparison that the manifest lists.
+The upscalers are also published into the sweep library as an ordinary strip, under
+[`SweepParameter.UPSCALER_FORM`][param_sweeps.spec.SweepParameter]. The strip has one source and
+one stop per upscaler, so the enlarge page gets a scrubber over the comparison in the manifest.
 
 Critical public members:
 
@@ -41,11 +39,11 @@ Critical public members:
 - [`known_alchemy_forms`][param_sweeps.alchemy.known_alchemy_forms]: the SDK's form list.
 - [`known_annotation_control_types`][param_sweeps.alchemy.known_annotation_control_types]: the
   SDK's detector list.
-- [`AlchemyBackend`][param_sweeps.alchemy.AlchemyBackend]: the contract a backend implements.
-- [`HordelibAlchemyBackend`][param_sweeps.alchemy.HordelibAlchemyBackend]: the horde-engine one.
-- [`LiveHordeAlchemyBackend`][param_sweeps.alchemy.LiveHordeAlchemyBackend]: the public API one.
+- [`AlchemyBackend`][param_sweeps.alchemy.AlchemyBackend]: the interface that a backend implements.
+- [`HordelibAlchemyBackend`][param_sweeps.alchemy.HordelibAlchemyBackend]: the horde-engine backend.
+- [`LiveHordeAlchemyBackend`][param_sweeps.alchemy.LiveHordeAlchemyBackend]: the public API backend.
 - [`run_alchemy`][param_sweeps.alchemy.run_alchemy]: apply the forms and write everything.
-- [`build_manifest`][param_sweeps.alchemy.build_manifest]: the manifest as the frontpage reads it.
+- [`build_manifest`][param_sweeps.alchemy.build_manifest]: the manifest that the alchemy pages read.
 """
 
 from __future__ import annotations
@@ -113,31 +111,31 @@ RESULT_CROP_FILENAME = "result_crop.webp"
 RESULT_FIT_FILENAME = "result_fit.webp"
 """Where an entry's bounded copy of its result is written, inside the entry's directory.
 
-An enlarger produces a result at four times the source size, and a page that draws that whole file
-spends several megabytes to throw most of them away. The full result stays published beside this copy.
+An enlarger produces a result at four times the source size, and a page that draws the whole file
+downloads several megabytes and discards most of them. The full result stays published beside this copy.
 """
 
 RESULT_URL_SCHEME_PREFIX = "http"
-"""What a result that is a picture starts with: the API returns a URL rather than the bytes."""
+"""The prefix of a picture result, because the API returns a URL instead of the bytes."""
 
 ANSWER_LABEL_FIELDS = ("text", "hex")
-"""The field names that a listed result uses for the item it describes: a phrase CLIP matched, or a palette colour."""
+"""The field names that a listed result uses for its item: a phrase matched by CLIP, or a palette colour."""
 
 ANSWER_WEIGHT_FIELDS = ("confidence", "proportion")
-"""The field names that a listed result uses for how strong it is: a confidence, or a share of the picture."""
+"""The field names that a listed result uses for its weight: a confidence, or a share of the picture."""
 
 UNAVAILABLE_NOTE_PREFIX = "No result was produced here:"
 """The prefix of a manifest note that gives the reason a form could not be run."""
 
 EMPTY_FORM_MEMBER = "_NONE"
-"""The placeholder member of the SDK's form enum, which names no form and is not published."""
+"""The placeholder member of the SDK's form enum, which is not a form and is not published."""
 
 ANNOTATION_FORM = "annotation"
-"""The one form that has a control type: which detector reads the picture determines the result."""
+"""The one form that has a control type, because the detector determines the result."""
 
 CONTROL_MAP_ELSEWHERE_REASON = (
-    "the control maps are drawn by horde-image-utilities, the service an alchemist worker runs"
-    " beside itself for them, which this tool reaches with --backend hiu"
+    "the control maps are drawn by horde-image-utilities, a separate service run by an alchemist"
+    " worker, which this tool uses with --backend hiu"
 )
 """Why a backend that is not the image-utilities one publishes an annotation entry as a gap."""
 
@@ -147,11 +145,11 @@ BETA_PRIMARY_API_URL_VARIABLE = "HORDE_MODEL_REFERENCE_PRIMARY_API_URL"
 """The three horde-engine values that determine whether the pending model reference is used."""
 
 BETA_MODEL_CATEGORIES = ("gfpgan",)
-"""Which reference categories the beta opt-in covers: the face restorers, and no other category yet.
+"""The reference categories covered by the beta opt-in. Only the face restorers are covered.
 
-GFPGANv1.3 and RestoreFormer are named by the shared vocabulary but exist only in the pending
-queue, so the fix-faces comparison is short two of its four entries without this. The upscalers
-are a longer list of gaps and are left alone until each one is worth publishing.
+GFPGANv1.3 and RestoreFormer are in the shared vocabulary but exist only in the pending queue,
+so without this the fix-faces comparison is missing two of its four entries. The upscalers have
+a longer list of gaps, and are not covered until each one is worth publishing.
 """
 
 BETA_PRIMARY_API_URL = "https://models.aihorde.net/api"
@@ -162,16 +160,16 @@ ANONYMOUS_API_KEY = "0000000000"
 
 
 class AlchemyUseCase(StrEnum):
-    """What a reader came to the alchemy pages to do, which is how the forms are grouped.
+    """The reader's goal on the alchemy pages, used to group the forms.
 
     The horde's vocabulary is a flat list of processors. A reader does not arrive wanting
     ``RealESRGAN_x4plus``. They arrive wanting a bigger picture. Each form goes in exactly one
-    of these, and a form that fits none of them goes in the one that misrepresents it least and
-    says so in its notes.
+    of these. A form that does not fit any of them goes in the closest one, and its notes explain
+    the mismatch.
     """
 
     DESCRIBE = "describe"
-    """Ask the image what it is: captioning, interrogation, and the other read-only forms."""
+    """Describe the image: captioning, interrogation, and the other read-only forms."""
 
     CONTROL_MAP = "control_map"
     """Read the structure out of a picture and draw it: edges, depth, pose, regions, tone."""
@@ -180,30 +178,30 @@ class AlchemyUseCase(StrEnum):
     """Make the picture bigger than it was rendered."""
 
     FIX_FACES = "fix_faces"
-    """Restore a face the sampler left soft."""
+    """Restore a face that the sampler left soft."""
 
     CUT_OUT = "cut_out"
     """Take the subject off its background."""
 
 
 class AlchemyFormKind(StrEnum):
-    """How a form is executed, which decides what a backend does with it."""
+    """How a form is executed, which determines what a backend does with it."""
 
     UPSCALE = "upscale"
     FACEFIX = "facefix"
     STRIP_BACKGROUND = "strip_background"
     UNSUPPORTED = "unsupported"
-    """A form that no backend this tool drives can run, which is published as a gap."""
+    """A form that none of this tool's backends can run, published as a gap."""
 
 
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=())
 
 
 def known_alchemy_forms() -> tuple[str, ...]:
-    """Return every alchemy form the shared vocabulary names, in declaration order.
+    """Return every alchemy form in the shared vocabulary, in declaration order.
 
     Read from ``horde_sdk`` rather than restated here, so the specification is checked against
-    what the horde actually offers instead of against a copy of it that can go stale.
+    the horde's current vocabulary instead of a copy that can go stale.
     """
     return tuple(
         str(form.value) for name, form in KNOWN_ALCHEMY_TYPES.__members__.items() if name != EMPTY_FORM_MEMBER
@@ -211,10 +209,10 @@ def known_alchemy_forms() -> tuple[str, ...]:
 
 
 def known_annotation_control_types() -> tuple[str, ...]:
-    """Return every control map the shared vocabulary names, in declaration order.
+    """Return every control map in the shared vocabulary, in declaration order.
 
-    Read from ``horde_sdk`` for the same reason as the form list: a detector that the horde gains is
-    then a failure to load the specification rather than a page that quietly never shows it.
+    Read from ``horde_sdk`` for the same reason as the form list. If the horde adds a detector,
+    loading the specification fails, so the detector cannot go missing from the pages unnoticed.
     """
     return tuple(str(control_type.value) for control_type in KNOWN_ANNOTATION_CONTROL_TYPES)
 
@@ -238,17 +236,17 @@ def classify_form(form: str) -> AlchemyFormKind:
 
 
 def form_label(form: str) -> str:
-    """Return the filename-safe token a form's directory and strip stop are named by."""
+    """Return the filename-safe token used to name a form's directory and strip stop."""
     return value_label(form)
 
 
 def _check_placed_once(*, placed: list[str], known: list[str], subject: str) -> None:
-    """Validate that a placement covers a shared vocabulary exactly, naming what went wrong.
+    """Validate that a placement covers a shared vocabulary exactly, and report any mismatch.
 
     Args:
-        placed: What the specification placed.
-        known: What the shared vocabulary names.
-        subject: What is being placed, as the error message calls it.
+        placed: The names placed by the specification.
+        known: The names in the shared vocabulary.
+        subject: The name of what is being placed, for the error message.
 
     Raises:
         ValueError: If something is placed twice, is not placed at all, or is not known.
@@ -286,20 +284,20 @@ class AlchemyEntrySpec(BaseModel):
     crop: CropRegion | None = None
     """The region published at its own pixels, cut from both the source and the result.
 
-    Set it where what the form did is in detail that a page cannot show at the size at which it
-    draws the picture: a face that a restorer redrew, or the texture that an upscaler invented.
+    Set it when the form's effect is in detail too fine for a page to show at the picture's
+    display size: a face that a restorer redrew, or the texture that an upscaler invented.
     """
 
     notes: str | None = None
-    """What the consumer should be told about this entry beyond its result.
+    """Notes for the consumer about this entry, beyond its result.
 
-    This is where a use case that had to be approximated records that fact, and where a source
-    that is not one of the three world anchors records where it came from.
+    The notes record when a use case is only approximated, and the origin of a source that is not
+    one of the three world anchors.
     """
 
     @property
     def label(self) -> str:
-        """Return the filename-safe token this entry's directory is named by."""
+        """Return the filename-safe token used to name this entry's directory."""
         return form_label(self.control_type if self.control_type is not None else self.form)
 
     @property
@@ -323,16 +321,16 @@ class AlchemySpec(BaseModel):
     def _check_the_shared_vocabulary_is_placed_exactly_once(self) -> AlchemySpec:
         """Validate that the specification covers the shared vocabulary and nothing else.
 
-        A form that the SDK names and this file does not place would quietly vanish from the
-        published evidence, and a form that this file places twice would give the consumer two
-        results for the same question, so both are errors when the file is read rather than
-        surprises at render time. The ``annotation`` form is held to the same rule one level
-        down: it is placed once per control type that the SDK names, because each detector is a
-        different result for the same picture.
+        A form that is in the SDK but not placed in this file would be missing from the published
+        evidence without a warning. A form placed twice would give the consumer two results for
+        the same form. Both are errors when the file is read, instead of surprises at render time.
+        The ``annotation`` form follows the same rule for its control types. It is placed once
+        per control type in the SDK, because each detector gives a different result for the same
+        picture.
 
         Raises:
             ValueError: If a form or a control type is placed twice, is not placed at all, or is
-                not one the SDK names.
+                not in the SDK.
         """
         annotation_entries = [entry for entry in self.entries if entry.form == ANNOTATION_FORM]
         forms_placed = [entry.form for entry in self.entries if entry.form != ANNOTATION_FORM]
@@ -341,13 +339,13 @@ class AlchemySpec(BaseModel):
 
         _check_placed_once(placed=forms_placed, known=list(known_alchemy_forms()), subject="alchemy forms")
 
-        carries_control_type = {entry.form for entry in self.entries if entry.control_type is not None}
+        with_control_type = {entry.form for entry in self.entries if entry.control_type is not None}
         without_control_type = {entry.form for entry in self.entries if entry.control_type is None}
-        misplaced = sorted((carries_control_type - {ANNOTATION_FORM}) | (without_control_type & {ANNOTATION_FORM}))
+        misplaced = sorted((with_control_type - {ANNOTATION_FORM}) | (without_control_type & {ANNOTATION_FORM}))
         if misplaced:
             raise ValueError(
-                f"a control type belongs to the {ANNOTATION_FORM} form and to no other,"
-                f" but these entries disagree: {', '.join(misplaced)}",
+                f"only the {ANNOTATION_FORM} form has a control type, and every {ANNOTATION_FORM} entry"
+                f" needs one, but these forms break that rule: {', '.join(misplaced)}",
             )
 
         _check_placed_once(
@@ -365,7 +363,7 @@ class AlchemySpec(BaseModel):
         entries. Look up by control type instead when it matters which detector is meant.
 
         Raises:
-            KeyError: If the specification places no such form.
+            KeyError: If the specification does not place this form.
         """
         for entry in self.entries:
             if entry.form == form:
@@ -383,14 +381,14 @@ class ManifestFiles(BaseModel):
     """The image the form produced, for the forms that produce pixels."""
 
     result_text: str | None = None
-    """The file holding what the form said, for the describe family, which produces words."""
+    """The file with the form's text output, for the describe family, which produces words."""
 
     result_json: str | None = None
-    """The same result as the API returned it, for a consumer that wants the fields rather than the lines."""
+    """The same result in the API's JSON shape, for a consumer that needs the fields instead of the lines."""
 
 
 class ManifestEntry(BaseModel):
-    """Represents one form as the frontpage's alchemy manifest lists it."""
+    """Represents one form's entry in the alchemy manifest."""
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
 
@@ -399,10 +397,10 @@ class ManifestEntry(BaseModel):
     title: str
     files: ManifestFiles
     control_type: str | None = None
-    """Which detector drew the map, for the ``annotation`` form, and nothing for the others."""
+    """Which detector drew the map, for the ``annotation`` form. Unset for the other forms."""
 
     model: str | None = None
-    """The weights the form ran on, when the backend can name them."""
+    """The weights that the form ran on, when the backend reports them."""
 
     source_width: int | None = None
     """The source image's width in pixels, read from the published file."""
@@ -413,24 +411,24 @@ class ManifestEntry(BaseModel):
     result_width: int | None = None
     """The result's width in pixels, or None where the form produced words or vectors.
 
-    An upscaler's result is this number against the source's, and a page that cannot say
-    it is showing four times the pixels is showing the reader the same picture twice.
+    For an upscaler, the result is this width compared with the source's. A page that cannot
+    state that it shows four times the pixels appears to show the reader the same picture twice.
     """
 
     result_height: int | None = None
     """The result's height in pixels, or None where there is no raster result to measure."""
 
     source_crop: PublishedCrop | None = None
-    """The part of the source published at its own pixels, or None where none is."""
+    """The part of the source published at its own pixels, or None when there is no crop."""
 
     result_crop: PublishedCrop | None = None
-    """The part of the result published at its own pixels, or None where none is."""
+    """The part of the result published at its own pixels, or None when there is no crop."""
 
     result_fit: str | None = None
-    """The result brought down to the page-sized bound, or None where there is none to draw.
+    """The result scaled down to the page-sized bound, or None when there is no such copy.
 
-    A result already within the bound needs no copy, and a form that produces words or vectors
-    has no raster to bound, so the absence of this file is the usual case rather than a fault.
+    A result already within the bound does not need a copy, and a form that produces words or
+    vectors has no raster to scale, so this file is usually absent. Its absence is not a fault.
     """
 
     notes: str | None = None
@@ -446,11 +444,10 @@ class AlchemyManifest(BaseModel):
 
 
 class AlchemyOutcome(BaseModel):
-    """Represents what a backend made of one form applied to one image.
+    """Represents a backend's output for one form applied to one image.
 
-    Exactly one of the three results is set. An unavailable form is a first-class outcome rather
-    than an exception, because "this machine cannot run it" is recorded in the published evidence
-    instead of ending the run.
+    Exactly one of the three results is set. An unavailable form is an outcome, not an exception,
+    because the published evidence records that this machine cannot run it and the run continues.
     """
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True, protected_namespaces=())
@@ -458,7 +455,7 @@ class AlchemyOutcome(BaseModel):
     image: Image.Image | None = None
     text: str | None = None
     structured: dict[str, Any] | None = None
-    """The result as the API returned it, alongside the text that a page reads, for a textual result."""
+    """The result in the API's shape, kept beside the text that a page reads, for a textual result."""
 
     svg: str | None = None
     unavailable_reason: str | None = None
@@ -501,7 +498,7 @@ class AlchemyBackend(ABC):
 
     @property
     def service_host(self) -> str | None:
-        """Return the host that served the request, when a service outside this process did.
+        """Return the host of the service that served the request, for a service outside this process.
 
         The default is None, because a backend running in this process has no host.
         """
@@ -515,8 +512,8 @@ class AlchemyBackend(ABC):
     def close(self) -> None:
         """Release whatever the backend is holding.
 
-        The default does not release anything, because a backend that holds nothing should not
-        have to say so. It is not abstract for that reason.
+        The default does not release anything, so a backend that holds nothing does not have to
+        override it. It is not abstract for that reason.
         """
         return
 
@@ -524,15 +521,15 @@ class AlchemyBackend(ABC):
 class HordelibAlchemyBackend(AlchemyBackend):
     """Applies alchemy forms through horde-engine on this machine's GPU.
 
-    This is the same inference stack an AI Horde alchemist worker runs, so what it produces is
-    what the horde produces. ``hordelib`` is imported inside the methods that need it, for the
-    same reason [`LocalRunner`][param_sweeps.local_runner.LocalRunner] does: importing it starts
-    a ComfyUI environment check and pulls in torch.
+    This is the same inference stack that an AI Horde alchemist worker runs, so its results match
+    the horde's. ``hordelib`` is imported inside the methods that need it, for the same reason as
+    in [`LocalRunner`][param_sweeps.local_runner.LocalRunner]: importing it starts a ComfyUI
+    environment check and pulls in torch.
 
-    Only the post-processing forms have a horde-engine surface at all. The describe family, the
-    NSFW detector and the newer image-utility forms are served by the alchemist's backend,
-    which is not this stack, and are reported unavailable rather than approximated with
-    something else that happens to be installed.
+    Only the post-processing forms are available in horde-engine. The describe family, the NSFW
+    detector and the newer image-utility forms are served by the alchemist's backend, which is a
+    different stack. They are reported unavailable instead of approximated with some other tool
+    that happens to be installed.
     """
 
     POST_PROCESSING_MODEL_MANAGERS = ("esrgan", "gfpgan", "codeformer", "miscellaneous")
@@ -592,9 +589,9 @@ class HordelibAlchemyBackend(AlchemyBackend):
 
         horde-engine registers the pending provider from the environment as it builds the model
         managers, and each manager reads its database once as it is constructed, so the variables
-        have to be in place before ``load_model_managers``. A variable the caller already set is
-        left as it is: an environment that sets its own key or service takes precedence over the
-        defaults that this tool would otherwise supply.
+        have to be in place before ``load_model_managers``. A variable that is already set is not
+        changed, so an environment's own key or service takes precedence over this tool's
+        defaults.
         """
         if not self._beta_categories:
             return
@@ -620,16 +617,16 @@ class HordelibAlchemyBackend(AlchemyBackend):
         if kind is AlchemyFormKind.UNSUPPORTED:
             return AlchemyOutcome(
                 unavailable_reason=(
-                    f"the {form} form is served by the alchemist backend rather than by horde-engine,"
-                    " which is what this tool renders through"
+                    f"the {form} form is served by the alchemist backend, and this backend only runs"
+                    " horde-engine forms"
                 ),
             )
 
         try:
             return self._applied(horde=self._horde, kind=kind, form=form, source_image=source_image)
         except RuntimeError as backend_error:
-            # A form the shared vocabulary names but the live model reference does not include has
-            # no weights to resolve, which is a published gap rather than a failed run.
+            # A form that is in the shared vocabulary but not in the live model reference has no
+            # weights to resolve. That is published as a gap, not as a failed run.
             logger.warning("Form unavailable: form=%s reason=%s", form, backend_error)
             return AlchemyOutcome(unavailable_reason=str(backend_error))
         except ImportError as missing_dependency:
@@ -638,10 +635,10 @@ class HordelibAlchemyBackend(AlchemyBackend):
 
     @staticmethod
     def _applied(*, horde: Any, kind: AlchemyFormKind, form: str, source_image: Image.Image) -> AlchemyOutcome:
-        """Return what horde-engine made of this form, after establishing that it has a surface for it.
+        """Return horde-engine's result for a form of a kind that horde-engine runs.
 
         Raises:
-            RuntimeError: If the backend produced no image.
+            RuntimeError: If the backend did not produce an image.
         """
         if kind is AlchemyFormKind.STRIP_BACKGROUND:
             from hordelib.utils.image_utils import ImageUtils
@@ -651,7 +648,7 @@ class HordelibAlchemyBackend(AlchemyBackend):
         payload = {"model": form, "source_image": source_image}
         result = horde.image_upscale(payload) if kind is AlchemyFormKind.UPSCALE else horde.image_facefix(payload)
         if result.image is None:
-            raise RuntimeError(f"horde-engine returned no image for the {form} form")
+            raise RuntimeError(f"horde-engine did not return an image for the {form} form")
 
         return AlchemyOutcome(image=result.image, model_name_used=form)
 
@@ -663,23 +660,23 @@ class HordelibAlchemyBackend(AlchemyBackend):
 class LiveHordeAlchemyBackend(AlchemyBackend):
     """Applies alchemy forms by submitting them to the live AI Horde, so the results are the horde's.
 
-    The describe family has no horde-engine surface: captioning, interrogation, the NSFW check and
-    the newer read-only forms are served by the alchemist worker's backend. The only way to
-    publish what they say without inventing it is to submit the image to the public API and print
-    what comes back, which is what this does: one form per request, submitted to
-    ``/interrogate/async`` and polled to its result exactly as a follower's request would be.
+    The describe family is not available in horde-engine. Captioning, interrogation, the NSFW
+    check and the newer read-only forms are served by the alchemist worker's backend. The only way
+    to publish their real output is to submit the image to the public API and print the result.
+    This backend submits one form per request to ``/interrogate/async``, and polls it until it has
+    a result, in the same way as a reader's own request.
 
     A form that is not in the deployed API's request schema is reported unavailable, with the
-    API's own account of what it does accept. A transport failure is not: a timeout or a dropped
-    connection does not indicate what the horde serves, and publishing it as a gap would put a
-    claim about the horde's offering into the manifest that only this machine's network supports.
+    API's error text about what it accepts. A transport failure is not reported as unavailable. A
+    timeout or a dropped connection is a problem with this machine's network, so publishing it as
+    a gap would put a false claim about the horde's offering into the manifest.
     """
 
     def __init__(self, *, client: HordeApiClient) -> None:
         """Configure a live backend.
 
         Args:
-            client: The API client to submit through. Not closed here: whoever opened it closes it.
+            client: The API client to submit through. The caller that opened it also closes it.
         """
         self._client = client
 
@@ -707,18 +704,18 @@ class LiveHordeAlchemyBackend(AlchemyBackend):
             return AlchemyOutcome(unavailable_reason=str(refusal))
 
         if not completed.result:
-            return AlchemyOutcome(unavailable_reason=f"the horde ran the {form} form and returned no answer")
+            return AlchemyOutcome(unavailable_reason=f"the horde ran the {form} form and did not return a result")
 
-        answer = completed.result.get(form, completed.result)
-        if isinstance(answer, str) and answer.startswith(RESULT_URL_SCHEME_PREFIX):
-            return AlchemyOutcome(image=self._client.download_image(answer), model_name_used=form)
-        if isinstance(answer, str) and answer.lstrip().startswith(("<?xml", "<svg")):
-            # The vectorizer returns the SVG itself. It is a picture, not a
-            # transcript, so it publishes as the result a browser can draw.
-            return AlchemyOutcome(svg=answer)
+        form_result = completed.result.get(form, completed.result)
+        if isinstance(form_result, str) and form_result.startswith(RESULT_URL_SCHEME_PREFIX):
+            return AlchemyOutcome(image=self._client.download_image(form_result), model_name_used=form)
+        if isinstance(form_result, str) and form_result.lstrip().startswith(("<?xml", "<svg")):
+            # The vectorizer returns the SVG markup. It is a picture, so it is published as a
+            # result that a browser can draw, not as text.
+            return AlchemyOutcome(svg=form_result)
 
-        # The weights are chosen by the worker and the response does not name them, so the
-        # manifest does not mention them instead of repeating the form name as if it were one.
+        # The worker chooses the weights and the response does not include them, so the manifest
+        # leaves the model unset instead of repeating the form name as if it were a model.
         return AlchemyOutcome(
             text=render_form_answer(form=form, result=completed.result),
             structured=dict(completed.result),
@@ -726,20 +723,19 @@ class LiveHordeAlchemyBackend(AlchemyBackend):
 
 
 def encoded_for_api(image: Image.Image) -> str:
-    """Return this image as the base64 string the API's ``source_image`` field takes."""
+    """Return this image as a base64 string for the API's ``source_image`` field."""
     buffer = io.BytesIO()
     image.save(buffer, format="WEBP", quality=WebpEncoding.QUALITY, method=WebpEncoding.METHOD)
     return base64.b64encode(buffer.getvalue()).decode("ascii")
 
 
 def render_form_answer(*, form: str, result: Mapping[str, Any]) -> str:
-    """Return what a form said, as the text the evidence page shows verbatim.
+    """Return a form's result as the text that the evidence page shows verbatim.
 
-    The API wraps every result in a key named after the form. What is inside it is a sentence
-    for the captioner, a single judgement for the NSFW check and the aesthetic score, and a
-    mapping for the forms that return data. This function does not summarise: the numbers
-    returned by the horde are the numbers written down, because a page that shows this as the
-    horde's own result cannot show a rounded-off version of it.
+    The API wraps every result in a key named after the form. Inside it is a sentence for the
+    captioner, a single value for the NSFW check and the aesthetic score, and a mapping for the
+    forms that return data. This function does not summarise. The page presents the text as the
+    horde's result, so it holds the numbers that the horde returned.
 
     Args:
         form: The form that the result came from.
@@ -748,17 +744,17 @@ def render_form_answer(*, form: str, result: Mapping[str, Any]) -> str:
     Returns:
         The result, as lines of text.
     """
-    answer = result.get(form, result)
-    if isinstance(answer, str):
-        return answer
-    if isinstance(answer, Mapping):
-        return "\n".join(_answer_lines(answer))
-    return f"{form}: {_scalar(answer)}"
+    form_result = result.get(form, result)
+    if isinstance(form_result, str):
+        return form_result
+    if isinstance(form_result, Mapping):
+        return "\n".join(_result_lines(form_result))
+    return f"{form}: {_scalar(form_result)}"
 
 
-def _answer_lines(answer: Mapping[str, Any]) -> Iterator[str]:
-    """Yield one line per field of a result that came back as a mapping."""
-    for field_name, value in answer.items():
+def _result_lines(form_result: Mapping[str, Any]) -> Iterator[str]:
+    """Yield one line per field of a result returned as a mapping."""
+    for field_name, value in form_result.items():
         if isinstance(value, list):
             yield f"{field_name}: {', '.join(_rendered_item(item) for item in value)}"
         else:
@@ -766,7 +762,7 @@ def _answer_lines(answer: Mapping[str, Any]) -> Iterator[str]:
 
 
 def _rendered_item(item: Any) -> str:
-    """Return one item of a listed result: its label, and how strong it is."""
+    """Return one item of a listed result: its label and its weight."""
     if not isinstance(item, Mapping):
         return _scalar(item)
 
@@ -779,7 +775,7 @@ def _rendered_item(item: Any) -> str:
 
 
 def _scalar(value: Any) -> str:
-    """Return one value as the result spells it, so a boolean reads as the JSON it arrived as."""
+    """Return one value as it appears in the result's JSON, so a boolean prints as ``true`` or ``false``."""
     return json.dumps(value) if isinstance(value, bool | None) else str(value)
 
 
@@ -828,9 +824,8 @@ def alchemy_root(output_root: Path) -> Path:
 def published_source_name(entry: AlchemyEntrySpec) -> str:
     """Return where this entry's source is published, relative to the alchemy tree.
 
-    Named after the input file rather than after the entry, which is what makes two forms
-    sharing a source share one published copy of it, and makes that sharing visible to a reader
-    comparing their results.
+    Named after the input file instead of the entry, so two forms with the same source share one
+    published copy, and a reader comparing their results can see that they share it.
     """
     return f"{SOURCES_DIRECTORY_NAME}/{PurePosixPath(entry.source).name}"
 
@@ -853,13 +848,13 @@ def published_result_fit_name(entry: AlchemyEntrySpec) -> str:
 def build_manifest(*, spec: AlchemySpec, output_root: Path) -> AlchemyManifest:
     """Build the manifest from the specification and the files actually on disk.
 
-    Every placed form is listed whether or not it produced anything. An entry with no result is
-    the report that the form could not be run here, and its ``notes`` say why. Leaving it
-    out would tell the consumer the form does not exist.
+    Every placed form is listed whether or not it produced anything. An entry without a result
+    records that the form could not be run here, and its ``notes`` give the reason. Leaving it
+    out would suggest to the consumer that the form does not exist.
 
     Args:
         spec: The alchemy specification.
-        output_root: The root of the sweep library, which the alchemy tree sits inside.
+        output_root: The root of the sweep library, which contains the alchemy tree.
 
     Returns:
         The manifest.
@@ -923,7 +918,7 @@ def write_manifest(*, spec: AlchemySpec, output_root: Path) -> Path:
 
     Side Effects:
         Overwrites any existing manifest. The content depends only on the specification and the
-        files present, so rewriting it never introduces a spurious change.
+        files present, so rewriting it does not introduce spurious changes.
     """
     manifest_path = alchemy_root(output_root) / MANIFEST_FILENAME
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -939,8 +934,8 @@ def upscaler_form_strip(*, sweep_spec: SweepSpec) -> RenderStrip:
     """Return the sweep library's upscaler-form strip.
 
     Raises:
-        ValueError: If the sweep specification does not describe exactly one, which is what lets
-            one shared source serve the whole comparison.
+        ValueError: If the sweep specification does not describe exactly one. A single strip
+            lets one shared source serve the whole comparison.
     """
     matching = [strip for strip in sweep_spec.expand_strips() if strip.parameter is SweepParameter.UPSCALER_FORM]
     if len(matching) != 1:
@@ -963,25 +958,25 @@ def run_alchemy(
 ) -> list[AlchemyResult]:
     """Apply every selected form, publish the strip, and rewrite the manifest and the index.
 
-    An entry whose result is already on disk is left alone unless ``force`` is set, which
-    is all the resumption this needs: an alchemy form is deterministic given its source, so the
-    presence of the file records the same thing as a checkpoint entry would.
+    An entry whose result is already on disk is skipped unless ``force`` is set. That is enough
+    to resume a run: an alchemy form is deterministic for a given source, so the file on disk
+    records the same thing as a checkpoint entry.
 
     Args:
         spec: The alchemy specification.
         sweep_spec: The sweep specification, which contains the upscaler-form strip.
         backend: The backend to apply the forms through, unprepared.
         output_root: The root of the sweep library.
-        forms: Which forms to apply. Empty means every one the specification places.
-        control_types: Which control maps to draw. Empty means every one. Giving any restricts
-            the run to the annotation entries that draw them.
+        forms: Which forms to apply. Empty means every form in the specification.
+        control_types: Which control maps to draw. Empty means every control map. Any value
+            restricts the run to the annotation entries that draw those maps.
         force: Apply selected forms even when their result is already on disk.
 
     Returns:
         One result per selected form.
 
     Raises:
-        RuntimeError: If a selected entry's source image is not where the specification says.
+        RuntimeError: If a selected entry's source image is not at the path in the specification.
         ValueError: If the sweep specification does not contain exactly one upscaler-form strip.
 
     Side Effects:
@@ -1019,8 +1014,8 @@ def run_alchemy(
 def _is_selected(*, entry: AlchemyEntrySpec, forms: tuple[str, ...], control_types: tuple[str, ...]) -> bool:
     """Return whether this entry is in the run that the filters describe.
 
-    Giving a control type narrows the run to the annotation entries that draw it, which is what
-    makes ``--control-type canny`` a request for one map rather than for every form as well.
+    A control type restricts the run to the annotation entries that draw it, so
+    ``--control-type canny`` draws one map and does not apply every other form.
     """
     if forms and entry.form not in forms:
         return False
@@ -1039,7 +1034,7 @@ def _apply_one_entry(
     """Apply one form, write everything it produced, and return what happened.
 
     Raises:
-        RuntimeError: If the entry's source image is not where the specification says it is.
+        RuntimeError: If the entry's source image is not at the path in the specification.
     """
     _publish_source(entry=entry, root=root)
 
@@ -1112,8 +1107,8 @@ def _publish_to_strip(
 ) -> None:
     """Write an upscaler's result into the sweep library as its strip stop, when it has one.
 
-    A form that the strip does not declare a stop for is not written here, which keeps the
-    strip a comparison of upscalers rather than of everything in the manifest.
+    A form without a stop in the strip is not written here, so the strip compares only the
+    upscalers and not every form in the manifest.
     """
     stop_jobs = [job for job in strip.jobs if job.stop_value == entry.form]
     if not stop_jobs:
@@ -1150,7 +1145,7 @@ class _EntryRecord(BaseModel):
     unavailable_reason: str | None = None
     control_type: str | None = None
     service_host: str | None = None
-    """Where the result came from, when it came from a service rather than from this process."""
+    """The host of the service that produced the result, for a service outside this process."""
 
     service_version: str | None = None
 
@@ -1162,7 +1157,7 @@ def _write_entry_record(
     outcome: AlchemyOutcome,
     backend: AlchemyBackend,
 ) -> None:
-    """Write the sidecar recording what the backend made of this form."""
+    """Write the sidecar that records the backend's outcome for this form."""
     directory = root / entry.relative_directory
     directory.mkdir(parents=True, exist_ok=True)
     record = _EntryRecord(
@@ -1215,7 +1210,7 @@ def _published_entry_crop(
     file: str,
     frame_name: str,
 ) -> PublishedCrop | None:
-    """Return one side's crop record when it is on disk, and None when the entry declares none."""
+    """Return one side's crop record when it is on disk, or None when the entry does not declare a crop."""
     if region is None:
         return None
 
@@ -1223,9 +1218,9 @@ def _published_entry_crop(
 
 
 def _published_result_fit(*, root: Path, entry: AlchemyEntrySpec, result_name: str | None) -> str | None:
-    """Return the bounded copy of the result when it is on disk, and None when there is none.
+    """Return the bounded copy of the result when it is on disk, or None.
 
-    Only a raster result has one: a copy of an SVG or of a line of text would bound nothing.
+    Only a raster result has a bounded copy, because an SVG or a line of text does not need one.
     """
     raster_name = f"{entry.relative_directory}/{RESULT_IMAGE_FILENAME}"
     if result_name != raster_name:
@@ -1236,12 +1231,12 @@ def _published_result_fit(*, root: Path, entry: AlchemyEntrySpec, result_name: s
 
 
 def _manifest_notes(*, entry: AlchemyEntrySpec, record: _EntryRecord | None) -> str | None:
-    """Return what the manifest tells the consumer about this entry.
+    """Return the manifest notes for this entry.
 
-    The specification's note comes first, because it is about the form's placement and holds
+    The specification's note comes first, because it is about the form's placement and applies
     whether or not the form ran. An unavailability reason is appended to it instead of replacing
-    it, so a reader gets both the caveat and the gap. The reason begins with a sentence of its
-    own so that the two read as two statements instead of one run-on.
+    it, so a reader gets both the caveat and the gap. The reason starts as a separate sentence,
+    so the two do not run together.
     """
     reason = record.unavailable_reason if record is not None else None
     gap = f"{UNAVAILABLE_NOTE_PREFIX} {reason}" if reason else None
@@ -1258,10 +1253,10 @@ def _already_applied(*, root: Path, entry: AlchemyEntrySpec) -> bool:
 
 
 def _clear_stale_results(*, root: Path, entry: AlchemyEntrySpec) -> None:
-    """Remove a result left over from a run where the form was available and now is not.
+    """Remove a result left from an earlier run in which the form was still available.
 
-    A manifest built from the files on disk would otherwise advertise a result whose entry says
-    the form could not be run, which is what the gap reporting exists to avoid.
+    Otherwise a manifest built from the files on disk would list a result for an entry that
+    reports that the form could not be run.
     """
     directory = root / entry.relative_directory
     for filename in (RESULT_IMAGE_FILENAME, RESULT_SVG_FILENAME, RESULT_TEXT_FILENAME, RESULT_JSON_FILENAME):
@@ -1272,7 +1267,7 @@ def _publish_source(*, entry: AlchemyEntrySpec, root: Path) -> None:
     """Copy this entry's source into the alchemy tree, so the published tree is self-contained.
 
     Raises:
-        RuntimeError: If the source is not where the specification says it is.
+        RuntimeError: If the source is not at the path in the specification.
     """
     source_path = _source_path(entry)
     destination = root / published_source_name(entry)
@@ -1284,7 +1279,7 @@ def _source_path(entry: AlchemyEntrySpec) -> Path:
     """Return this entry's source image path.
 
     Raises:
-        RuntimeError: If the source is not where the specification says it is.
+        RuntimeError: If the source is not at the path in the specification.
     """
     source_path = TOOL_ROOT / entry.source
     if not source_path.is_file():
@@ -1296,14 +1291,14 @@ def _source_image(entry: AlchemyEntrySpec) -> Image.Image:
     """Return this entry's source image, decoded.
 
     Raises:
-        RuntimeError: If the source is not where the specification says it is.
+        RuntimeError: If the source is not at the path in the specification.
     """
     with Image.open(_source_path(entry)) as opened:
         return opened.convert("RGB")
 
 
 def use_case_counts(spec: AlchemySpec) -> dict[AlchemyUseCase, int]:
-    """Return how many forms each use case holds, which is what the command line reports."""
+    """Return the number of forms in each use case, for the command-line report."""
     counts: dict[AlchemyUseCase, int] = dict.fromkeys(AlchemyUseCase, 0)
     for entry in spec.entries:
         counts[entry.use_case] += 1

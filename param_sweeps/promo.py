@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Compose share cards and posters from the renders the library already holds.
+"""Compose share cards and posters from the renders that are already in the library.
 
-A link to a reference page unfurls on a chat or a feed as the image that ``og:image`` names, and a
-page whose evidence is a strip of renders has a better picture to offer than a logo: the strip
-itself. The same frames make a square poster for a forum, a tall card for a phone feed, or a
-two-frame comparison, so one composer serves every one of those from a small declarative
-specification rather than a file per occasion.
+A link to a reference page unfurls in a chat or a feed as its ``og:image`` image. For a page
+whose evidence is a strip of renders, the strip is a better picture than a logo. The same frames
+make a square poster for a forum, a tall card for a phone feed, or a two-frame comparison, so one
+composer serves every one of those from a small declarative specification rather than a file per
+occasion.
 
 A card is one of a few templates drawn on one of a few canvases in one of two palettes. The
-template says how the frames are arranged, the format says the canvas, the theme says the
-colours, and the stop selection says which of a strip's frames take part. A job names one of
-each. A set names a template and format and produces one card per parameter or per tutorial,
-which is how the whole library gets a preview image without a job per page.
+template sets the frame layout, the format sets the canvas, the theme sets the colours, and the
+stop selection picks the strip's frames. A job names one of each. A set names a template and
+format and produces one card per parameter or per tutorial, so the whole library gets preview
+images without a job per page.
 
 Cards are promotional material cut from the evidence rather than evidence, so they are written
 to a separate tree beside the library, with a manifest at its root, and are published under a
@@ -23,7 +23,7 @@ separate prefix. A page finds its card by naming convention rather than by looku
 Critical public members:
 
 - [`PromoSpec`][param_sweeps.promo.PromoSpec]: the specification, with its jobs and sets.
-- [`expand_jobs`][param_sweeps.promo.expand_jobs]: the explicit jobs plus what the sets unfold to.
+- [`expand_jobs`][param_sweeps.promo.expand_jobs]: the explicit jobs plus the jobs that the sets expand to.
 - [`render_card`][param_sweeps.promo.render_card]: one job drawn as an image.
 - [`write_cards`][param_sweeps.promo.write_cards]: every job written, and the manifest beside them.
 """
@@ -48,21 +48,21 @@ from param_sweeps.outputs import INDEX_FILENAME, IndexStop, IndexStrip, SweepInd
 logger = logging.getLogger(__name__)
 
 PROMO_DIRECTORY_NAME = "promo"
-"""The tree the cards are written to, a sibling of the library rather than part of it."""
+"""The tree for the cards, beside the library and not inside it."""
 
 CARDS_MANIFEST_FILENAME = "cards.json"
-"""The manifest at the root of the promo tree, naming every card by its key."""
+"""The manifest at the root of the promo tree, which lists every card by its key."""
 
 SWEEP_CARDS_DIRECTORY_NAME = "sweeps"
-"""The subtree a per-parameter set writes to, one card per parameter."""
+"""The subtree for a per-parameter set, one card per parameter."""
 
 TUTORIAL_CARDS_DIRECTORY_NAME = "tutorials"
-"""The subtree a per-tutorial set writes to, one card per flow."""
+"""The subtree for a per-tutorial set, one card per flow."""
 
 CARDS_MANIFEST_SCHEMA_VERSION = 1
 
 OVERLAY_OUTLINE = (6, 9, 18)
-"""The tone that rings and shadows type set over a picture."""
+"""The outline and shadow colour for text drawn over a picture."""
 
 OVERLAY_INK = "#ffffff"
 OVERLAY_MUTED = "#f3f4f6"
@@ -71,7 +71,7 @@ SELECTION_PATTERN = re.compile(r"^(preview|all|spread:(\d+)|first:(\d+))$")
 
 
 GALLERY_DIRECTORY_NAME = "gallery"
-"""Where the promo gallery's entries sit under the promo tree, one directory per picture."""
+"""The directory of the promo gallery's entries under the promo tree, one directory per picture."""
 
 GALLERY_RESULT_FILENAME = "result.webp"
 """The picture inside a gallery entry's directory."""
@@ -84,17 +84,17 @@ class CardTemplate(StrEnum):
     """The chosen stops in a row (or a few rows), each with its value under it."""
 
     PAIR = "pair"
-    """Two frames side by side with a divider between them, the way the explorer's wipe reads."""
+    """Two frames side by side with a divider between them, like the explorer's wipe view."""
 
     GRID = "grid"
     """Every chosen stop in as square a grid as the canvas allows."""
 
     HERO = "hero"
-    """One frame filling the picture area, the title laid over its foot."""
+    """One frame filling the picture area, with the title over its bottom edge."""
 
 
 class CardFormat(StrEnum):
-    """The canvas a card is drawn on, named by where it is meant to be seen."""
+    """The canvas that a card is drawn on, named after where it is shown."""
 
     OG = "og"
     """The link-preview canvas that every unfurler crops to."""
@@ -125,7 +125,7 @@ class CardTheme(StrEnum):
 
 
 class Palette(BaseModel):
-    """The colours one theme draws with."""
+    """Represents one theme's colours."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -161,7 +161,7 @@ DEFAULT_PALETTES: dict[CardTheme, Palette] = {
 
 
 class BrandSpec(BaseModel):
-    """What every card says about where it came from."""
+    """Represents the brand details shown on every card."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -173,7 +173,7 @@ class BrandSpec(BaseModel):
 
 
 class FontSpec(BaseModel):
-    """The three faces a card is set in, as paths relative to the specification file."""
+    """Represents a card's three typefaces, as paths relative to the specification file."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -183,18 +183,18 @@ class FontSpec(BaseModel):
 
 
 class CardJob(BaseModel):
-    """One card to draw.
+    """Represents one card to draw.
 
-    A job names its frames one of four ways: a ``strip`` by the library's strip id, a
+    A job names its frames in one of four ways: a ``strip`` by the library's strip id, a
     ``parameter`` (resolved to that parameter's preferred strip), a ``tutorial`` by flow id, or a
-    ``gallery`` picture by its entry id. A gallery picture has no words of its own, so a job
-    that names one must state its title and subtitle itself.
+    ``gallery`` picture by its entry id. A gallery picture does not have its own text, so a job
+    that names one must state its title and subtitle.
     """
 
     model_config = ConfigDict(frozen=True, populate_by_name=True)
 
     job_id: str = Field(alias="id")
-    """The key that the manifest lists the card under, and the file's name unless ``output`` sets another."""
+    """The card's key in the manifest, and the file name unless ``output`` sets one."""
 
     template: CardTemplate
     format: CardFormat = CardFormat.OG
@@ -212,10 +212,10 @@ class CardJob(BaseModel):
     title: str | None = None
     subtitle: str | None = None
     link: str | None = None
-    """The address printed under the brand, where the card points somewhere more exact than the site."""
+    """The address printed under the brand, when the card links to a more specific page than the site."""
 
     tagline: str | None = None
-    """The line above the address, where the brand's own does not fit the card's message."""
+    """The line above the address, when the brand's tagline does not fit the card's message."""
 
     file_type: Literal["jpg", "png"] = "jpg"
     output: str | None = None
@@ -227,7 +227,7 @@ class CardJob(BaseModel):
 
 
 class CardSet(BaseModel):
-    """One card per parameter or per tutorial, all drawn the same way."""
+    """Represents one card per parameter or per tutorial, all drawn the same way."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -238,60 +238,60 @@ class CardSet(BaseModel):
     stops: str | list[int] = "spread:6"
     file_type: Literal["jpg", "png"] = "jpg"
     directory: str | None = None
-    """The subtree the set writes to. Defaults to ``sweeps`` or ``tutorials`` by kind."""
+    """The set's subtree. Defaults to ``sweeps`` or ``tutorials`` by kind."""
 
     key_prefix: str | None = None
-    """What the manifest key starts with. Defaults to ``sweep:`` or ``tutorial:`` by kind."""
+    """The prefix of the manifest keys. Defaults to ``sweep:`` or ``tutorial:`` by kind."""
 
     def resolved_directory(self) -> str:
-        """Return the subtree this set writes to."""
+        """Return this set's subtree."""
         if self.directory is not None:
             return self.directory
         return SWEEP_CARDS_DIRECTORY_NAME if self.every == "parameter" else TUTORIAL_CARDS_DIRECTORY_NAME
 
     def resolved_key_prefix(self) -> str:
-        """Return what this set's manifest keys start with."""
+        """Return the prefix of this set's manifest keys."""
         if self.key_prefix is not None:
             return self.key_prefix
         return "sweep:" if self.every == "parameter" else "tutorial:"
 
 
 class PromoSpec(BaseModel):
-    """The whole specification: brand, faces, palettes, the words for each parameter, and the work."""
+    """Represents the whole specification: brand, typefaces, palettes, the text for each parameter, and the jobs."""
 
     model_config = ConfigDict(frozen=True)
 
     schema_version: int = 1
     brand: BrandSpec
     fonts: FontSpec | None = None
-    """The brand's faces. None draws every card in Pillow's bundled face."""
+    """The brand's typefaces. None draws every card in Pillow's bundled face."""
 
     palettes: dict[CardTheme, Palette] = Field(default_factory=lambda: dict(DEFAULT_PALETTES))
     titles: dict[str, str] = Field(default_factory=dict)
-    """A parameter's name as a reader knows it (``cfg_scale`` reads as "Guidance"). Unlisted
-    parameters are humanised from their field name."""
+    """A parameter's reader-facing name (``cfg_scale`` is "Guidance"). Unlisted parameters are
+    humanised from their field name."""
 
     subtitles: dict[str, str] = Field(default_factory=dict)
-    """What a parameter's card says under its title: one plain sentence on what the setting does.
-    An unlisted parameter falls back to the strip's model, scene and seed, which says where the
-    frames came from rather than what they show."""
+    """The text under a parameter's title on its card: one plain sentence on what the setting does.
+    An unlisted parameter falls back to the strip's model, scene and seed, which describe where the
+    frames came from but not what they show."""
 
     preferred_strips: dict[str, str] = Field(default_factory=dict)
-    """The strip a per-parameter set draws for a parameter published as several. Unlisted
-    parameters take the first complete strip in index order."""
+    """The strip that a per-parameter set draws for a parameter with several strips. Unlisted
+    parameters use the first complete strip in index order."""
 
     skip_parameters: list[str] = Field(default_factory=list)
-    """Parameters a per-parameter set leaves out, such as the internal timeline strips."""
+    """Parameters that a per-parameter set leaves out, such as the internal timeline strips."""
 
     pair_labels: tuple[str, str] = ("Before", "After")
-    """What a tutorial pair's two frames are called."""
+    """The labels of a tutorial pair's two frames."""
 
     jobs: list[CardJob] = Field(default_factory=list)
     sets: list[CardSet] = Field(default_factory=list)
 
 
 class CardOutcome(BaseModel):
-    """The outcome of one job."""
+    """Represents the outcome of one job."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -306,7 +306,7 @@ class CardOutcome(BaseModel):
 
 
 class CardManifestEntry(BaseModel):
-    """One card as the manifest lists it."""
+    """Represents one card's entry in the manifest."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -317,11 +317,11 @@ class CardManifestEntry(BaseModel):
     height: int
     template: CardTemplate
     source: str
-    """The strip id or flow id the card was cut from."""
+    """The strip id or flow id of the card's source."""
 
 
 class CardsManifest(BaseModel):
-    """Every card, by key, at the root of the promo tree."""
+    """Represents the manifest at the root of the promo tree: every card, by key."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -330,10 +330,10 @@ class CardsManifest(BaseModel):
 
 
 class Fonts:
-    """The three faces, loaded at the sizes a card requests.
+    """The three typefaces, loaded at the sizes that a card requests.
 
-    Without a specification every face is Pillow's bundled one, which is what lets the composer
-    run, and be tested, where no brand face has been supplied.
+    Without a specification, every face is Pillow's bundled face, so the composer can run and be
+    tested without a brand typeface.
     """
 
     def __init__(self, spec: FontSpec | None, *, base: Path) -> None:
@@ -370,8 +370,8 @@ def load_promo_spec(spec_path: Path) -> PromoSpec:
     """Read and validate the specification.
 
     Raises:
-        FileNotFoundError: If the file is not there.
-        pydantic.ValidationError: If it does not describe a specification.
+        FileNotFoundError: If the file does not exist.
+        pydantic.ValidationError: If the file is not a valid specification.
     """
     return PromoSpec.model_validate_json(spec_path.read_text(encoding="utf-8"))
 
@@ -382,21 +382,21 @@ def humanise_parameter(parameter: str) -> str:
 
 
 def parameter_title(spec: PromoSpec, parameter: str) -> str:
-    """Return the words the specification uses for a parameter, or the humanised field name."""
+    """Return the specification's title for a parameter, or the humanised field name."""
     return spec.titles.get(parameter, humanise_parameter(parameter))
 
 
 def preferred_strip(index: SweepIndex, *, parameter: str, override: str | None = None) -> IndexStrip:
-    """Return the strip a per-parameter card draws.
+    """Return the strip that a per-parameter card draws.
 
     Args:
         index: The library's index.
         parameter: The parameter to find a strip for.
-        override: A strip id the specification prefers, checked to belong to the parameter.
+        override: The specification's preferred strip id, checked to belong to the parameter.
 
     Raises:
-        ValueError: If nothing complete was published for the parameter, or the override names
-            a strip of another parameter.
+        ValueError: If the parameter does not have a complete published strip, or the override
+            names a strip of another parameter.
     """
     candidates = [strip for strip in index.strips if str(strip.parameter) == parameter]
     if override is not None:
@@ -414,7 +414,7 @@ def find_strip(index: SweepIndex, strip_id: str) -> IndexStrip:
     """Return the strip with the id.
 
     Raises:
-        ValueError: If no strip has it.
+        ValueError: If no strip has the id.
     """
     for strip in index.strips:
         if strip.strip_id == strip_id:
@@ -426,7 +426,7 @@ def find_flow(manifest: TutorialManifest, flow_id: str) -> ManifestFlow:
     """Return the tutorial flow with the id.
 
     Raises:
-        ValueError: If no flow has it, or it was skipped and so has no result to show.
+        ValueError: If no flow has the id, or the flow was skipped and has no result to show.
     """
     for flow in manifest.flows:
         if flow.flow_id == flow_id:
@@ -463,7 +463,7 @@ def select_stops(strip: IndexStrip, selection: str | list[int]) -> list[IndexSto
         return [strip.stops[strip.preview.left_index], strip.stops[strip.preview.right_index]]
     wanted = int(match.group(2) or match.group(3))
     if wanted <= 0:
-        raise ValueError(f"a selection must ask for at least one stop, not {selection!r}")
+        raise ValueError(f"a selection must include at least one stop, not {selection!r}")
     if selection.startswith("first:"):
         return list(strip.stops[:wanted])
     return [strip.stops[position] for position in spread_positions(count, wanted)]
@@ -485,7 +485,7 @@ def expand_jobs(spec: PromoSpec, *, index: SweepIndex, manifest: TutorialManifes
     A per-parameter set yields one job for every parameter that the index publishes a complete
     strip for, keyed ``sweep:<parameter>``. A per-tutorial set yields one for every flow with a
     result, keyed ``tutorial:<flow>``. A parameter that the specification skips, or one without a
-    complete strip, is passed over with a log line rather than failing the run.
+    complete strip, is skipped with a log line instead of failing the run.
 
     Raises:
         ValueError: If a tutorial set is requested and there is no manifest.
@@ -514,7 +514,7 @@ def _parameter_set_jobs(spec: PromoSpec, card_set: CardSet, *, index: SweepIndex
         try:
             strip = preferred_strip(index, parameter=parameter, override=spec.preferred_strips.get(parameter))
         except ValueError as reason:
-            logger.info("passing over %s: %s", parameter, reason)
+            logger.info("skipping %s: %s", parameter, reason)
             continue
         jobs.append(
             CardJob(
@@ -552,7 +552,7 @@ def _tutorial_set_jobs(card_set: CardSet, *, manifest: TutorialManifest) -> list
 
 
 class Frame(BaseModel):
-    """One picture on a card, with the words under it."""
+    """Represents one picture on a card, with the label under it."""
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
@@ -561,7 +561,7 @@ class Frame(BaseModel):
 
 
 class CardContent(BaseModel):
-    """What a job resolved to once its strip or tutorial was looked up."""
+    """Represents a job's content after its strip or tutorial is looked up."""
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
@@ -582,27 +582,25 @@ def resolve_content(
     library_root: Path,
     promo_root: Path | None = None,
 ) -> CardContent:
-    """Return the frames and words that a job draws.
+    """Return the frames and text that a job draws.
 
     Args:
         job: The card to resolve.
-        spec: The specification, for the words and the brand.
+        spec: The specification, for the text and the brand.
         index: The library's index.
-        manifest: The tutorial manifest, or None where the library has none.
+        manifest: The tutorial manifest, or None when the library does not have one.
         library_root: The root of the library on disk.
-        promo_root: The root of the promo tree, from which gallery pictures are read. None where
-            no job names one.
+        promo_root: The root of the promo tree, from which gallery pictures are read. None when
+            no job names a gallery picture.
 
     Raises:
-        ValueError: If the job names nothing to draw, or names it wrongly.
+        ValueError: If the job does not name anything to draw, or names it incorrectly.
     """
     if job.gallery is not None:
         if promo_root is None:
             raise ValueError(f"job {job.job_id!r} names a gallery picture, and there is no promo tree to read it from")
         if job.title is None or job.subtitle is None:
-            raise ValueError(
-                f"job {job.job_id!r} names a gallery picture, so it has to carry its own title and subtitle"
-            )
+            raise ValueError(f"job {job.job_id!r} names a gallery picture, so it needs its own title and subtitle")
         picture = promo_root / GALLERY_DIRECTORY_NAME / job.gallery / GALLERY_RESULT_FILENAME
         if not picture.is_file():
             raise ValueError(
@@ -681,18 +679,18 @@ def render_card(
     """Draw one job and return the image.
 
     Args:
-        job: What to draw.
-        spec: The specification, for the brand, palette and words.
+        job: The card to draw.
+        spec: The specification, for the brand, palette and text.
         index: The library's index.
-        manifest: The tutorial manifest, or None where the library has none.
+        manifest: The tutorial manifest, or None when the library does not have one.
         library_root: The root of the library on disk.
-        fonts: The loaded faces.
-        spec_root: The directory the specification sits in, which its logo path is relative to.
+        fonts: The loaded typefaces.
+        spec_root: The specification's directory, which its logo path is relative to.
         promo_root: The root of the promo tree, for a job that draws a gallery picture.
 
     Raises:
-        ValueError: If the job names nothing drawable.
-        FileNotFoundError: If a frame the index names is not on disk.
+        ValueError: If the job does not name anything drawable.
+        FileNotFoundError: If a frame named in the index is not on disk.
     """
     content = resolve_content(
         job, spec=spec, index=index, manifest=manifest, library_root=library_root, promo_root=promo_root
@@ -713,8 +711,8 @@ def render_card(
         )
         footer_top = height - margin - round(44 * scale)
         area = (margin, header_bottom + round(28 * scale), width - margin, footer_top - round(24 * scale))
-        # A tutorial with no source picture, such as text to image, has one frame to show, and
-        # shows it on its own rather than beside nothing.
+        # A tutorial without a source picture, such as text to image, has one frame, and shows
+        # it alone.
         if job.template is CardTemplate.PAIR and len(content.frames) == 2:
             _draw_pair(canvas, content.frames, area=area, palette=palette, fonts=fonts, scale=scale)
         else:
@@ -736,11 +734,11 @@ def render_card(
 
 
 class _OverlayText:
-    """White type set over a picture, each glyph ringed and shadowed in a dark tone.
+    """White text drawn over a picture, with a dark outline and shadow around each glyph.
 
-    The tones behind the type are whatever the picture has there, so the type has its own
-    relief: a soft glow in the shape of the letters, then an outline, then the fill. Runs are queued
-    and drawn in those three passes so that one run's outline never covers a neighbouring run's fill.
+    The picture behind the text can be any colour, so the text has its own contrast: a soft glow
+    in the shape of the letters, then an outline, then the fill. Runs are queued and drawn in those
+    three passes, so one run's outline does not cover a neighbouring run's fill.
     """
 
     OUTLINE_RATIO = 0.075
@@ -752,7 +750,7 @@ class _OverlayText:
     def __init__(self, canvas: Image.Image, *, scale: float) -> None:
         """Store the canvas. Nothing is drawn until ``draw``."""
         self._canvas = canvas
-        # Small faces use this minimum width: a ring thinner than this does not give relief at preview size.
+        # Small faces use this minimum outline width, because a thinner one is too faint at preview size.
         self._least_outline = round(3 * scale)
         self._runs: list[tuple[tuple[float, float], str, ImageFont.FreeTypeFont, str]] = []
 
@@ -821,10 +819,10 @@ def _draw_footer(
     spec_root: Path,
     overlay_text: _OverlayText | None,
 ) -> None:
-    """Draw the brand line along the foot: logo and name at the left, tagline and address at the right.
+    """Draw the brand line along the bottom: logo and name at the left, tagline and address at the right.
 
-    Over a picture the words go through ``overlay_text``, which is drawn here once the line is
-    queued, and the logo is pasted after it so the glow does not dim it.
+    Over a picture, the text goes through ``overlay_text``, which is drawn here once the line is
+    queued. The logo is pasted afterwards, so the glow does not dim it.
     """
     draw = ImageDraw.Draw(canvas)
     width, height = canvas.size
@@ -876,7 +874,7 @@ def _draw_frames(
     fonts: Fonts,
     scale: float,
 ) -> None:
-    """Lay the frames out in the rows and columns that give them the most room, a value under each."""
+    """Lay the frames out in the rows and columns that give them the most room, with a value under each."""
     left, top, right, bottom = area
     gap = round(18 * scale)
     label_font = fonts.get("mono", round(22 * scale))
@@ -947,7 +945,7 @@ def _draw_pair(
     fonts: Fonts,
     scale: float,
 ) -> None:
-    """Draw two frames edge to edge with a divider and handle between them, values at the foot of each."""
+    """Draw two frames edge to edge with a divider and handle between them, with a value at the bottom of each."""
     left, top, right, bottom = area
     label_font = fonts.get("mono", round(24 * scale))
     aspect = _aspect(frames[0].path)
@@ -1019,7 +1017,7 @@ def _draw_hero(
     margin: int,
     text: _OverlayText,
 ) -> None:
-    """Fill the canvas with the frame, darken its foot and queue the title and subtitle on ``text``."""
+    """Fill the canvas with the frame, darken its lower part, and queue the title and subtitle on ``text``."""
     width, height = canvas.size
     _paste_covered(canvas, content.frames[0].path, box=(0, 0, width, height))
     shade_height = round(height * 0.55)
@@ -1068,8 +1066,8 @@ def _draw_pill(
 ) -> None:
     """Draw a value in a rounded capsule centred on ``centre_x``."""
     draw = ImageDraw.Draw(canvas)
-    # A sampler name in a nine-column poster is worth more than its first four letters, so the
-    # face comes down to about two thirds of its size before anything is cut.
+    # In a nine-column poster, a full sampler name is more useful than its first four letters, so
+    # the font shrinks to about two thirds of its size before the text is cut.
     room = max(1, max_width - round(28 * scale))
     smallest = max(8, round(font.size * 0.66))
     while font.getlength(text) > room and font.size > smallest:
@@ -1155,7 +1153,7 @@ def _wrap(text: str, *, font: ImageFont.FreeTypeFont, max_width: int, draw: Imag
 
 
 def read_tutorial_manifest(library_root: Path) -> TutorialManifest | None:
-    """Return the tutorial manifest, or None where the tutorial campaign has not run."""
+    """Return the tutorial manifest, or None when the tutorial campaign has not run."""
     manifest_path = library_root / TUTORIALS_DIRECTORY_NAME / TUTORIAL_MANIFEST_FILENAME
     if not manifest_path.is_file():
         return None
@@ -1179,9 +1177,9 @@ def write_cards(
 
     Args:
         spec: The specification.
-        spec_root: The directory the specification sits in, which its font and logo paths are relative to.
-        library_root: The root of the library on disk, which the frames are read from.
-        promo_root: The root of the promo tree, which the cards and their manifest are written to.
+        spec_root: The specification's directory, which its font and logo paths are relative to.
+        library_root: The root of the library on disk, where the frames are read from.
+        promo_root: The root of the promo tree, where the cards and their manifest are written.
         only: Job keys to restrict the run to, or None for all of them.
         force: Whether to redraw cards that are already on disk.
 
@@ -1190,7 +1188,7 @@ def write_cards(
 
     Raises:
         FileNotFoundError: If there is no index to read.
-        ValueError: If a job names nothing drawable, or ``only`` names a job that does not exist.
+        ValueError: If a job does not name anything drawable, or ``only`` names a job that does not exist.
     """
     index_path = library_root / INDEX_FILENAME
     if not index_path.is_file():

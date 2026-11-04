@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Render the parameter-sweep illustration library the Learn surfaces teach from.
+"""Render the parameter-sweep illustration library for the Learn pages.
 
 A single checked-in specification (``sweep_spec.json``) declares every strip: which models,
 which scenes, which parameter varies and what each stop teaches. Two interchangeable runners
@@ -15,7 +15,7 @@ Public entry points:
 - [`run_campaign`][param_sweeps.campaign.run_campaign]: the resumable driver shared by both runners.
 - [`LocalRunner`][param_sweeps.local_runner.LocalRunner] and
   [`HordeApiRunner`][param_sweeps.horde_runner.HordeApiRunner]: the two backends.
-- [`build_index`][param_sweeps.outputs.build_index]: the ``index.json`` a web app renders from.
+- [`build_index`][param_sweeps.outputs.build_index]: builds the ``index.json`` that a web app renders from.
 - [`enumerate_library`][param_sweeps.publish.enumerate_library] and
   [`plan_sync`][param_sweeps.publish.plan_sync]: what the library consists of, and what publishing
   it to S3-compatible storage would do.

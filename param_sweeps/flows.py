@@ -1,31 +1,32 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Generate the worked examples that the tutorials walk a reader through, and the manifest that lists them.
+"""Generate the worked examples for the tutorials, and the manifest that lists them.
 
-A flow is one tutorial example: a single request, the image it produced, and enough of a record
-beside it that a reader can see exactly what was asked for. It is not a sweep. Nothing is held
-constant across flows and nothing is being taught by the difference between two of them, so a
-flow states its whole request rather than inheriting one.
+A flow is one tutorial example: a single request, the image it produced, and a record beside it
+that shows exactly what was requested. It is not a sweep. Flows do not share constant values,
+and the difference between two flows is not the lesson, so each flow states its whole request
+instead of inheriting values.
 
-The output layout is the frontpage's ``src/assets/tutorials``: one directory per flow holding
-``request.json``, ``result.webp``, ``meta.json`` and whatever inputs the flow used, with a
-``manifest.json`` at the root listing every flow and its files.
+The output tree is ``tutorials/`` under the library's output root (the ``flows`` command's
+``--output-root`` overrides it). It has one directory per flow holding ``request.json``,
+``result.webp``, ``meta.json`` and the flow's inputs, with a ``manifest.json`` at the root that
+lists every flow and its files.
 
 **No worker attribution is recorded.** ``meta.json`` records what the request cost and what
-identifies it (kudos, wall time, generation ids) and does not record who served it. The transport
-does not parse a worker name at all, so there is nothing here to leak.
+identifies it (kudos, wall time, generation ids) and does not record which worker served it. The
+transport does not parse a worker name, so the name cannot leak into the output.
 
-A flow is turned into a [`RenderJob`][param_sweeps.spec.RenderJob] before it is submitted, which
-is what lets the flows and the sweeps share one payload builder and one API client: a change to
-how a feature reaches the horde cannot apply to one of them and not the other.
+A flow is turned into a [`RenderJob`][param_sweeps.spec.RenderJob] before it is submitted, so the
+flows and the sweeps share one payload builder and one API client. A change to how a feature is
+sent to the horde always applies to both.
 
 Critical public members:
 
 - [`FlowsSpec`][param_sweeps.flows.FlowsSpec]: the whole checked-in flow specification.
 - [`FlowSpec`][param_sweeps.flows.FlowSpec]: one flow, its request and its expected artifacts.
 - [`run_flows`][param_sweeps.flows.run_flows]: generate the selected flows and write the manifest.
-- [`build_manifest`][param_sweeps.flows.build_manifest]: the manifest as the frontpage reads it.
+- [`build_manifest`][param_sweeps.flows.build_manifest]: the manifest that the tutorial pages read.
 """
 
 from __future__ import annotations
@@ -73,10 +74,10 @@ REFERENCE_FILENAME_PREFIX = "reference-"
 and so on, in the order they appear in the request, so a reader can see every picture that went in."""
 
 SOURCE_IMAGE_PLACEHOLDER = f"<base64 of {SOURCE_FILENAME}>"
-"""What stands in for the encoded source image in the published request.
+"""The placeholder for the encoded source image in the published request.
 
-The request that is published has to be readable and has to be diffable. A megabyte of base64
-is neither, and a reader who wants the bytes has the file that it names beside it.
+The published request has to be readable and diffable. A megabyte of base64 is neither, and the
+named file beside the request holds the bytes.
 """
 
 FROZEN_MODEL_CONFIG = ConfigDict(frozen=True, extra="forbid", protected_namespaces=())
@@ -90,31 +91,31 @@ class FlowStatus(StrEnum):
 
 
 class FlowRequest(BaseModel):
-    """Represents one request a flow makes: the model, the parameters and any input images.
+    """Represents one request in a flow: the model, the parameters and any input images.
 
-    Every parameter is stated rather than inherited. A tutorial example is one that a reader is
-    invited to reproduce exactly, so it has no inherited values to drift from.
+    Every parameter is stated instead of inherited. A reader is invited to reproduce a tutorial
+    example exactly, so the example must not depend on inherited values that can change.
     """
 
     model_config = FROZEN_MODEL_CONFIG
 
     model: str
-    """The horde model name, as the API takes it."""
+    """The horde model name, in the API's spelling."""
 
     params: GenerationParameters
     features: JobFeatures = Field(default_factory=JobFeatures)
     source_image: str | None = None
-    """The image this request starts from, relative to the tool root."""
+    """The image that this request starts from, relative to the tool root."""
 
     source_mask: str | None = None
-    """The mask this request uses, relative to the tool root."""
+    """The mask that this request uses, relative to the tool root."""
 
     def to_render_job(self, *, flow_id: str, title: str) -> RenderJob:
-        """Return this request as the render job that the shared payload builder takes.
+        """Return this request as a render job for the shared payload builder.
 
         A flow has no sweep, model slug or stop, so the identity fields hold the flow's own
-        identity. Nothing downstream of the payload builder reads them for a flow: the files a
-        flow writes are named by this module, not by the job.
+        identity. Code after the payload builder does not read them for a flow, because this
+        module names a flow's files, not the job.
         """
         features = self.features
         return RenderJob(
@@ -159,7 +160,7 @@ class FlowRequest(BaseModel):
 
 
 class FlowSpec(BaseModel):
-    """Represents one tutorial flow: what it teaches, what it asks for, and what it leaves behind."""
+    """Represents one tutorial flow: its lesson, its request, and the files that it writes."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -172,30 +173,30 @@ class FlowSpec(BaseModel):
 
     status: FlowStatus = FlowStatus.AVAILABLE
     skipped_reason: str | None = None
-    """Why no example exists, which is published in place of one."""
+    """Why there is no example. The reason is published in its place."""
 
     source_note: str | None = None
-    """Where the source image came from, in the words a reader needs."""
+    """Where the source image came from, written for the reader."""
 
     notes: str | None = None
 
     needs_attention: str | None = None
-    """A marker that this flow's recipe is not settled: what was tried, what it produced, and what to
-    vary next. Set on a flow whose published example is a compromise (a skipped world, a scan
-    that took a seed search, a lesson that reads weaker than the others), so the next campaign
-    starts from the record rather than rediscovering it. The dry-run plan lists every flow that
-    has one."""
+    """A note that this flow's recipe is not settled: what was tried, what it produced, and what to
+    vary next. It is set on a flow whose published example is a compromise (a skipped world, a scan
+    that needed a seed search, a lesson that is weaker than the others), so the next campaign
+    starts from the record instead of repeating the work. The dry-run plan lists every flow with
+    this note."""
 
     @model_validator(mode="after")
-    def _check_a_skipped_flow_says_why(self) -> FlowSpec:
-        """Validate that a flow without an example explains itself."""
+    def _check_a_skipped_flow_gives_a_reason(self) -> FlowSpec:
+        """Validate that a skipped flow gives a reason."""
         if self.status is FlowStatus.SKIPPED and not self.skipped_reason:
-            raise ValueError(f"flow {self.flow_id} is skipped and must say why")
+            raise ValueError(f"flow {self.flow_id} is skipped and needs a skipped_reason")
         return self
 
     @property
     def directory_name(self) -> str:
-        """Return the directory this flow's artifacts live in, under the output root."""
+        """Return the directory for this flow's artifacts, under the output root."""
         return self.flow_id
 
 
@@ -206,7 +207,7 @@ class FlowsSpec(BaseModel):
 
     schema_version: Literal[1]
     generated_against: str
-    """The API root the published examples were generated against, as the manifest reports it."""
+    """The API root that the published examples were generated against, as reported in the manifest."""
 
     flows: list[FlowSpec]
 
@@ -233,8 +234,8 @@ class FlowsSpec(BaseModel):
 class FlowMeta(BaseModel):
     """Represents a flow's ``meta.json``: what the request cost and what identifies it.
 
-    There is no worker name or worker id here, and there is no field for one. The cost of an
-    example and which generation it was are disclosed. Who served it is not published.
+    There is no field for a worker name or worker id. The example's cost and generation id are
+    published. The worker that served it is not.
     """
 
     model_config = ConfigDict(frozen=True, protected_namespaces=())
@@ -262,12 +263,12 @@ class FlowMeta(BaseModel):
 
 
 class ManifestFlow(BaseModel):
-    """Represents one flow as the frontpage's manifest lists it."""
+    """Represents one flow's entry in the tutorial manifest."""
 
     model_config = ConfigDict(frozen=True, populate_by_name=True, protected_namespaces=())
 
     flow_id: str = Field(alias="id")
-    """Written ``id`` in the manifest, which is the key that the frontpage uses to look up flows."""
+    """Written as ``id`` in the manifest. The frontpage looks up flows by this key."""
 
     directory: str
     title: str
@@ -282,7 +283,7 @@ class ManifestFlow(BaseModel):
     before: str | None = None
     request: str | None = None
     references: list[str] | None = None
-    """The extra source images a remix blended in, in request order."""
+    """The extra source images blended in by a remix, in request order."""
     skipped_reason: str | None = None
 
 
@@ -328,11 +329,11 @@ def load_flows_spec(spec_path: Path) -> FlowsSpec:
 
 
 def publishable_request(flow_request: FlowRequest, *, flow_id: str, title: str) -> dict[str, Any]:
-    """Return the request body a flow publishes, with the encoded images replaced by their names.
+    """Return a flow's published request body, with the encoded images replaced by their names.
 
     Args:
-        flow_request: The request to render publishable.
-        flow_id: The flow it belongs to.
+        flow_request: The request to publish.
+        flow_id: The request's flow.
         title: The flow's title, which the job uses as its caption.
 
     Returns:
@@ -368,7 +369,7 @@ def write_flow(
         completed: What the horde returned for its request.
         before_completed: What the horde returned for the other half of a pair, when it has one.
         output_root: The root of the tutorial asset tree.
-        runner: Which runner made the generations, as the meta records it.
+        runner: Which runner made the generations, as recorded in the meta.
 
     Returns:
         The flow's result, listing every file written, sorted.
@@ -429,8 +430,8 @@ def write_flow(
 def build_manifest(*, spec: FlowsSpec, output_root: Path) -> TutorialManifest:
     """Build the manifest from the specification and the files actually on disk.
 
-    A flow with no directory is left out entirely rather than listed as available with nothing
-    behind it, so the manifest never advertises a file that is not there.
+    A flow without a directory is left out, instead of listed as available without any files, so
+    the manifest does not list a file that is not there.
 
     Args:
         spec: The flow specification.
@@ -507,8 +508,8 @@ def run_flows(
 
     Args:
         spec: The flow specification.
-        generator: What renders each request, through the API or on a local GPU. Only a planning
-            run may go without one.
+        generator: The generator that renders each request, through the API or on a local GPU.
+            Only a planning run can omit it.
         output_root: The root of the tutorial asset tree.
         flow_ids: Which flows to generate. Empty means every available one.
         plan_only: Log what would be submitted and do not generate anything.
@@ -517,22 +518,22 @@ def run_flows(
         One result per flow that was generated or deliberately skipped.
 
     Raises:
-        RuntimeError: If a generating run was asked for without a client, or the horde could not
-            produce an image for a selected flow.
+        RuntimeError: If a generating run has no generator, or the generator could not produce an
+            image for a selected flow.
 
     Side Effects:
         Submits generation requests, writes every selected flow's directory, and rewrites the
         manifest. Requests are not submitted and files are not written when ``plan_only`` is set.
     """
     if generator is None and not plan_only:
-        raise RuntimeError("generating flows needs a generator; only a planning run can go without one")
+        raise RuntimeError("generating flows needs a generator; only a planning run can omit it")
 
     selected = [flow for flow in spec.flows if not flow_ids or flow.flow_id in flow_ids]
     results: list[FlowResult] = []
 
     for flow in selected:
         if flow.status is FlowStatus.SKIPPED:
-            logger.info("Skipping flow, as the specification says to: flow=%s", flow.flow_id)
+            logger.info("Skipping flow marked as skipped in the specification: flow=%s", flow.flow_id)
             if flow.needs_attention:
                 logger.warning("Needs attention: flow=%s %s", flow.flow_id, flow.needs_attention)
             results.append(FlowResult(flow_id=flow.flow_id, written_files=[], skipped=True))
@@ -581,32 +582,32 @@ def run_flows(
 
 
 class FlowGenerator(Protocol):
-    """Whatever turns one of a flow's requests into a finished generation."""
+    """A generator that turns one of a flow's requests into a completed generation."""
 
     @property
     def runner_name(self) -> Literal["horde", "local"]:
-        """Which runner this is, as the flow's meta records it."""
+        """Return the runner's name, as recorded in the flow's meta."""
         ...
 
     def generate(self, *, flow: FlowSpec, flow_request: FlowRequest, label: str) -> CompletedGeneration:
-        """Render one request and return what came back."""
+        """Render one request and return the completed generation."""
         ...
 
 
 class HordeFlowGenerator:
-    """Generates flows through the public API, which is what the examples are examples of."""
+    """Generates flows through the public API, which is the service that the examples demonstrate."""
 
     def __init__(self, client: HordeApiClient) -> None:
-        """Wrap the API client the requests are submitted through."""
+        """Wrap the API client that submits the requests."""
         self._client = client
 
     @property
     def runner_name(self) -> Literal["horde", "local"]:
-        """Return the runner name the meta records."""
+        """Return the runner name recorded in the meta."""
         return "horde"
 
     def generate(self, *, flow: FlowSpec, flow_request: FlowRequest, label: str) -> CompletedGeneration:
-        """Submit one of a flow's requests and return what came back."""
+        """Submit one of a flow's requests and return the completed generation."""
         job = flow_request.to_render_job(flow_id=flow.flow_id, title=flow.title)
         return self._client.generate(request_body=HordeGenerationRequest.from_job(job).as_request_body(), label=label)
 
@@ -614,10 +615,10 @@ class HordeFlowGenerator:
 class LocalFlowGenerator:
     """Generates flows through the worker software on this machine's GPU.
 
-    The same payload builder that the local sweep runner uses takes the flow's job, so a flow
-    rendered here is the request that the studio would send, run by the software that a worker
-    runs, without a queue or another machine's hardware between the specification and the
-    picture. Nothing is charged, so the meta does not include kudos and says which runner made it.
+    The flow's job goes through the same payload builder as the local sweep runner. A flow
+    rendered here is the request that the studio would send, run by the worker software, without
+    a queue or another machine's hardware in between. Nothing is charged, so the meta does not
+    include kudos, and it records which runner made the example.
     """
 
     def __init__(self, runner: SweepRunner) -> None:
@@ -626,7 +627,7 @@ class LocalFlowGenerator:
 
     @property
     def runner_name(self) -> Literal["horde", "local"]:
-        """Return the runner name the meta records."""
+        """Return the runner name recorded in the meta."""
         return "local"
 
     def generate(self, *, flow: FlowSpec, flow_request: FlowRequest, label: str) -> CompletedGeneration:
@@ -652,7 +653,7 @@ class LocalFlowGenerator:
 
 
 def _save_image(image: Image.Image, destination: Path) -> None:
-    """Write one image as the quality-tuned WebP the rest of the pipeline writes."""
+    """Write one image as a WebP with the same quality settings as the rest of the pipeline."""
     image.save(destination, format="WEBP", quality=WebpEncoding.QUALITY, method=WebpEncoding.METHOD)
 
 
@@ -665,7 +666,7 @@ def _copy_input(relative_path: str | None, destination: Path) -> None:
     """Copy an input image into the flow's directory, so the published tree is self-contained.
 
     Raises:
-        RuntimeError: If the input is not where the specification says it is.
+        RuntimeError: If the input is not at the path in the specification.
     """
     if relative_path is None:
         return
@@ -680,10 +681,9 @@ def _copy_input(relative_path: str | None, destination: Path) -> None:
 def _copy_mask(relative_path: str | None, flow_directory: Path) -> str | None:
     """Copy a mask into the flow's directory as ``mask.png``, and return that name.
 
-    The name is fixed rather than the input's own, so the manifest can find it whatever the mask
-    was called under ``inputs/``, and so a re-render with a differently named mask replaces the
-    old one instead of leaving two beside each other. The lossless PNG is what is published, so
-    the mask's binary edge survives.
+    The name is fixed, so the manifest can find the mask whatever its name under ``inputs/``,
+    and a re-render with a differently named mask replaces the old one instead of leaving two.
+    The mask is published as a lossless PNG, so its hard edge is preserved.
     """
     if relative_path is None:
         return None

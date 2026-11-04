@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Write the rendered images, their sidecars, and the index a web app renders strips from.
+"""Write the rendered images, their sidecars, and the index that a web app uses to draw the strips.
 
 Every image is written as a quality-tuned WebP with a JSON sidecar beside it recording the
 exact parameters, model, seed, runner and timestamps that produced it. The index collects the
@@ -9,8 +9,8 @@ whole library into one file: a consumer that has ``index.json`` needs nothing el
 scrubber strip, because each strip states what it holds and what varies, and each stop has
 its value, caption and filename.
 
-Both on-disk shapes are declared as models rather than assembled as mappings, so the contract
-that this tool offers its consumers is stated in one place and checked when it is written.
+Both on-disk shapes are declared as models rather than assembled as mappings, so the format that
+this tool offers its consumers is defined in one place and checked when it is written.
 
 Critical public members:
 
@@ -19,11 +19,11 @@ Critical public members:
 - [`save_render`][param_sweeps.outputs.save_render]: write one image and its sidecar.
 - [`build_index`][param_sweeps.outputs.build_index]: build the index from the specification and
   the files actually present on disk.
-- [`image_size`][param_sweeps.outputs.image_size]: the pixel size of a published file, which is
-  what lets the index say how big a picture is without decoding it.
+- [`image_size`][param_sweeps.outputs.image_size]: the pixel size of a published file, read
+  without decoding it.
 - [`write_index`][param_sweeps.outputs.write_index]: write that index deterministically.
-- [`publish_source_images`][param_sweeps.outputs.publish_source_images]: copy the images the
-  image-to-image strips start from into the library, so it stays self-contained.
+- [`publish_source_images`][param_sweeps.outputs.publish_source_images]: copy the source images
+  of the image-to-image strips into the library, so it stays self-contained.
 """
 
 from __future__ import annotations
@@ -69,19 +69,19 @@ class WebpEncoding:
     """The WebP encoder settings used for every image in the library.
 
     Quality 92 with the slowest encoder method keeps sampler noise and fine texture intact,
-    which matters because several strips teach differences that live entirely in that texture.
-    Lossless would roughly triple the size of the library for no visible gain at these sizes.
+    because several strips show differences that are only in that texture. Lossless would
+    roughly triple the size of the library without a visible gain at these sizes.
     """
 
     QUALITY = 92
     METHOD = 6
 
     CROP_QUALITY = 98
-    """What a hundred-percent crop is encoded at.
+    """The encoder quality for a hundred-percent crop.
 
-    A crop exists to be read at its own pixels, so the encoder is allowed far less room to decide
-    what counts as texture than on a frame that nobody is looking at that closely. The crops
-    are a small part of the library by area, so the higher quality costs little.
+    A crop is viewed at its own pixels, so it is encoded with much less loss than a full frame,
+    which is not viewed as closely. The crops are a small part of the library by area, so the
+    higher quality costs little.
     """
 
 
@@ -109,14 +109,14 @@ class ImageSidecar(BaseModel):
     """Which candidate of a curation batch this image is, one-based."""
 
     is_chosen: bool = True
-    """Whether this is the candidate the index publishes."""
+    """Whether this is the candidate that the index publishes."""
 
     source_image: str | None = None
     note: str | None = None
 
 
 class IndexModel(BaseModel):
-    """Represents the model a strip was rendered with, as the index reports it."""
+    """Represents a strip's model, as reported in the index."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -127,7 +127,7 @@ class IndexModel(BaseModel):
 
 
 class IndexScene(BaseModel):
-    """Represents the scene a strip was rendered from, as the index reports it."""
+    """Represents a strip's scene, as reported in the index."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -139,9 +139,9 @@ class IndexScene(BaseModel):
 class IndexStop(BaseModel):
     """Represents one stop of a strip, with everything needed to render and caption it.
 
-    The stop's own resolved parameters are deliberately not repeated here: the strip states
-    what it holds and what varies, and the value is what a caption is written against. The full
-    set is a sidecar away for anyone who wants it, and including it per stop trebled the index.
+    The stop's resolved parameters are deliberately not repeated here. The strip states what it
+    holds and what varies, and captions are written against the stop's value. The full set is in
+    the sidecar, and including it in every stop would triple the size of the index.
     """
 
     model_config = FROZEN_MODEL_CONFIG
@@ -168,40 +168,40 @@ class IndexStop(BaseModel):
     batch_size: int = 1
     """How many candidates were rendered for this stop, so a consumer can disclose the curation.
 
-    One means the image is the only one the request produced. Above one, a human picked this
-    image out of that many, and saying so is the difference between showing what the model does
-    and showing what a careful operator can get it to do.
+    One means that the request produced only this image. Above one, a human picked this image
+    out of that many. Disclosing that separates what the model does from what a careful operator
+    can get it to do.
     """
 
     chosen_candidate: int | None = None
     """Which candidate was published, one-based, when more than one was rendered."""
 
     control_type: str | None = None
-    """The ControlNet guidance mode this stop conditioned on, when it conditioned on one."""
+    """The ControlNet guidance mode for this stop, if it has one."""
 
     control_group: str | None = None
-    """Which family of detectors that guidance mode belongs to, for a consumer to group by."""
+    """The detector family of that guidance mode, for a consumer to group by."""
 
     control_map: str | None = None
-    """The map the detector drew, relative to this index, or None when none was published.
+    """The detector's map, relative to this index, or None when no map was published.
 
-    None on a stop that has a control type means that the detector would not draw a map. The
-    render is still present, guided by whatever the backend derived internally, and a consumer
-    should report the missing map rather than hide it.
+    None on a stop with a control type means that the detector did not draw a map. The render is
+    still present, guided by the map that the backend derived internally, and a consumer should
+    report the missing map instead of hiding it.
     """
 
     crop: PublishedCrop | None = None
-    """The part of this frame published at its own pixels, or None where none is.
+    """The part of this frame published at its own pixels, or None when there is no crop.
 
-    Present only where the file is on disk, so a consumer that has the record can fetch it.
+    Present only when the file is on disk, so a consumer that has the record can fetch it.
     """
 
     fit: str | None = None
-    """A copy of this frame bounded to a page-sized long edge, or None where the frame is already
+    """A copy of this frame bounded to a page-sized long edge, or None when the frame is already
     within it.
 
-    A consumer drawing the strip fetches this and leaves the full frame to the reader who requests
-    it, which is the difference between a strip that loads and one that does not.
+    A consumer drawing the strip fetches this, and fetches the full frame only when a reader
+    requests it. Without these copies, a strip of full frames can be too heavy to load.
     """
 
 
@@ -225,7 +225,7 @@ class IndexGrid(BaseModel):
 
 
 class IndexPreview(BaseModel):
-    """Represents the two stops that a strip's collapsed card puts either side of the wipe handle."""
+    """Represents the two stops that a strip's collapsed card puts on either side of the wipe handle."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -236,9 +236,9 @@ class IndexPreview(BaseModel):
 class IndexStrip(BaseModel):
     """Represents one strip: a parameter swept over one model and one scene.
 
-    ``held`` is the full parameter set of the strip's first stop and ``varying`` names the
-    parameter and feature fields that change across it, which is how a consumer can label
-    "everything else held at" without comparing stops itself.
+    ``held`` is the full parameter set of the strip's first stop, and ``varying`` lists the
+    parameter and feature fields that change across the strip. A consumer can then label
+    "everything else held at" without comparing stops.
     """
 
     model_config = FROZEN_MODEL_CONFIG
@@ -255,50 +255,50 @@ class IndexStrip(BaseModel):
     varying: list[str]
     stops: list[IndexStop]
     source_image: str | None = None
-    """The image the strip starts from, relative to this index, for a consumer to show beside it."""
+    """The image that the strip starts from, relative to this index, for a consumer to show beside it."""
 
     source_width: int | None = None
     """The source image's width in pixels, or None when the strip starts from noise.
 
-    Read from the published copy, which lets an image-to-image strip state that its stops are
-    four times the size of what they started from.
+    Read from the published copy, so an image-to-image strip can state that its stops are four
+    times the size of its source.
     """
 
     source_height: int | None = None
     """The source image's height in pixels, or None when the strip starts from noise."""
 
     subject: SweepSubject | None = None
-    """Which kind of source picture this strip runs on, where several strips share a lesson.
+    """The kind of source picture for this strip, when several strips share a lesson.
 
     The ControlNet gallery runs every detector on a world's anchor picture, on a building and on
-    a flat-colour drawing, and this is what lets a consumer offer the three as alternatives to
-    each other. None on a strip that has no such companions.
+    a flat-colour drawing, and a consumer uses this field to offer the three as alternatives.
+    None on a strip without such companions.
     """
 
     control_map: str | None = None
-    """The map the detector drew from the strip's source, on strips held to one control type.
+    """The detector's map of the strip's source, on strips with a single control type.
 
-    None when none is published, which covers a strip that changes detector from stop to stop as
-    well as a strip for which no detector has been run yet.
+    None when no map is published. That includes a strip that changes detector from stop to
+    stop, and a strip whose detector has not run yet.
     """
 
     grid: IndexGrid | None = None
     preview: IndexPreview | None = None
     """Which two stops to preview, resolved to positions in ``stops``.
 
-    Present on every strip a consumer draws as a strip, and None on the grids and the tiling
-    pair, which are not read by wiping one stop across another.
+    Set on every strip that a consumer draws as a strip. None on the grids and the tiling pair,
+    which are not viewed by wiping one stop across another.
     """
 
     features: JobFeatures | None = None
-    """The features the strip turns on, or None when it uses none of them."""
+    """The features that the strip turns on, or None when it does not use any."""
 
     batch_section: BatchSection | None = None
-    """Which review-batch section this strip came from, when it came from one."""
+    """The strip's review-batch section, if it has one."""
 
 
 class SweepIndex(BaseModel):
-    """Represents the whole library: every strip a consumer can render."""
+    """Represents the whole library: every strip that a consumer can render."""
 
     model_config = FROZEN_MODEL_CONFIG
 
@@ -318,15 +318,15 @@ def save_render(
     model_name_used: str | None = None,
     worker_note: str | None = None,
 ) -> list[Path]:
-    """Write every candidate a job rendered as WebP with its JSON sidecar, and return their paths.
+    """Write every candidate that a job rendered as WebP with its JSON sidecar, and return their paths.
 
-    A job that renders once writes one file under the plain stem that it always had. A curation
-    batch writes every candidate that it was given, each with its own sidecar saying which candidate it is
-    and whether it is the one the index publishes, so the choice a human makes later is a change
-    to one field in the specification rather than a re-render.
+    A job that renders one image writes one file under its plain stem. A curation batch writes
+    every candidate that it was given, each with a sidecar that records its candidate number and
+    whether the index publishes it. A human's later choice is then a change to one field in the
+    specification instead of a re-render.
 
     Args:
-        images: The rendered candidates, in the order the backend produced them.
+        images: The rendered candidates, in the backend's order.
         job: The [`RenderJob`][param_sweeps.spec.RenderJob] that produced them.
         output_root: The root of the output tree.
         runner_name: Which runner rendered them, recorded in every sidecar.
@@ -337,7 +337,7 @@ def save_render(
         worker_note: Any runner-specific note worth keeping, such as a fault the backend reported.
 
     Returns:
-        The paths the images were written to, in candidate order.
+        The written image paths, in candidate order.
 
     Raises:
         ValueError: If no images were given at all.
@@ -388,10 +388,10 @@ def build_index(*, spec: SweepSpec, output_root: Path) -> SweepIndex:
     """Build the index describing every strip whose images are present on disk.
 
     A stop with no image on disk is left out and its strip is marked incomplete, so a partially
-    rendered campaign still produces an index a consumer can use without hitting missing files.
+    rendered campaign still produces an index that a consumer can use without hitting missing files.
 
     Args:
-        spec: The specification the library was rendered from.
+        spec: The library's specification.
         output_root: The root of the output tree.
 
     Returns:
@@ -477,7 +477,7 @@ def write_index(*, spec: SweepSpec, output_root: Path) -> Path:
     Side Effects:
         Overwrites any existing index, and publishes the source image of every strip that
         starts from one. The content depends only on the specification and the files present,
-        so rewriting it never introduces a spurious change.
+        so rewriting it does not introduce spurious changes.
     """
     index_path = output_root / INDEX_FILENAME
     index_path.parent.mkdir(parents=True, exist_ok=True)
@@ -488,13 +488,13 @@ def write_index(*, spec: SweepSpec, output_root: Path) -> Path:
 
 
 def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
-    """Copy each image-to-image sweep's source into the output tree, and return what was written.
+    """Copy each image-to-image sweep's source into the output tree, and return the written paths.
 
-    The library has to be self-contained: a consumer showing an image-to-image strip needs the
-    image that it started from, and cannot be expected to reach back into this tool's inputs.
+    The library has to be self-contained. A consumer showing an image-to-image strip needs its
+    source image, and cannot read this tool's inputs.
 
     Args:
-        spec: The specification the library was rendered from.
+        spec: The library's specification.
         output_root: The root of the output tree.
 
     Returns:
@@ -516,10 +516,10 @@ def publish_source_images(*, spec: SweepSpec, output_root: Path) -> list[Path]:
 
         source = TOOL_ROOT / strip.source_image
         if not source.exists():
-            # A dependent job's source is staged only after the render that it names
-            # exists, so an unstaged source is an incomplete strip rather than
-            # an error. The strip already reports itself incomplete through its
-            # missing stops, and the source follows on the next run.
+            # A dependent job's source is staged only after the render that it depends on
+            # exists, so an unstaged source means an incomplete strip, not an error. The
+            # missing stops already mark the strip incomplete, and the source is published
+            # on a later run.
             logger.info("Source not yet staged, skipping publish: %s", strip.source_image)
             continue
 
@@ -534,7 +534,7 @@ def image_size(path: Path) -> tuple[int, int]:
     """Return an image's pixel size, read from its header rather than by decoding it.
 
     Raises:
-        OSError: If the file is missing, or is not an image this build of Pillow can read.
+        OSError: If the file is missing, or is not an image that this build of Pillow can read.
     """
     with Image.open(path) as opened:
         return opened.width, opened.height
@@ -543,14 +543,15 @@ def image_size(path: Path) -> tuple[int, int]:
 def published_crop(*, file: str, root: Path, region: CropRegion, frame_relative_path: str) -> PublishedCrop | None:
     """Return the record of a crop on disk, or None when the crop or its frame is not there.
 
-    Read from the files rather than computed from the specification alone, so what the index and
-    the manifest report is the crop that exists rather than the one that a run intended to write.
+    Read from the files rather than computed from the specification alone, so the index and the
+    manifest report the crop that exists, not the one that a run intended to write.
 
     Args:
-        file: How the index or manifest names the crop, relative to itself.
-        root: What both paths are relative to.
-        region: The region the crop was cut from.
-        frame_relative_path: The frame that it was cut from, in whose pixels the box is stated.
+        file: The crop's path as written in the index or manifest, relative to that file.
+        root: The directory that both paths are relative to.
+        region: The crop's region.
+        frame_relative_path: The frame that the crop was cut from. The box is stated in this
+            frame's pixels.
 
     Returns:
         The record, or None when either file is missing.
@@ -581,7 +582,7 @@ def _published_stop_crop(*, job: RenderJob, output_root: Path) -> PublishedCrop 
 
 
 def _published_fit(*, job: RenderJob, output_root: Path) -> str | None:
-    """Return the stop's bounded copy when it is on disk, and None when the frame needed none."""
+    """Return the stop's bounded copy when it is on disk, or None when the frame did not need one."""
     relative_path = job.relative_fit_path
     return relative_path if (output_root / relative_path).is_file() else None
 
@@ -614,10 +615,9 @@ def _published_strip_control_map(*, strip: RenderStrip, output_root: Path) -> st
 def _varying_field_names(strip: RenderStrip) -> list[str]:
     """Return the parameter and feature fields that change across the strip, in declaration order.
 
-    Features are named here alongside the parameters because the two are one question for a
-    consumer: what is this strip changing from stop to stop. A QR strip that sweeps its
-    ControlNet's strength changes only a feature, and would otherwise report that nothing
-    varies at all.
+    Features are listed with the parameters because a consumer needs both to know what changes
+    from stop to stop. A QR strip that sweeps its ControlNet's strength changes only a feature,
+    and would otherwise report that nothing varies.
     """
     if not strip.jobs:
         return []
@@ -647,12 +647,12 @@ def _varying_feature_names(strip: RenderStrip) -> list[str]:
 
 
 def _index_features(strip: RenderStrip) -> JobFeatures | None:
-    """Return the features the strip holds across every stop, or None when it turns none on.
+    """Return the features that the strip holds across every stop, or None when it does not turn any on.
 
-    A feature the strip varies is reported at its default here rather than at the first stop's
-    value, and its name is in ``varying`` instead. This block is what a consumer labels "held at",
-    so a strip that sweeps a ControlNet's strength must not appear to hold it at its lowest. The
-    per-stop truth stays in the sidecars, as it does for the parameters.
+    A feature that the strip varies is reported at its default here instead of at the first
+    stop's value, and its name is in ``varying``. A consumer labels this block "held at", so a
+    strip that sweeps a ControlNet's strength must not appear to hold it at its lowest value. The
+    per-stop values stay in the sidecars, as they do for the parameters.
     """
     if not strip.jobs:
         return None
@@ -690,10 +690,10 @@ def _index_grid(strip: RenderStrip) -> IndexGrid | None:
 
 
 def _index_preview(*, strip: RenderStrip, stops: Sequence[IndexStop]) -> IndexPreview | None:
-    """Return the pair of stops the strip's collapsed card previews, or None where it has no pair.
+    """Return the pair of stops for the strip's collapsed card preview, or None when it has no pair.
 
-    Resolved against the stops that were actually published rather than the ladder the
-    specification declares, so a strip missing an image still refers to two pictures that exist.
+    Resolved against the published stops instead of the full list in the specification, so a
+    strip with a missing image still refers to two pictures that exist.
     """
     if strip.presentation not in PREVIEWABLE_PRESENTATIONS:
         return None

@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """The schedule and solver-knob strips.
 
-These knobs differ from every parameter the library swept before in one way that matters: unset is
-not a value. A job that does not state any of them has to reach both backends exactly as it did
-before they existed, or every strip already published would be rendering something new.
+These knobs differ from the library's other swept parameters in one important way: unset is not a
+value. A job that does not set any of them must reach both backends without them, or every
+published strip would render differently.
 """
 
 from __future__ import annotations
@@ -35,42 +35,42 @@ def sweep_spec() -> SweepSpec:
     return load_spec(SWEEP_SPEC_PATH)
 
 
-class TestUnsetKnobsChangeNothing:
-    """A job that never mentions a solver knob reaches both backends exactly as it did before."""
+class TestUnsetKnobsAreNotSent:
+    """A job that does not set a solver knob reaches both backends without it."""
 
-    def test_a_job_that_states_no_knob_carries_none_into_the_local_payload(self, sweep_spec: SweepSpec) -> None:
+    def test_an_unset_knob_is_not_sent_in_the_local_payload(self, sweep_spec: SweepSpec) -> None:
         """Assert an unset solver knob is absent from the local runner payload, not sent as a default."""
         job = next(job for job in sweep_spec.expand_jobs() if job.parameter is SweepParameter.STEPS)
         payload = HordelibPayload.from_job(job).as_hordelib_mapping()
 
         for field_name in ("scheduler", "sampler_eta", "sampler_s_noise", "sampler_s_churn", "flow_shift"):
-            assert field_name not in payload, f"{field_name} reached a payload that never asked for it"
+            assert field_name not in payload, f"{field_name} reached the payload of a job that does not set it"
 
-    def test_a_job_that_states_no_knob_carries_none_into_the_request_body(self, sweep_spec: SweepSpec) -> None:
+    def test_an_unset_knob_is_not_sent_in_the_request_body(self, sweep_spec: SweepSpec) -> None:
         """Assert an unset solver knob is absent from the horde request body, not sent as a default."""
         job = next(job for job in sweep_spec.expand_jobs() if job.parameter is SweepParameter.STEPS)
         params = HordeGenerationRequest.from_job(job).as_request_body()["params"]
 
         for field_name in ("scheduler", "sampler_eta", "sampler_s_noise", "sampler_s_churn", "flow_shift"):
-            assert field_name not in params, f"{field_name} reached a request that never asked for it"
+            assert field_name not in params, f"{field_name} reached the request of a job that does not set it"
 
-    def test_nothing_reports_an_unsupported_parameter_it_did_not_ask_for(self, sweep_spec: SweepSpec) -> None:
-        """Assert a job that sets no solver knob reports no unsupported parameters at all."""
+    def test_a_job_without_knobs_does_not_report_unsupported_parameters(self, sweep_spec: SweepSpec) -> None:
+        """Assert a job without solver knobs does not report any unsupported parameters."""
         job = next(job for job in sweep_spec.expand_jobs() if job.parameter is SweepParameter.STEPS)
         assert unsupported_parameters_in(job) == []
 
 
 class TestSolverStrips:
-    """The strips that teach the new schedule and solver-knob parameters, and what each one varies."""
+    """The strips that teach the schedule and solver-knob parameters, and what each one varies."""
 
-    def test_every_new_parameter_has_a_strip(self, sweep_spec: SweepSpec) -> None:
+    def test_every_solver_parameter_has_a_strip(self, sweep_spec: SweepSpec) -> None:
         """Assert every solver parameter has at least one strip demonstrating it."""
         swept = {strip.parameter for strip in sweep_spec.expand_strips()}
         missing = [str(parameter) for parameter in SOLVER_PARAMETERS if parameter not in swept]
-        assert missing == [], f"parameters with nothing to show for them: {missing}"
+        assert missing == [], f"parameters without a strip: {missing}"
 
     def test_the_schedule_strip_covers_every_schedule_the_backend_offers(self, sweep_spec: SweepSpec) -> None:
-        """Assert the schedule strip's jobs cover every schedule the backend declares as known."""
+        """Assert the schedule strip's jobs cover every schedule in the SDK's vocabulary."""
         from horde_sdk.generation_parameters.image.consts import KNOWN_IMAGE_SCHEDULERS
 
         swept = {
@@ -80,8 +80,8 @@ class TestSolverStrips:
         }
         assert swept == {str(schedule) for schedule in KNOWN_IMAGE_SCHEDULERS}
 
-    def test_the_eta_ladder_includes_the_value_the_claim_is_about(self, sweep_spec: SweepSpec) -> None:
-        """Assert the eta strip includes zero, the value the deterministic-twin claim turns on."""
+    def test_the_eta_strip_includes_zero(self, sweep_spec: SweepSpec) -> None:
+        """Assert the eta strip includes zero, the value that the deterministic-twin claim depends on."""
         # eta 0 is the stop that can falsify the collapse-onto-the-deterministic-twin claim.
         eta_values = {
             job.sampler_eta for job in sweep_spec.expand_jobs() if job.parameter is SweepParameter.SAMPLER_ETA

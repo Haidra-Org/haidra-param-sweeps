@@ -103,11 +103,11 @@ REQUEST_ID = "0f8b1f16-0000-4000-8000-000000000000"
 
 
 class ScriptedTransport(requests.adapters.BaseAdapter):
-    """Responds to the whole submit-and-poll path from a script, so a run needs no network.
+    """Responds to the whole submit-and-poll path from a script, so a run does not need a network.
 
-    Mounted on the session a real ``GalleryHorde`` opened, which is what makes this a test of the
-    submitting code rather than of a stand-in for it. Every request finishes on its first poll:
-    the waiting is what the live horde does, and nothing here asserts on it.
+    It is mounted on the session of a real ``GalleryHorde``, so the test covers the submitting code
+    instead of a substitute. Every request finishes on its first poll, because these tests do not
+    check the waiting.
     """
 
     def __init__(
@@ -189,11 +189,11 @@ class ScriptedTransport(requests.adapters.BaseAdapter):
 
     def _text_result(self, url: str) -> dict[str, Any]:
         # The text endpoint serves progress and result at one URL, so a request is read twice and
-        # the same reply has to come back both times.
+        # must return the same reply both times.
         request_id = url.rsplit("/", 1)[-1]
         if request_id not in self._text_replies:
             self._text_replies[request_id] = (
-                self.replies.pop(0) if self.replies else f"answer {len(self._text_replies) + 1}"
+                self.replies.pop(0) if self.replies else f"reply {len(self._text_replies) + 1}"
             )
         reply = self._text_replies[request_id]
         return {
@@ -234,7 +234,7 @@ def no_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_flux_requirements_clamp_steps_cfg_and_the_sampler() -> None:
-    """Assert a request the model would refuse is brought inside what the reference states."""
+    """Assert a request that the model would refuse is brought within the reference's requirements."""
     clamped = apply_requirements(
         {"steps": 25, "cfg_scale": 7, "sampler_name": "k_dpmpp_2m"},
         MODEL_REFERENCE[FLUX_MODEL]["requirements"],
@@ -242,11 +242,11 @@ def test_flux_requirements_clamp_steps_cfg_and_the_sampler() -> None:
 
     assert clamped["steps"] == 8, "the reference caps the model at eight steps"
     assert clamped["cfg_scale"] == 4
-    assert clamped["sampler_name"] == "k_euler", "the only sampler the model states"
+    assert clamped["sampler_name"] == "k_euler", "the only sampler that the model allows"
 
 
 def test_a_model_that_pins_clip_skip_and_a_scheduler_has_both_applied() -> None:
-    """Assert a pinned clip_skip is set, and that a scheduler list decides whether karras is on."""
+    """Assert a pinned clip_skip is set, and that a scheduler list determines whether karras is on."""
     clamped = apply_requirements(
         {"steps": 25, "cfg_scale": 7, "sampler_name": "k_euler_a", "karras": True},
         MODEL_REFERENCE[CLIP_SKIP_MODEL]["requirements"],
@@ -254,11 +254,11 @@ def test_a_model_that_pins_clip_skip_and_a_scheduler_has_both_applied() -> None:
 
     assert clamped["clip_skip"] == 2
     assert clamped["karras"] is False, "the model states only the simple scheduler"
-    assert clamped["steps"] == 25, "a model that states no step range keeps what was asked for"
+    assert clamped["steps"] == 25, "a model without a step range keeps the requested steps"
 
 
-def test_a_pinned_cfg_scale_replaces_what_was_asked_for() -> None:
-    """Assert one stated cfg value wins over the specification's, rather than being clamped to it."""
+def test_a_pinned_cfg_scale_replaces_the_requested_value() -> None:
+    """Assert a single stated cfg value replaces the specification's value instead of clamping it."""
     clamped = apply_requirements({"steps": 20, "cfg_scale": 7}, MODEL_REFERENCE[PINNED_CFG_MODEL]["requirements"])
 
     assert clamped["cfg_scale"] == 2.5
@@ -272,7 +272,7 @@ def test_a_run_writes_the_pictures_texts_conversations_and_a_manifest(tmp_path: 
     assert manifest_path is not None
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert [entry["id"] for entry in manifest["images"]] == ["fox-snow", "airship"], "specification order"
-    assert manifest["images"][0]["tags"] == ["everyday", "photo"], "tags travel from the specification"
+    assert manifest["images"][0]["tags"] == ["everyday", "photo"], "tags come from the specification"
     assert manifest["images"][0]["file"] == "gallery/fox-snow/result.webp"
     assert manifest["images"][0]["alchemy"]["caption"]["file"] == "gallery/fox-snow/caption.txt"
     assert manifest["texts"][0]["format"] == TEXT_FORMAT
@@ -285,14 +285,14 @@ def test_a_run_writes_the_pictures_texts_conversations_and_a_manifest(tmp_path: 
     text_meta = json.loads((tmp_path / "gallery" / TEXT_DIRECTORY / "lighthouse-poem" / META_NAME).read_text("utf-8"))
     assert text_meta["request"]["prompt"] == TEXT_FRAME.format(instruction=SPEC["texts"][0]["prompt"])
     assert text_meta["format"] == TEXT_FORMAT
-    assert "worker" not in json.dumps(manifest), "the worker that served an entry is never recorded"
+    assert "worker" not in json.dumps(manifest), "the worker that served an entry is not recorded"
 
 
 def test_the_manifest_is_rebuilt_from_disk_and_keeps_curation(tmp_path: Path) -> None:
-    """Assert a narrowed run republishes everything on disk, with the curation that the manifest held.
+    """Assert a narrowed run republishes everything on disk, with the manifest's curation.
 
-    A rebuild from what one run touched would drop every entry that run passed over, which is how a
-    curated gallery loses its curation and half its pictures at once.
+    A rebuild from one run's entries would drop every entry that the run skipped, and a curated
+    gallery would lose its curation and half its pictures at once.
     """
     out = tmp_path / "gallery"
     run_gallery(horde=_horde(ScriptedTransport()), spec=SPEC, out=out)
@@ -312,7 +312,7 @@ def test_the_manifest_is_rebuilt_from_disk_and_keeps_curation(tmp_path: Path) ->
         skip_conversations=True,
     )
 
-    assert transport.image_submissions == [], "everything asked for is already on disk"
+    assert transport.image_submissions == [], "every requested entry is already on disk"
     rebuilt = json.loads((out / MANIFEST_NAME).read_text(encoding="utf-8"))
     assert [entry["id"] for entry in rebuilt["images"]] == ["fox-snow", "airship"]
     assert [entry["id"] for entry in rebuilt["texts"]] == ["lighthouse-poem"], "a skipped section is still published"
@@ -327,7 +327,7 @@ def test_the_manifest_is_rebuilt_from_disk_and_keeps_curation(tmp_path: Path) ->
 
 
 def test_a_censored_entry_is_recorded_and_left_alone_until_it_is_retried(tmp_path: Path) -> None:
-    """Assert a refusal costs the run once: it is written down, listed, and not offered again."""
+    """Assert a refusal is paid for once: it is recorded, listed, and not submitted again."""
     out = tmp_path / "gallery"
     refused = frozenset({SPEC["images"][0]["prompt"]})
     run_gallery(
@@ -364,7 +364,7 @@ def test_a_censored_entry_is_recorded_and_left_alone_until_it_is_retried(tmp_pat
     assert json.loads((out / MANIFEST_NAME).read_text(encoding="utf-8"))["censored"] == []
 
 
-def test_an_instruct_conversation_carries_its_earlier_turns(tmp_path: Path) -> None:
+def test_an_instruct_conversation_includes_its_earlier_turns(tmp_path: Path) -> None:
     """Assert the second turn is sent with the first turn and its reply inside the frame."""
     out = tmp_path / "gallery"
     transport = ScriptedTransport(replies=["Ember, who bakes at dawn.", "The oven will not light."])
@@ -384,7 +384,7 @@ def test_an_instruct_conversation_carries_its_earlier_turns(tmp_path: Path) -> N
 
     meta = json.loads((out / CONVERSATION_DIRECTORY / "thread-fox" / META_NAME).read_text(encoding="utf-8"))
     assert [turn["reply"] for turn in meta["turns"]] == ["Ember, who bakes at dawn.", "The oven will not light."]
-    assert meta["turns"][1]["request"]["prompt"] == second, "every turn keeps the body it was sent as"
+    assert meta["turns"][1]["request"]["prompt"] == second, "every turn records the body that was sent"
     assert meta["turns"][0]["model"] == "koboldcpp/a-text-model"
     assert "The oven will not light." in (out / CONVERSATION_DIRECTORY / "thread-fox" / "transcript.txt").read_text(
         encoding="utf-8",
@@ -394,11 +394,11 @@ def test_an_instruct_conversation_carries_its_earlier_turns(tmp_path: Path) -> N
     assert entry["format"] == "instruct"
     assert entry["file"] == "gallery/conversations/thread-fox/transcript.txt"
     assert [turn["prompt"] for turn in entry["turns"]] == SPEC["conversations"][0]["turns"]
-    assert "request" not in entry["turns"][0], "the manifest carries the reading of a turn, not its body"
+    assert "request" not in entry["turns"][0], "the manifest holds a turn's text, not its request body"
 
 
 def test_a_raw_conversation_is_sent_without_a_frame(tmp_path: Path) -> None:
-    """Assert a raw entry goes out as the text itself, stopping only on a paragraph break."""
+    """Assert a raw entry is sent as the text itself, and stops only at a paragraph break."""
     transport = ScriptedTransport(replies=["bottled thunderstorms."])
     run_gallery(
         horde=_horde(transport),
@@ -436,11 +436,11 @@ def test_a_dry_run_submits_nothing_and_prints_the_model_and_settings(
     assert list(out.glob(f"*/{META_NAME}")) == []
 
 
-def test_the_manifest_reads_an_entry_no_specification_lists(tmp_path: Path) -> None:
+def test_the_manifest_includes_an_entry_missing_from_the_specification(tmp_path: Path) -> None:
     """Assert a picture on disk is published even when the specification no longer names it.
 
-    What is on disk is the gallery: an entry dropped from the specification is still a render that
-    was paid for, and silently losing it from the manifest is worse than listing it at the end.
+    The gallery is what is on disk. An entry dropped from the specification is still a render that
+    was paid for, and silently dropping it from the manifest is worse than listing it at the end.
     """
     out = tmp_path / "gallery"
     run_gallery(horde=_horde(ScriptedTransport()), spec=SPEC, out=out, skip_text=True, skip_conversations=True)
@@ -448,8 +448,8 @@ def test_the_manifest_reads_an_entry_no_specification_lists(tmp_path: Path) -> N
 
     manifest = build_manifest(spec=narrowed, out=out)
 
-    assert [entry["id"] for entry in manifest["images"]] == ["airship", "fox-snow"], "the stranger sorts last"
-    assert manifest["images"][1]["tags"] == ["everyday", "photo"], "its own metadata still carries its tags"
+    assert [entry["id"] for entry in manifest["images"]] == ["airship", "fox-snow"], "the unlisted entry sorts last"
+    assert manifest["images"][1]["tags"] == ["everyday", "photo"], "its metadata still includes its tags"
 
 
 def test_the_subcommand_is_wired_with_its_defaults() -> None:

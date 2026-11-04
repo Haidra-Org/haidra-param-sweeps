@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Check the publishing side: which files the index lists, and what a sync would do about them.
 
-Publishing is an optional extra, so this whole module is skipped where the object-storage SDK is
-not installed: there is no client to stub and nothing here would be exercising the tool. The one
-test that guards the extra's optionality lives here too, because the environment where it can
-catch a regression is the one where the SDK is present and could be imported by accident.
+Publishing is an optional extra, so this module is skipped when the object-storage SDK is not
+installed. There is then no client to stub, and these tests would not exercise the tool. The test
+that keeps the extra optional is also here, because it can only catch a regression when the SDK
+is installed and could be imported by accident.
 """
 
 from __future__ import annotations
@@ -180,9 +180,9 @@ def _write_library(root: Path, *, with_source_image: bool = True, with_derivativ
 
 
 def _write_manifests(root: Path, *, with_derivatives: bool = False) -> list[str]:
-    """Write a tutorial and an alchemy manifest beside the index, with every file they name.
+    """Write a tutorial and an alchemy manifest beside the index, with every file that they list.
 
-    The two alchemy entries share one source, so the closure lists it once.
+    The alchemy entries share one source, so the published file list includes it once.
     """
     tutorial_manifest = {
         "generated_against": "test",
@@ -258,12 +258,12 @@ def _remote_mirror(root: Path, relative_paths: list[str], *, prefix: str = "") -
     return listing
 
 
-def test_the_closure_carries_the_crops_and_the_bounded_copies(tmp_path: Path) -> None:
-    """Assert what a page draws is published, and not only the frames the index names.
+def test_the_published_files_include_the_crops_and_the_bounded_copies(tmp_path: Path) -> None:
+    """Assert the files that a page draws are published, not only the frames in the index.
 
-    The closure must include the control maps, because otherwise the published index has
-    references that return 404. Every derived file that the index or a manifest names belongs
-    to it for the same reason.
+    The published files must include the control maps, because otherwise the published index has
+    references that return 404. Every derived file listed in the index or a manifest is published
+    for the same reason.
     """
     _write_library(tmp_path, with_derivatives=True)
     _write_manifests(tmp_path, with_derivatives=True)
@@ -292,7 +292,7 @@ def test_enumerate_library_covers_index_stops_sidecars_and_source(tmp_path: Path
     assert sorted(library_file.relative_path for library_file in files) == sorted(expected_paths)
 
 
-def test_enumerate_library_adds_each_manifest_and_its_closure_after_the_index(tmp_path: Path) -> None:
+def test_enumerate_library_adds_each_manifest_and_its_files_after_the_index(tmp_path: Path) -> None:
     index_paths = _write_library(tmp_path)
     manifest_paths = _write_manifests(tmp_path)
     (tmp_path / "alchemy/describe/caption/meta.json").write_bytes(b"provenance the manifest does not name")
@@ -331,8 +331,8 @@ def test_enumerate_library_ignores_files_the_index_does_not_reference(tmp_path: 
     assert "leftover.webp" not in relative_paths
 
 
-def test_the_closure_carries_the_control_maps_a_strip_and_its_stops_publish(tmp_path: Path) -> None:
-    """A map beside the strip source or beside a render is read off the index, so it ships with it."""
+def test_the_published_files_include_the_control_maps_of_a_strip_and_its_stops(tmp_path: Path) -> None:
+    """Assert a map beside the strip source or a render is published, because consumers read it from the index."""
     document = _index_document()
     strip_map = f"{STRIP_DIRECTORY}/person-source_map.webp"
     stop_map = f"{STRIP_DIRECTORY}/001_4_map.webp"
@@ -369,7 +369,7 @@ def test_enumerate_library_refuses_an_index_that_names_a_missing_file(tmp_path: 
         enumerate_library(output_root=tmp_path)
 
 
-def test_enumerate_library_without_an_index_says_so(tmp_path: Path) -> None:
+def test_enumerate_library_without_an_index_raises(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match=INDEX_FILENAME):
         enumerate_library(output_root=tmp_path)
 
@@ -542,8 +542,8 @@ def test_settings_come_from_the_environment_first_then_the_env_file(
         encoding="utf-8",
     )
     # The variables have to be cleared by their own names rather than by the attribute names that
-    # hold them: importing horde_sdk loads whatever .env is above the working directory into the
-    # process, so a machine that publishes for real has the live bucket set before the test starts.
+    # hold them. Importing horde_sdk loads any .env above the working directory into the process,
+    # so on a machine that publishes, the live bucket is already set before the test starts.
     for variable_name in (
         PublishEnvironment.ENDPOINT_URL,
         PublishEnvironment.BUCKET,
@@ -642,22 +642,22 @@ class _RecordingBucket(SweepLibraryBucket):
 
     def __init__(self) -> None:
         super().__init__(settings=TEST_SETTINGS)
-        self.landed: list[str] = []
+        self.written_keys: list[str] = []
         self._lock = threading.Lock()
 
     @override
     def put_file(self, *, key: str, local_path: Path, relative_path: str) -> None:
         time.sleep(0.01)
         with self._lock:
-            self.landed.append(key)
+            self.written_keys.append(key)
 
     @override
     def delete_key(self, *, key: str) -> None:
         with self._lock:
-            self.landed.append(f"delete:{key}")
+            self.written_keys.append(f"delete:{key}")
 
 
-def test_concurrent_uploads_still_land_the_entrypoints_last_and_deletions_after(tmp_path: Path) -> None:
+def test_concurrent_uploads_still_write_the_entrypoints_last_and_deletions_after(tmp_path: Path) -> None:
     _write_library(tmp_path)
     _write_manifests(tmp_path)
     files = enumerate_library(output_root=tmp_path)
@@ -671,9 +671,9 @@ def test_concurrent_uploads_still_land_the_entrypoints_last_and_deletions_after(
     apply_sync_plan(bucket=bucket, plan=plan, workers=4)
 
     entrypoints = [INDEX_FILENAME, TUTORIAL_MANIFEST_PATH, ALCHEMY_MANIFEST_PATH]
-    assert bucket.landed[-1] == "delete:stale.webp"
-    assert bucket.landed[-4:-1] == [upload.key for upload in plan.uploads if upload.relative_path in entrypoints]
-    assert sorted(bucket.landed[:-4]) == sorted(
+    assert bucket.written_keys[-1] == "delete:stale.webp"
+    assert bucket.written_keys[-4:-1] == [upload.key for upload in plan.uploads if upload.relative_path in entrypoints]
+    assert sorted(bucket.written_keys[:-4]) == sorted(
         upload.key for upload in plan.uploads if upload.relative_path not in entrypoints
     )
 
@@ -722,7 +722,7 @@ def test_a_dry_run_lists_the_bucket_and_writes_nothing_to_it(
     assert printed.rstrip().endswith("orphan(s) left alone.")
 
 
-def test_verify_exits_non_zero_when_the_bucket_is_short_a_file(
+def test_verify_exits_non_zero_when_the_bucket_is_missing_a_file(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -758,12 +758,12 @@ def test_verify_exits_non_zero_when_the_bucket_is_short_a_file(
     assert exit_code == 1
 
 
-def test_nothing_a_render_imports_drags_in_the_object_storage_sdk() -> None:
+def test_importing_the_tool_does_not_load_the_object_storage_sdk() -> None:
     """Assert importing the tool, including its command line, does not pull in a publishing SDK.
 
-    The rendering environment shares an interpreter with the GPU stack and must not acquire an
-    object-storage SDK by importing this tool. A module-level import anywhere on that path would
-    put one there, which is invisible until an environment that lacks it fails to start at all.
+    The rendering environment shares an interpreter with the GPU stack and must not need an
+    object-storage SDK to import this tool. A module-level import anywhere on that path would add
+    that requirement, which goes unnoticed until an environment without the SDK fails to start.
     """
     # The probe's output is marked with a sentinel because dependencies can emit their own
     # import-time log lines on stdout. Only the marked line is this probe's output.
@@ -788,7 +788,7 @@ def test_nothing_a_render_imports_drags_in_the_object_storage_sdk() -> None:
     assert result_lines[0] == "PROBE_RESULT:[]", f"importing the tool loaded {result_lines[0]}"
 
 
-def test_a_bucket_command_without_the_extra_says_what_to_install(
+def test_a_bucket_command_without_the_extra_reports_what_to_install(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -812,11 +812,11 @@ def test_a_bucket_command_without_the_extra_says_what_to_install(
     assert PUBLISH_EXTRA_HINT in captured.err
 
 
-def test_the_commands_that_read_only_the_library_need_no_extra(
+def test_the_commands_that_read_only_the_library_do_not_need_the_extra(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Assert the two commands that touch no bucket still run where the extra is absent."""
+    """Assert the two commands that do not use a bucket still run without the extra."""
     _write_library(tmp_path)
     monkeypatch.setitem(sys.modules, "boto3", None)
 
@@ -824,7 +824,7 @@ def test_the_commands_that_read_only_the_library_need_no_extra(
     assert main(["verify", "--local", "--output-root", str(tmp_path)]) == 0
 
 
-def test_verify_local_needs_no_credentials(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_verify_local_does_not_need_credentials(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _write_library(tmp_path)
     for variable_name in (
         PublishEnvironment.ENDPOINT_URL,

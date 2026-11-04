@@ -39,9 +39,9 @@ class CheckpointFile(RootModel[dict[str, CompletedRender]]):
 class CampaignCheckpoint:
     """The record of what a campaign has already rendered, backed by a JSON file.
 
-    An entry only counts when the image it names is still on disk, so deleting an image is all
-    it takes to have the next run regenerate it. That keeps "regenerate one strip" a matter of
-    removing files rather than editing bookkeeping.
+    An entry only counts while its image is still on disk, so the next run regenerates any
+    image that was deleted. Regenerating one strip only needs its files removed. The checkpoint
+    file does not need editing.
 
     Thread Safety:
         Not thread-safe. Both runners render one image at a time by design.
@@ -80,8 +80,8 @@ class CampaignCheckpoint:
         """Record this image as rendered and write the checkpoint out immediately.
 
         Side Effects:
-            Rewrites the checkpoint file on every call. That is one small write per image, which
-            is the price of never losing more than the image in flight.
+            Rewrites the checkpoint file on every call. That is one small write per image, so an
+            interruption loses at most the image in flight.
         """
         self._completed[relative_image_path] = CompletedRender(
             runner=runner_name,

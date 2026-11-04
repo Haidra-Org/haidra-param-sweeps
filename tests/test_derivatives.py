@@ -3,10 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Check what a page needs to read a render: its size, the crop, and the bounded copy.
 
-The evidence that these files exist for is invisible at the size at which a page draws a picture,
-so the checks here are about pixels rather than about paths: that a region falls on the same part
-of two differently sized frames, that the cut box is the one that the region names, and that the
-index reports only what is actually on disk.
+These files exist for detail that is not visible at a page's display size, so the checks here are
+about pixels rather than paths: that a region covers the same part of two differently sized
+frames, that the cut box matches the region, and that the index reports only files on disk.
 """
 
 from __future__ import annotations
@@ -43,16 +42,16 @@ from param_sweeps.spec import CropRegion, SweepSpec
 TOOL_ROOT = Path(__file__).resolve().parents[1]
 
 REGION = {"x": 0.25, "y": 0.5, "w": 0.25, "h": 0.25}
-"""A quarter-sized region in the lower left quadrant, which no rounding rule can move about."""
+"""A quarter-sized region in the lower left quadrant, which rounding cannot shift."""
 
 MARKED_COLOUR = (255, 0, 0)
-"""What the region holds in a test frame, so a wrongly placed cut is a wrong colour."""
+"""The region's colour in a test frame, so a misplaced cut has the wrong colour."""
 
 BACKGROUND_COLOUR = (0, 0, 255)
 
 
 def one_sweep_spec(sweep: dict[str, Any]) -> dict[str, Any]:
-    """Return the smallest specification the validator will look at, holding one sweep."""
+    """Return the smallest valid specification, with one sweep."""
     return {
         "schema_version": 1,
         "seed": 1234567890,
@@ -121,7 +120,7 @@ def marked_frame(size: tuple[int, int], *, region: CropRegion) -> Image.Image:
 
 
 def render_frames(*, spec: SweepSpec, output_root: Path, size: tuple[int, int]) -> None:
-    """Write a frame and a sidecar for every job the specification describes."""
+    """Write a frame and a sidecar for every job that the specification describes."""
     for job in spec.expand_jobs():
         image_path = output_root / job.relative_image_path
         image_path.parent.mkdir(parents=True, exist_ok=True)
@@ -130,16 +129,16 @@ def render_frames(*, spec: SweepSpec, output_root: Path, size: tuple[int, int]) 
         (output_root / job.relative_sidecar_path).write_text("{}\n", encoding="utf-8")
 
 
-def test_a_region_lands_on_the_same_part_of_two_output_sizes() -> None:
-    """Assert one region resolves to proportional boxes, which is why it is stated in fractions."""
+def test_a_region_covers_the_same_part_of_two_output_sizes() -> None:
+    """Assert one region resolves to proportional boxes, because it is stated in fractions."""
     region = CropRegion.model_validate(REGION)
 
     assert region.pixel_box(width=1024, height=1024) == (256, 512, 512, 768)
     assert region.pixel_box(width=2048, height=2048) == (512, 1024, 1024, 1536)
 
 
-def test_a_region_has_to_sit_inside_the_frame() -> None:
-    with pytest.raises(ValueError, match="runs off it"):
+def test_a_region_has_to_be_inside_the_frame() -> None:
+    with pytest.raises(ValueError, match="extends past it"):
         CropRegion.model_validate({"x": 0.8, "y": 0.1, "w": 0.4, "h": 0.2})
 
 
@@ -171,7 +170,7 @@ def test_the_index_reports_the_size_of_a_strip_s_source_image(tmp_path: Path) ->
     assert (indexed.source_width, indexed.source_height) == (512, 256)
 
 
-def test_the_cutter_writes_the_pixel_box_the_region_names(tmp_path: Path) -> None:
+def test_the_cutter_writes_the_pixel_box_of_the_region(tmp_path: Path) -> None:
     """Assert the crop holds exactly the marked region, at the frame's own pixels."""
     spec = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=REGION)))
     render_frames(spec=spec, output_root=tmp_path, size=(1024, 512))
@@ -223,28 +222,28 @@ def test_a_crop_already_cut_is_left_alone_unless_it_is_forced(tmp_path: Path) ->
     ]
 
 
-def test_a_frame_too_small_to_crop_is_passed_over_unless_the_region_insists(tmp_path: Path) -> None:
-    """Assert the size rule is about the frame, which is what a crop would be showing more of."""
+def test_a_frame_too_small_to_crop_is_skipped_unless_the_region_is_cut_even_when_small(tmp_path: Path) -> None:
+    """Assert the size rule applies to the frame, because a crop shows more of the frame."""
     too_small = (MINIMUM_CROPPABLE_PIXELS - 56, MINIMUM_CROPPABLE_PIXELS - 56)
-    passed_over = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=REGION)))
-    render_frames(spec=passed_over, output_root=tmp_path, size=too_small)
+    skipped_spec = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=REGION)))
+    render_frames(spec=skipped_spec, output_root=tmp_path, size=too_small)
 
-    outcomes = write_sweep_derivatives(spec=passed_over, output_root=tmp_path)
+    outcomes = write_sweep_derivatives(spec=skipped_spec, output_root=tmp_path)
     crops = [outcome for outcome in outcomes if outcome.kind is DerivativeKind.CROP]
 
     assert [outcome.written for outcome in crops] == [False, False]
     assert all("under" in str(outcome.skipped_reason) for outcome in crops)
     assert not (tmp_path / crops[0].relative_path).exists()
 
-    insisted = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=dict(REGION, even_when_small=True))))
-    insisting_outcomes = write_sweep_derivatives(spec=insisted, output_root=tmp_path)
+    marked_spec = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=dict(REGION, even_when_small=True))))
+    marked_outcomes = write_sweep_derivatives(spec=marked_spec, output_root=tmp_path)
 
-    assert all(outcome.written for outcome in insisting_outcomes if outcome.kind is DerivativeKind.CROP), (
-        "a region that says it carries something anyway is cut from a small frame"
+    assert all(outcome.written for outcome in marked_outcomes if outcome.kind is DerivativeKind.CROP), (
+        "a region marked even_when_small is cut from a small frame"
     )
 
 
-def test_the_index_carries_a_crop_only_where_the_file_is_on_disk(tmp_path: Path) -> None:
+def test_the_index_lists_a_crop_only_when_the_file_is_on_disk(tmp_path: Path) -> None:
     spec = SweepSpec.model_validate(one_sweep_spec(steps_sweep(crop=REGION)))
     render_frames(spec=spec, output_root=tmp_path, size=(1024, 512))
 
@@ -305,7 +304,7 @@ def alchemy_spec_with_a_cropped_entry() -> AlchemySpec:
 
 
 def test_an_alchemy_entry_crops_both_its_source_and_its_result(tmp_path: Path) -> None:
-    """Assert the pair is cut at one region, which is what makes a before and after comparable."""
+    """Assert the pair is cut at one region, so the before and after are comparable."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
     crop = entry.crop
@@ -322,8 +321,8 @@ def test_an_alchemy_entry_crops_both_its_source_and_its_result(tmp_path: Path) -
     outcomes = write_alchemy_crops(spec=spec, output_root=tmp_path)
     cut_here = {outcome.relative_path for outcome in outcomes if outcome.written}
 
-    # Entries sharing a source share its published copy, so the other entries on that source are
-    # cut here too. This one's own pair is what the test is about.
+    # Entries with the same source share its published copy, so the other entries on that source
+    # are cut here too. This test checks only this entry's pair.
     assert {published_source_crop_name(entry), published_result_crop_name(entry)} <= cut_here
 
     manifest_entry = next(
@@ -336,7 +335,7 @@ def test_an_alchemy_entry_crops_both_its_source_and_its_result(tmp_path: Path) -
     assert manifest_entry.result_crop.width == manifest_entry.source_crop.width * 4
 
 
-def test_an_alchemy_entry_without_a_result_carries_no_result_crop(tmp_path: Path) -> None:
+def test_an_alchemy_entry_without_a_result_has_no_result_crop(tmp_path: Path) -> None:
     """Assert an entry whose form could not run reports the gap rather than a phantom crop."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
@@ -358,7 +357,7 @@ def test_an_alchemy_entry_without_a_result_carries_no_result_crop(tmp_path: Path
     assert manifest_entry.result_width is None
 
 
-def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_the_manifest_names(tmp_path: Path) -> None:
+def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_in_the_manifest(tmp_path: Path) -> None:
     """Assert the enlarge use case, whose purpose is more pixels, publishes a page-sized copy."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
@@ -387,7 +386,7 @@ def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_the_manifest_names
 
 
 def test_an_alchemy_result_within_the_bound_gets_no_copy_and_the_copy_is_written_once(tmp_path: Path) -> None:
-    """Assert the skip and force rules are the sweeps' own, applied to the alchemy results."""
+    """Assert the alchemy results follow the same skip and force rules as the sweeps."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
     crop = entry.crop
@@ -416,8 +415,8 @@ def test_an_alchemy_result_within_the_bound_gets_no_copy_and_the_copy_is_written
     assert forced.written
 
 
-def test_an_alchemy_entry_answering_in_words_carries_no_bounded_copy(tmp_path: Path) -> None:
-    """Assert a form with no raster result is passed over rather than reported as a gap."""
+def test_an_alchemy_text_result_has_no_bounded_copy(tmp_path: Path) -> None:
+    """Assert a form without a raster result is skipped instead of reported as a gap."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = spec.entries[0]
     root = alchemy_root(tmp_path)

@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check that the cards that a specification requests are the ones drawn, from the frames that it names.
+"""Check that the cards in a specification are drawn from the frames that it names.
 
 The cards exist to be unfurled and posted, so the checks are about what appears on the canvas: that
 every chosen frame is on it, that the canvas is the size that the format specifies, that a set
-yields one card per parameter at a path that a page can predict, and that the manifest lists it all.
+yields one card per parameter at a path that a page can predict, and that the manifest lists them all.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ from param_sweeps.publish import PublishTree, published_relative_paths, read_ind
 from param_sweeps.spec import SweepSpec
 
 STOP_COLOURS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
-"""One flat colour per stop, so a frame on the canvas is a colour on the canvas."""
+"""One flat colour per stop, so each frame on the canvas shows up as one colour."""
 
 BRAND: dict[str, Any] = {"name": "Test Horde", "url": "example.test/docs"}
 
@@ -133,7 +133,7 @@ def test_spread_keeps_both_ends_and_never_repeats() -> None:
     assert spread_positions(5, 1) == [0]
 
 
-def test_select_stops_answers_every_form(library: Path) -> None:
+def test_select_stops_handles_every_selection_form(library: Path) -> None:
     strip = read_index(output_root=library).strips[0]
 
     assert [stop.label for stop in select_stops(strip, "all")] == ["4", "15", "30"]
@@ -160,7 +160,7 @@ def test_a_parameter_set_yields_one_card_per_parameter_at_a_predictable_path(lib
     ]
 
 
-def test_a_card_holds_every_chosen_frame_on_the_canvas_its_format_names(library: Path) -> None:
+def test_a_card_holds_every_chosen_frame_on_the_canvas_of_its_format(library: Path) -> None:
     spec = promo_spec(
         jobs=[
             {
@@ -295,7 +295,7 @@ def test_a_hero_can_draw_a_gallery_picture_and_a_parameter_takes_its_listed_subt
         resolve_content(absent, spec=spec, index=index, manifest=None, library_root=library, promo_root=root)
 
 
-def test_type_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_left_alone(library: Path) -> None:
+def test_text_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_unchanged(library: Path) -> None:
     spec = promo_spec()
     index = read_index(output_root=library)
     root = library / "promo-with-pale-gallery"
@@ -322,14 +322,14 @@ def test_type_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_left_a
     counted = foot.getcolors(maxcolors=width * height)
     assert counted is not None
     colours = {colour for _, colour in counted}
-    # The foot shade alone never reaches the outline tone over white, so finding it means the
-    # letters have their own outline, and white beside it means their fill survived it.
+    # Over white, the bottom shade alone does not reach the outline colour, so finding that colour
+    # shows that the letters have their own outline. White beside it shows that the fill is intact.
     assert OVERLAY_OUTLINE in colours
     assert (255, 255, 255) in colours
     assert card.getpixel((width // 2, height // 4)) == (255, 255, 255)
 
 
-def test_a_job_naming_nothing_or_a_missing_strip_is_refused(library: Path) -> None:
+def test_a_job_without_a_source_or_with_a_missing_strip_is_refused(library: Path) -> None:
     spec = promo_spec()
     index = read_index(output_root=library)
 

@@ -164,7 +164,7 @@ def test_plan_only_generates_nothing(spec: SweepSpec, tmp_path: Path) -> None:
 
 
 def test_an_empty_filter_selection_is_rejected(spec: SweepSpec, tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="selected no jobs"):
+    with pytest.raises(ValueError, match="did not select any jobs"):
         run_campaign(
             spec=spec,
             runner=CountingRunner(),
@@ -205,10 +205,10 @@ def test_each_image_to_image_strip_publishes_the_source_it_starts_from(spec: Swe
 
 
 def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a stop holds only what a strip is drawn and captioned from.
+    """Assert a stop holds only the data needed to draw and caption a strip.
 
-    The full parameter set is in the sidecar beside every image. Repeating it per stop trebled
-    an index that every visitor to the Learn pages downloads.
+    The full parameter set is in the sidecar beside every image. Repeating it in every stop would
+    triple the size of an index that every visitor to the Learn pages downloads.
     """
     run_campaign(spec=spec, runner=CountingRunner(), output_root=tmp_path, job_filter=ONE_STRIP)
 
@@ -242,9 +242,9 @@ def test_the_index_leaves_per_stop_parameters_to_the_sidecars(spec: SweepSpec, t
 def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec, tmp_path: Path) -> None:
     """Assert a ControlNet gallery's stops include their control type, family and map in the index.
 
-    The map is half of what the stop teaches, so a consumer reads it from the index rather than
-    guessing at a path. A map that was never drawn is reported as absent rather than as a path to
-    a file that is not there: the render exists either way, and the gap is what the page says.
+    The map is half of the stop's lesson, so a consumer reads it from the index instead of
+    guessing a path. A map that was not drawn is reported as absent, not as a path to a missing
+    file. The render exists either way, and the page reports the gap.
     """
     run_campaign(spec=spec, runner=CountingRunner(), output_root=tmp_path, job_filter=ONE_GALLERY)
 
@@ -269,11 +269,11 @@ def test_a_triptych_stop_names_its_detector_and_the_map_it_drew(spec: SweepSpec,
     assert published_maps == [map_path]
 
 
-def test_a_strength_strip_names_the_map_its_dial_holds_the_render_to(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert a strip held to one detector includes its map in the index once the map is on disk.
+def test_a_strength_strip_names_its_control_map_in_the_index(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert a strip with one detector includes its map in the index once the map is on disk.
 
-    A map that has not been drawn is reported as absent rather than as a path to a file that is
-    not there, for the same reason a stop's map is: the renders are on disk either way.
+    A map that has not been drawn is reported as absent, for the same reason as a stop's map: the
+    renders are on disk either way.
     """
     strip = next(candidate for candidate in spec.expand_strips() if candidate.relative_control_map_path is not None)
     for job in strip.jobs:
@@ -295,10 +295,10 @@ def test_a_strength_strip_names_the_map_its_dial_holds_the_render_to(spec: Sweep
         entry for entry in build_index(spec=spec, output_root=tmp_path).strips if entry.strip_id == strip.strip_id
     ]
     assert rebuilt.control_map == map_path
-    assert all(stop.control_map is None for stop in rebuilt.stops), "the strip's map stands for every stop"
+    assert all(stop.control_map is None for stop in rebuilt.stops), "the strip's map covers every stop"
 
 
-def test_hordelib_payload_asks_for_img2img_only_when_the_job_starts_from_an_image(spec: SweepSpec) -> None:
+def test_hordelib_payload_requests_img2img_only_when_the_job_starts_from_an_image(spec: SweepSpec) -> None:
     text_to_image_job = next(job for job in spec.expand_jobs() if job.parameter is SweepParameter.STEPS)
     image_to_image_job = next(job for job in spec.expand_jobs() if job.parameter is SweepParameter.DENOISING_STRENGTH)
 
@@ -313,7 +313,7 @@ def test_hordelib_payload_asks_for_img2img_only_when_the_job_starts_from_an_imag
     assert image_to_image_payload["denoising_strength"] == image_to_image_job.denoising_strength
 
 
-def test_the_api_request_carries_the_negative_prompt_the_way_the_api_takes_it(spec: SweepSpec) -> None:
+def test_the_api_request_appends_the_negative_prompt_in_the_api_format(spec: SweepSpec) -> None:
     """Assert the negative prompt is appended with ``###``, which is the API's only way to send one."""
     with_negative = next(
         job for job in spec.expand_jobs() if job.parameter is SweepParameter.NEGATIVE_PROMPT and job.stop_value is True
@@ -401,11 +401,11 @@ def test_there_is_no_default_env_file_without_the_variable_or_a_repository_env(
     assert default_env_file() is None
 
 
-def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, tmp_path: Path) -> None:
-    """Assert every strip the index publishes names two stops to wipe between, and the grids none.
+def test_the_index_includes_the_pair_that_a_collapsed_card_previews(spec: SweepSpec, tmp_path: Path) -> None:
+    """Assert every strip in the index names two stops to wipe between, and the grids do not name any.
 
-    The pair is resolved here rather than by the consumer, because it depends on the value that
-    the strip is read against, which the index does not otherwise include.
+    The pair is resolved here rather than by the consumer, because it depends on the strip's
+    reference value, which the index does not otherwise include.
     """
     run_campaign(
         spec=spec,
@@ -423,7 +423,7 @@ def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, t
 
     (clip_skip,) = [strip for strip in index.strips if strip.parameter is SweepParameter.CLIP_SKIP]
     assert clip_skip.preview is not None
-    assert clip_skip.stops[clip_skip.preview.left_index].value == 1, "the layer count this model was trained for"
+    assert clip_skip.stops[clip_skip.preview.left_index].value == 1, "the layer count that this model was trained for"
     assert clip_skip.stops[clip_skip.preview.right_index].value == 3
 
 
@@ -431,7 +431,7 @@ def test_a_preview_falls_back_to_the_stops_that_were_actually_rendered(spec: Swe
     """Assert a strip missing its top stop still previews two pictures that the index includes.
 
     The index leaves out a stop whose image is not on disk, so a preview resolved against the
-    declared ladder could point past the end of a partly rendered strip.
+    declared stops could point past the end of a partly rendered strip.
     """
     strip = next(
         candidate

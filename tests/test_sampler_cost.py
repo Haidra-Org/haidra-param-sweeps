@@ -97,7 +97,7 @@ class TestFitLine:
 
 
 class TestDerivePairings:
-    """How samplers are matched to a schedule to measure against, and where the policy refuses to guess."""
+    """How samplers are matched to a measurement schedule, and the cases where the policy does not allow a guess."""
 
     def test_every_unconstrained_sampler_is_measured_on_the_default_schedule(self) -> None:
         """Assert a sampler with no rejected pairing is measured on the run's default schedule."""
@@ -114,8 +114,8 @@ class TestDerivePairings:
         assert pairing.scheduler == "simple"
         assert pairing.schedule_reason is ScheduleChoiceReason.SUBSTITUTED
 
-    def test_the_order_the_samplers_were_asked_for_is_the_order_they_are_measured_in(self) -> None:
-        """Assert derived pairings preserve the order the samplers were requested in."""
+    def test_samplers_are_measured_in_the_requested_order(self) -> None:
+        """Assert derived pairings preserve the order in which the samplers were requested."""
         pairings = derive_pairings(samplers=["k_heun", "k_euler"], baseline=SD15_BASELINE, policy=POLICY)
 
         assert [pairing.sampler_name for pairing in pairings] == ["k_heun", "k_euler"]
@@ -132,7 +132,7 @@ class TestDerivePairings:
         assert [pairing.evaluations_per_step for pairing in pairings] == [None]
 
     def test_a_schedule_undefined_for_the_baseline_is_not_substituted_in(self) -> None:
-        """Assert a schedule the baseline has no entry for is skipped rather than substituted."""
+        """Assert a schedule that is not defined for the baseline is skipped instead of substituted."""
         policy = POLICY.model_copy(
             update={"rejected_pairings": frozenset({("restricted_only", "karras")})},
         )
@@ -140,7 +140,7 @@ class TestDerivePairings:
         assert derive_pairings(samplers=["restricted_only"], baseline=SD15_BASELINE, policy=policy)[0].scheduler == (
             "align_your_steps"
         )
-        with pytest.raises(ValueError, match="advises no schedule"):
+        with pytest.raises(ValueError, match="does not advise another schedule"):
             derive_pairings(samplers=["restricted_only"], baseline=SDXL_BASELINE, policy=policy)
 
 
@@ -242,18 +242,18 @@ class TestInstalledSdkPolicy:
             pairings_by_model={
                 "deliberate": derive_pairings(samplers=["k_euler"], baseline=SD15_BASELINE, policy=POLICY),
             },
-            failures={("deliberate", "k_euler"): ["20 steps: the backend returned no image"]},
+            failures={("deliberate", "k_euler"): ["20 steps: the backend did not return an image"]},
         )
 
         (record,) = records
         assert record.fit is None
         assert record.ratio_vs_k_euler is None
         assert record.is_discrepant is False
-        assert record.failed_renders == ("20 steps: the backend returned no image",)
+        assert record.failed_renders == ("20 steps: the backend did not return an image",)
 
 
 class TestMeasurementJob:
-    """The render job a measurement pairing turns into, and how little of it a new pairing changes."""
+    """The render job for a measurement pairing, and how little of it changes between pairings."""
 
     def test_only_the_sampler_the_schedule_and_the_steps_differ_between_two_jobs(self) -> None:
         """Assert two jobs for different pairings differ only in sampler name and steps."""
@@ -284,10 +284,10 @@ class TestMeasurementJob:
 
 
 class TestReportArtifact:
-    """The report as it is written to disk, and what a reader of that file can rely on finding in it."""
+    """The report as written to disk, and the fields that a reader of that file can rely on."""
 
-    def test_the_written_artifact_carries_its_schema_version_and_reloads(self, tmp_path: Path) -> None:
-        """Assert a written report is written under measurements/, states its schema version and round-trips."""
+    def test_the_written_artifact_states_its_schema_version_and_reloads(self, tmp_path: Path) -> None:
+        """Assert a report is written under measurements/, states its schema version, and round-trips."""
         report = _report()
 
         report_path = write_report(report=report, output_root=tmp_path)

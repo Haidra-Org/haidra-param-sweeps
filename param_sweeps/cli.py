@@ -6,18 +6,17 @@
 Every rendering subcommand takes the same specification and the same filters, so "render the
 whole library" and "regenerate one strip" are the same command with the filters narrowed. The
 publishing subcommands (``manifest``, ``upload``, ``verify``) work from ``index.json`` alone and
-need no specification at all. The two of them that reach a bucket also need the tool's optional
-publish extra, and say so plainly when it is absent rather than failing on an import. ``qr-check``
-works from the rendered tree in the same way, and is the gate that every QR image the library and
-the tutorials publish still decodes to its requested payload. ``flows`` is
-the odd one out: it reads its own specification and writes the frontpage's tutorial asset tree
-rather than the sweep library. ``alchemy`` reads its own specification too, and writes both: the
-evidence tree that the alchemy pages read, and the one strip in the sweep library whose stops are
-upscalers rather than a generation parameter. ``gallery`` makes the promo pictures, texts and
-conversations through the live horde, and rebuilds their manifest from whatever is on disk.
-``review`` reads only the specification and what is already on disk. ``choose`` closes that loop
-by writing the picks that a reviewer saved from the sheet back into the specification. These
-commands never print the API key or the bucket's secret.
+do not need a specification. The two that reach a bucket also need the tool's optional publish
+extra, and report a clear error when it is missing instead of failing on an import. ``qr-check``
+also works from the rendered tree. It checks that every QR image published by the library and the
+tutorials still decodes to its requested payload. ``flows`` reads its own specification and
+writes the tutorial asset tree, ``tutorials/`` under the library's output root. ``alchemy`` reads
+its own specification too, and writes both the evidence tree for the alchemy pages and the one
+strip in the sweep library whose stops are upscalers instead of a generation parameter.
+``gallery`` makes the promo pictures, texts and conversations through the live horde, and
+rebuilds their manifest from whatever is on disk. ``review`` reads only the specification and
+what is already on disk. ``choose`` writes the picks that a reviewer saved from the sheet back
+into the specification. These commands do not print the API key or the bucket's secret.
 
 Critical public member: [`main`][param_sweeps.cli.main], the console entry point.
 """
@@ -131,7 +130,7 @@ DEFAULT_SAMPLER_COST_MODEL_SLUGS = ("deliberate", "albedobase-xl")
 """One SD1.5 model and one SDXL model from the sweep specification."""
 
 DEFAULT_ALCHEMY_SPEC_PATH = TOOL_ROOT / "alchemy_spec.json"
-"""The specification placing every alchemy form that the shared vocabulary names into a use case."""
+"""The specification that assigns each alchemy form in the shared vocabulary to a use case."""
 
 DEFAULT_GALLERY_SPEC_PATH = TOOL_ROOT / "gallery_spec.json"
 """The gallery specification: the promo pictures, texts and conversations to make."""
@@ -151,9 +150,9 @@ DERIVATIVES_COMMANDS = frozenset({"derivatives", DERIVATIVES_LEGACY_COMMAND})
 class AlchemyBackendChoice(StrEnum):
     """Where the ``alchemy`` subcommand applies its forms.
 
-    The three are not interchangeable: the post-processors run locally, the describe family only
-    runs on the horde, and the control maps only run on a horde-image-utilities service, so a full
-    campaign is three runs restricted to the forms each can run.
+    The three are not interchangeable. The post-processors run locally, the describe family only
+    runs on the horde, and the control maps only run on a horde-image-utilities service. A full
+    campaign is three runs, each restricted to the forms that its backend can run.
     """
 
     HORDELIB = "hordelib"
@@ -191,7 +190,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    plan_parser = subparsers.add_parser("plan", help="print the fetch plan and image count, and generate nothing")
+    plan_parser = subparsers.add_parser("plan", help="print the fetch plan and image count, without generating")
     _add_common_arguments(plan_parser, output_root=output_root)
     _add_local_arguments(plan_parser)
 
@@ -223,7 +222,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-root",
         type=Path,
         default=output_root,
-        help="the output tree's root; the artifact lands in its measurements directory",
+        help="the output tree's root (the artifact is written to its measurements directory)",
     )
     sampler_cost_parser.add_argument(
         "--model",
@@ -250,7 +249,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--repeats",
         type=int,
         default=DEFAULT_REPEATS,
-        help="how many renders each point is the median of",
+        help="how many renders to take the median of at each point",
     )
     sampler_cost_parser.add_argument(
         "--warmups",
@@ -261,7 +260,7 @@ def build_parser() -> argparse.ArgumentParser:
     sampler_cost_parser.add_argument(
         "--plan-only",
         action="store_true",
-        help="print the samplers, schedules and render count, and measure nothing",
+        help="print the samplers, schedules and render count without measuring anything",
     )
     _add_local_arguments(sampler_cost_parser)
     sampler_cost_parser.add_argument("--verbose", action="store_true", help="log at debug level")
@@ -274,7 +273,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--spec",
         type=Path,
         default=DEFAULT_SPEC_PATH,
-        help="the specification carrying the two step-preview strips",
+        help="the specification that contains the two step-preview strips",
     )
     step_preview_parser.add_argument(
         "--output-root",
@@ -299,13 +298,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--sweep-spec",
         type=Path,
         default=DEFAULT_SPEC_PATH,
-        help="the sweep specification carrying the upscaler-form strip",
+        help="the sweep specification that contains the upscaler-form strip",
     )
     alchemy_parser.add_argument(
         "--output-root",
         type=Path,
         default=output_root,
-        help="the output tree's root; the evidence lands in its alchemy directory",
+        help="the output tree's root (the evidence is written to its alchemy directory)",
     )
     alchemy_parser.add_argument(
         "--form",
@@ -313,7 +312,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         choices=list(known_alchemy_forms()),
         metavar="FORM",
-        help="restrict the run to this form (repeatable; default: every form the specification places)",
+        help="restrict the run to this form (repeatable; default: every form in the specification)",
     )
     alchemy_parser.add_argument(
         "--control-type",
@@ -321,7 +320,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         choices=list(known_annotation_control_types()),
         metavar="CONTROL_TYPE",
-        help="restrict the run to this control map (repeatable; default: every one the SDK names)",
+        help="restrict the run to this control map (repeatable; default: every control map in the SDK)",
     )
     alchemy_parser.add_argument(
         "--force",
@@ -331,14 +330,14 @@ def build_parser() -> argparse.ArgumentParser:
     alchemy_parser.add_argument(
         "--plan-only",
         action="store_true",
-        help="print the forms and their use cases, and apply nothing",
+        help="print the forms and their use cases without applying anything",
     )
     alchemy_parser.add_argument(
         "--backend",
         choices=[str(backend) for backend in AlchemyBackendChoice],
         default=str(AlchemyBackendChoice.HORDELIB),
         help=(
-            "apply the forms locally through horde-engine, by asking the live horde, or by asking a"
+            "apply the forms locally through horde-engine, through the live horde, or through a"
             " horde-image-utilities service for the control maps"
         ),
     )
@@ -365,7 +364,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "resolve the "
             f"{', '.join(BETA_MODEL_CATEGORIES)} weights from the pending model reference as well as"
-            " the published one, which is what the beta face restorers are carried by"
+            " the published one, because the beta face restorers are only in the pending one"
         ),
     )
     alchemy_parser.add_argument(
@@ -407,7 +406,7 @@ def build_parser() -> argparse.ArgumentParser:
     flows_parser.add_argument(
         "--manifest-only",
         action="store_true",
-        help="rewrite tutorials/manifest.json from what is on disk and generate nothing",
+        help="rewrite tutorials/manifest.json from what is on disk without generating anything",
     )
     flows_parser.add_argument(
         "--local",
@@ -429,7 +428,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="with --local: fail instead of downloading a model that is not already in the worker cache",
     )
     flows_parser.add_argument(
-        "--dry-run", action="store_true", help="print what would be submitted and generate nothing"
+        "--dry-run", action="store_true", help="print what would be submitted without generating anything"
     )
     flows_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
@@ -439,14 +438,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     review_parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
-    review_parser.add_argument("--title", default="Review contact sheet", help="the heading the sheet carries")
+    review_parser.add_argument("--title", default="Review contact sheet", help="the sheet's heading")
     review_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
     choose_parser = subparsers.add_parser(
         "choose",
         help="write the choices saved from the contact sheet into the specification, and refresh the sheet",
     )
-    choose_parser.add_argument("choices", type=Path, help="the file the sheet's Save choices button downloaded")
+    choose_parser.add_argument("choices", type=Path, help="the file downloaded by the sheet's Save choices button")
     choose_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the specification to update")
     choose_parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
     choose_parser.add_argument("--title", default="Review contact sheet", help="the refreshed sheet's heading")
@@ -454,7 +453,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     control_maps_parser = subparsers.add_parser(
         "control-maps",
-        help="draw the control map beside every render a ControlNet guided",
+        help="draw the control map beside every ControlNet-guided render",
     )
     control_maps_parser.add_argument(
         "--spec",
@@ -466,7 +465,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-root",
         type=Path,
         default=output_root,
-        help="the output tree's root; each map lands beside the render it guided",
+        help="the output tree's root (each map is written beside its render)",
     )
     control_maps_parser.add_argument(
         "--parameter",
@@ -511,7 +510,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-root",
         type=Path,
         default=output_root,
-        help="the output tree's root; every file lands beside the frame it came from",
+        help="the output tree's root (every file is written beside its source frame)",
     )
     derivatives_parser.add_argument(
         "--parameter",
@@ -529,19 +528,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     promo_parser = subparsers.add_parser(
         "promo",
-        help="draw the share cards and posters a promo specification asks for, from the renders already on disk",
+        help="draw the share cards and posters in a promo specification from the renders already on disk",
     )
     promo_parser.add_argument(
         "--promo-spec",
         type=Path,
         required=True,
-        help="the promo specification: brand, fonts, palettes, jobs and sets; font and logo paths are relative to it",
+        help="the promo specification: brand, fonts, palettes, jobs and sets (font and logo paths are relative to it)",
     )
     promo_parser.add_argument(
         "--output-root",
         type=Path,
         default=output_root,
-        help="the library's root, which the frames are read from",
+        help="the library's root, where the frames are read from",
     )
     promo_parser.add_argument(
         "--promo-root",
@@ -572,7 +571,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--out",
         type=Path,
         default=promo_output_root / GALLERY_DIRECTORY_NAME,
-        help="the gallery root, which is where gallery.json lands",
+        help="the gallery root, where gallery.json is written",
     )
     gallery_parser.add_argument(
         "--env-file",
@@ -584,14 +583,14 @@ def build_parser() -> argparse.ArgumentParser:
     gallery_parser.add_argument(
         "--skip-alchemy",
         action="store_true",
-        help="leave the alchemy forms the picture entries ask for alone",
+        help="skip the alchemy forms requested by the picture entries",
     )
-    gallery_parser.add_argument("--skip-text", action="store_true", help="leave the single-turn texts alone")
-    gallery_parser.add_argument("--skip-conversations", action="store_true", help="leave the conversations alone")
+    gallery_parser.add_argument("--skip-text", action="store_true", help="skip the single-turn texts")
+    gallery_parser.add_argument("--skip-conversations", action="store_true", help="skip the conversations")
     gallery_parser.add_argument(
         "--retry-censored",
         action="store_true",
-        help="offer the entries the safety checker refused before again",
+        help="resubmit the entries that the safety checker refused on an earlier run",
     )
     gallery_parser.add_argument(
         "--dry-run",
@@ -607,13 +606,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     qr_check_parser = subparsers.add_parser(
         "qr-check",
-        help="scan every published QR image and check it decodes to the payload it was asked to carry",
+        help="scan every published QR image and check that it decodes to its requested payload",
     )
     _add_library_arguments(qr_check_parser)
 
     manifest_parser = subparsers.add_parser(
         "manifest",
-        help="list every file index.json references, with its size and total",
+        help="list every file referenced by index.json, with its size and the total",
     )
     _add_library_arguments(manifest_parser)
     _add_bucket_arguments(manifest_parser)
@@ -626,11 +625,11 @@ def build_parser() -> argparse.ArgumentParser:
     upload_parser = subparsers.add_parser("upload", help="sync the library to S3-compatible storage")
     _add_library_arguments(upload_parser)
     _add_bucket_arguments(upload_parser)
-    upload_parser.add_argument("--dry-run", action="store_true", help="print the plan and touch nothing")
+    upload_parser.add_argument("--dry-run", action="store_true", help="print the plan without changing anything")
     upload_parser.add_argument(
         "--delete",
         action="store_true",
-        help="also remove objects under the prefix that neither the index nor a manifest references",
+        help="also remove objects under the prefix that are not referenced by the index or a manifest",
     )
 
     verify_parser = subparsers.add_parser("verify", help="check a published library against index.json")
@@ -639,14 +638,14 @@ def build_parser() -> argparse.ArgumentParser:
     verify_parser.add_argument(
         "--local",
         action="store_true",
-        help="check the files on disk instead of the bucket, and need no credentials",
+        help="check the files on disk instead of the bucket, which does not need credentials",
     )
 
     return parser
 
 
 def _add_common_arguments(parser: argparse.ArgumentParser, *, output_root: Path) -> None:
-    """Add the specification, output and filter arguments every rendering subcommand shares."""
+    """Add the specification, output and filter arguments that every rendering subcommand shares."""
     parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
     parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
     parser.add_argument(
@@ -672,7 +671,7 @@ def _add_common_arguments(parser: argparse.ArgumentParser, *, output_root: Path)
 
 
 def _add_library_arguments(parser: argparse.ArgumentParser) -> None:
-    """Add the arguments a subcommand that works from a published tree alone needs."""
+    """Add the arguments for a subcommand that works only from a published tree."""
     parser.add_argument(
         "--tree",
         default=str(PublishTree.SWEEPS),
@@ -689,7 +688,7 @@ def _add_library_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_bucket_arguments(parser: argparse.ArgumentParser) -> None:
-    """Add the arguments that point a subcommand at the bucket the library is published to."""
+    """Add the arguments that point a subcommand at the bucket that the library is published to."""
     parser.add_argument(
         "--env-file",
         type=Path,
@@ -726,7 +725,7 @@ def main(argv: list[str] | None = None) -> int:
         argv: The arguments to parse, or None to read ``sys.argv``.
 
     Returns:
-        0 when everything asked for succeeded, 1 otherwise.
+        0 when every requested operation succeeded, 1 otherwise.
     """
     arguments = build_parser().parse_args(argv)
     logging.basicConfig(
@@ -804,7 +803,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _build_runner(arguments: argparse.Namespace) -> SweepRunner:
-    """Create the runner the chosen subcommand needs.
+    """Create the runner for the chosen subcommand.
 
     ``plan`` uses the local runner because the plan it prints is about this machine's cache.
 
@@ -895,10 +894,10 @@ def _run_sampler_cost(arguments: argparse.Namespace, *, spec: SweepSpec, output_
 def _run_step_preview(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Capture one render step by step, write both arcs, and return the exit code.
 
-    This renders once however many stops the two strips declare, because the stops are moments of
-    a single render rather than renders of their own. Every failure here is a configuration
-    problem or a pipeline that did not sample the way a step preview needs, so each is reported
-    as one line on stderr rather than a traceback.
+    This renders once, however many stops the two strips declare, because the stops are moments
+    of a single render. Every failure here is a configuration problem or a pipeline that did not
+    sample in the way that a step preview requires, so each is reported as one line on stderr
+    instead of a traceback.
     """
     try:
         runner = _build_runner(arguments)
@@ -923,10 +922,10 @@ def _sampler_cost_models(*, spec: SweepSpec, requested_slugs: tuple[str, ...]) -
 
 
 def _alchemy_api_client(arguments: argparse.Namespace) -> HordeApiClient:
-    """Return the client the live alchemy backend submits through.
+    """Return the client that the live alchemy backend submits through.
 
     Raises:
-        MissingApiKeyError: If no key was found where it was looked for.
+        MissingApiKeyError: If no API key was found.
     """
     env_file = arguments.env_file if arguments.env_file is not None else default_env_file()
     api_key = read_api_key(env_file=env_file)
@@ -943,9 +942,9 @@ def _alchemy_result_label(result: AlchemyResult) -> str:
 def _run_alchemy(arguments: argparse.Namespace) -> int:
     """Apply the selected alchemy forms, and return the process exit code.
 
-    A form the backend cannot run is not a failure of the run: it is published as an entry that
-    says so, and the exit code stays 0 so a campaign is not made to look broken by a processor
-    that this machine was never going to be able to serve.
+    A form that the backend cannot run does not fail the run. It is published as an entry marked
+    unavailable, and the exit code stays 0, so a campaign does not look broken because this
+    machine cannot serve one of the processors.
     """
     try:
         alchemy_spec = load_alchemy_spec(arguments.spec)
@@ -964,8 +963,9 @@ def _run_alchemy(arguments: argparse.Namespace) -> int:
         return 0
 
     drawing_control_maps = arguments.backend == AlchemyBackendChoice.IMAGE_UTILITIES
-    # An unrestricted run through the control-map service would reach every other entry too and
-    # overwrite the reasons recorded by the backends that do serve them, so it covers its own form.
+    # An unrestricted run through the control-map service would also process every other entry,
+    # and overwrite the reasons recorded by the backends that serve them. It is restricted to the
+    # annotation form.
     forms = tuple(arguments.form) if arguments.form else (ANNOTATION_FORM,) if drawing_control_maps else ()
 
     client: HordeApiClient | None = None
@@ -1005,16 +1005,16 @@ def _run_alchemy(arguments: argparse.Namespace) -> int:
         f" unavailable {len(unavailable)}.",
     )
     if unavailable:
-        print(f"Unavailable here (published as entries that say so): {', '.join(unavailable)}", file=sys.stderr)
+        print(f"Unavailable here (published as unavailable entries): {', '.join(unavailable)}", file=sys.stderr)
     return 0
 
 
 def _run_control_maps(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Draw the control maps, and return the process exit code.
 
-    A detector that the service will not run is published as a gap rather than as a failure, for
-    the same reason as an unavailable alchemy form: what this machine can serve is evidence about the
-    machine, and the renders those maps belong to are already on disk either way.
+    A detector that the service does not run is published as a gap, not as a failure, for the same
+    reason as an unavailable alchemy form. The detectors that a machine can serve depend on the
+    machine, and the renders for those maps are already on disk either way.
     """
     backend = HordeImageUtilitiesBackend(service_url=resolve_service_url(requested=arguments.hiu_url))
     parameters = [SweepParameter(parameter) for parameter in arguments.parameter]
@@ -1045,8 +1045,8 @@ def _run_control_maps(arguments: argparse.Namespace, *, spec: SweepSpec, output_
 def _run_derivatives(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Cut the crops and write the bounded copies, and return the process exit code.
 
-    The alchemy specification is read when it is there and passed over when it is not, so a
-    library rendered without the alchemy campaign still gets the sweeps' own files.
+    The alchemy specification is read only when it exists, so a library rendered without the
+    alchemy campaign still gets the sweep files.
     """
     parameters = [SweepParameter(parameter) for parameter in arguments.parameter]
 
@@ -1112,8 +1112,9 @@ def _run_promo(arguments: argparse.Namespace) -> int:
 def _run_gallery(arguments: argparse.Namespace) -> int:
     """Make the promo gallery that the specification requests, and return the process exit code.
 
-    A dry run needs a key all the same: which model a picture resolves to is a fact about what the
-    horde is serving right now, so the plan is read from the horde even though nothing is submitted.
+    A dry run still needs an API key. The model that a picture resolves to depends on what the
+    horde is serving at the time, so the plan is read from the horde even though nothing is
+    submitted.
     """
     try:
         spec = load_gallery_spec(arguments.spec)
@@ -1143,8 +1144,8 @@ def _run_gallery(arguments: argparse.Namespace) -> int:
 def _run_flows(arguments: argparse.Namespace) -> int:
     """Generate the selected tutorial flows, and return the process exit code.
 
-    A dry run needs no key, because it submits nothing: the plan it prints is about the
-    specification rather than about the horde.
+    A dry run does not need an API key, because it does not submit anything and its plan comes
+    only from the specification.
     """
     flows_spec = load_flows_spec(arguments.spec)
 
@@ -1196,10 +1197,10 @@ def _run_flows(arguments: argparse.Namespace) -> int:
 def _run_flows_locally(arguments: argparse.Namespace, *, flows_spec: FlowsSpec) -> list[FlowResult]:
     """Render the selected flows on this machine's GPU, and return what each one produced.
 
-    The local runner is prepared with a model entry per distinct model that the selected flows name,
-    built from the flow requests themselves: the flows use models that the sweep library does not
+    The local runner is prepared with one model entry for each distinct model in the selected
+    flows, built from the flow requests. The flows use models that are not in the sweep library
     (the inpainting checkpoints, Stable Cascade), so the sweep specification cannot supply them.
-    Native sizes and the like are unused by the runner's preparation, which only fetches weights.
+    The runner's preparation only fetches weights, so native sizes and similar fields are unused.
     """
     selected = [flow for flow in flows_spec.flows if not arguments.flow or flow.flow_id in arguments.flow]
     model_names = sorted(
@@ -1237,11 +1238,10 @@ def _run_flows_locally(arguments: argparse.Namespace, *, flows_spec: FlowsSpec) 
 
 
 def _run_qr_check(arguments: argparse.Namespace) -> int:
-    """Scan every published QR image, print what each read, and return the exit code.
+    """Scan every published QR image, print what each one decoded to, and return the exit code.
 
-    This is the gate over what shipped rather than over what was rendered: a curation batch is
-    published one candidate at a time and a human's pick is the last thing that decides which
-    image a reader points a phone at.
+    This checks what was published, not every rendered candidate. A curation batch publishes the
+    one candidate that a human picked, and that pick is the image a reader scans with a phone.
     """
     _, output_root = _publish_tree(arguments)
     report = check_library(output_root=output_root)
@@ -1298,7 +1298,7 @@ def _run_publishing_command(arguments: argparse.Namespace) -> int:
 
 
 def _publish_tree(arguments: argparse.Namespace) -> tuple[PublishTree, Path]:
-    """Return the tree a publishing command works on and its root, defaulted by the tree."""
+    """Return the tree for a publishing command, and its root. The default root depends on the tree."""
     tree = PublishTree(arguments.tree)
     default_root = resolve_promo_output_root() if tree is PublishTree.PROMO else resolve_output_root()
     root: Path = arguments.output_root if arguments.output_root is not None else default_root
@@ -1306,7 +1306,7 @@ def _publish_tree(arguments: argparse.Namespace) -> tuple[PublishTree, Path]:
 
 
 def _run_manifest(arguments: argparse.Namespace) -> int:
-    """List every file the tree publishes, with sizes and a total, and return 0."""
+    """List every published file in the tree, with sizes and a total, and return 0."""
     tree, output_root = _publish_tree(arguments)
     files = enumerate_library(output_root=output_root, tree=tree)
     prefix = _prefix_for_manifest(arguments)
@@ -1386,7 +1386,10 @@ def _bucket_settings(arguments: argparse.Namespace) -> S3Settings:
 
 
 def _prefix_for_manifest(arguments: argparse.Namespace) -> str:
-    """Return the prefix ``manifest --keys`` should print under, which needs no credentials without it."""
+    """Return the key prefix for ``manifest --keys``, or an empty prefix without ``--keys``.
+
+    Only ``--keys`` reads the bucket settings, so ``manifest`` without it does not need credentials.
+    """
     if not arguments.keys:
         return ""
 
@@ -1425,7 +1428,7 @@ def _print_paths(heading: str, paths: list[str], *, to_stderr: bool = True) -> N
 
 
 def _report(result: CampaignResult) -> int:
-    """Print what the campaign did, and return the exit code that reflects it."""
+    """Print what the campaign did, and return its exit code."""
     print(
         f"Selected {result.selected_count}, rendered {result.rendered_count},"
         f" already present {result.skipped_count}, failed {len(result.failed_jobs)}.",

@@ -15,7 +15,7 @@ from param_sweeps.horde_runner import HordeGenerationRequest
 FLOWS_SPEC_PATH = Path(__file__).resolve().parents[1] / "flows_spec.json"
 
 QR_FLOW_ID = "qr_code"
-"""The flow whose recipe was scan-tested rather than inherited, and so is the one worth asserting."""
+"""The flow whose recipe was scan-tested instead of inherited, so its values are worth asserting."""
 
 
 @pytest.fixture(scope="module")
@@ -27,13 +27,13 @@ def flows_spec() -> FlowsSpec:
 def test_control_strength_survives_the_whole_way_to_the_request_body(flows_spec: FlowsSpec) -> None:
     """Assert a flow's control strength reaches the payload rather than being dropped in translation.
 
-    It travels through two hand-written translations, ``JobFeatures`` to ``RenderJob`` and
+    It passes through two hand-written translations, ``JobFeatures`` to ``RenderJob`` and
     ``RenderJob`` to the request body, and a field missing from either one fails silently: the
-    request still generates, at whatever strength the backend defaults to.
+    request still generates, at the backend's default strength.
     """
     flow = flows_spec.flow_for_id(QR_FLOW_ID)
     declared = flow.request.features.control_strength
-    assert declared is not None, "the QR flow states a control strength, which is what this checks the plumbing with"
+    assert declared is not None, "this test needs the control strength stated by the QR flow"
 
     job = flow.request.to_render_job(flow_id=flow.flow_id, title=flow.title)
     assert job.control_strength == declared
@@ -47,12 +47,11 @@ def test_control_strength_survives_the_whole_way_to_the_request_body(flows_spec:
 
 
 def test_the_qr_flow_runs_the_recipe_that_was_scan_tested(flows_spec: FlowsSpec) -> None:
-    """Assert the QR flow keeps the measured recipe rather than drifting back to the anchor's defaults.
+    """Assert the QR flow keeps the measured recipe instead of reverting to the anchor's defaults.
 
-    A QR code that does not scan is not a worked example of anything, so these five values are the
-    flow's teaching payload rather than incidental parameters. The strength is stated at the workflow's
-    own baseline of 1.0, which is what a worker renders this code at, and the published example is
-    the one that decoded through that path.
+    A QR code that does not scan is not a useful worked example, so these five values are the
+    flow's lesson, not incidental parameters. The strength is the workflow's baseline of 1.0,
+    which a worker uses for this code, and the published example decoded at that strength.
     """
     request = flows_spec.flow_for_id(QR_FLOW_ID).request
 

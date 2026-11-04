@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Make the promo gallery through the live horde: pictures, post-processing pairs, texts and conversations.
 
-Every entry is recorded with what a receipt shows: the seconds it took, the kudos it cost, the
-model that made it, and the request itself. The worker that served it is never written down, so
-no entry can name a volunteer. Runs are resumable: an entry whose files are on disk is kept,
-and the manifest is rebuilt from the whole tree rather than from the entries that one run touched,
-so a narrowed run does not drop what an earlier one made.
+Every entry records the details of a receipt: the seconds it took, the kudos it cost, the model
+that made it, and the request itself. The worker that served it is not recorded, so an entry
+cannot name a volunteer. Runs are resumable. An entry whose files are on disk is kept, and the
+manifest is rebuilt from the whole tree instead of from the entries in one run, so a narrowed run
+does not drop entries made by an earlier run.
 
 The command that drives this module is ``param-sweeps gallery``; see the README.
 """
@@ -28,13 +28,13 @@ import requests
 from PIL import Image
 
 MANIFEST_NAME = "gallery.json"
-"""The manifest at the gallery root, which is what the site and the publishing step read."""
+"""The manifest at the gallery root, read by the site and by the publishing step."""
 
 MODEL_REFERENCE_URL = "https://models.aihorde.net/api/model_references/v2/image_generation"
-"""The image model reference, whose ``requirements`` say what each model will accept."""
+"""The image model reference, whose ``requirements`` list the values that each model accepts."""
 
 CENSORED_NAME = "censored.json"
-"""What an entry that the safety checker refused leaves behind, so a later run does not pay for it again."""
+"""The file written for an entry that the safety checker refused, so a later run does not pay for it again."""
 
 TEXT_DIRECTORY = "text"
 CONVERSATION_DIRECTORY = "conversations"
@@ -47,16 +47,16 @@ POLL_SECONDS = 6
 MAX_WAIT_SECONDS = 20 * 60
 
 MAX_IN_FLIGHT = 25
-"""A user may hold up to 30 requests at once. A few are left for whatever else the key is doing."""
+"""A user may hold up to 30 requests at once. A few are left for other uses of the key."""
 
 TEXT_FRAME = "### Instruction:\n{instruction}\n\n### Response:\n"
-"""The Alpaca frame, which is the one that the widest range of the horde's instruct models were tuned on."""
+"""The Alpaca frame, which was used to tune the widest range of the horde's instruct models."""
 
 TEXT_FORMAT = "instruct:alpaca"
-"""What a single-turn text entry records about how it was requested, since the frame shapes the response."""
+"""The request format recorded for a single-turn text entry, because the frame shapes the response."""
 
 INSTRUCT_STOP_SEQUENCES = ["###", "\n\n\n", "</s>", "<|"]
-"""Cut the response where the frame would start another turn, or where a chat model closes one."""
+"""End the response where the frame would start another turn, or where a chat model ends one."""
 
 RAW_STOP_SEQUENCES = ["\n\n\n"]
 """A raw completion has no frame, so only a paragraph break can end it."""
@@ -75,7 +75,7 @@ class GalleryHorde:
     """The public horde's endpoints, over one session that holds the key and the client agent."""
 
     def __init__(self, api: str, key: str, agent: str) -> None:
-        """Open the session this run submits through.
+        """Open the session that this run submits through.
 
         Args:
             api: The API root, such as ``https://aihorde.net/api/v2``.
@@ -107,12 +107,12 @@ class GalleryHorde:
 
 
 def load_gallery_spec(path: Path) -> dict[str, Any]:
-    """Return the gallery specification, which belongs to the consumer rather than to this tool."""
+    """Return the gallery specification as read from disk, without validation."""
     return _read_json(path)
 
 
 def save_webp(data: bytes, destination: Path) -> tuple[int, int]:
-    """Write image bytes out as WebP, and return the size written."""
+    """Write image bytes out as WebP, and return the written width and height."""
     with Image.open(io.BytesIO(data)) as picture:
         converted = picture.convert("RGBA") if picture.mode in {"RGBA", "LA", "P"} else picture.convert("RGB")
         converted.save(destination, format="WEBP", quality=92, method=6)
@@ -120,24 +120,24 @@ def save_webp(data: bytes, destination: Path) -> tuple[int, int]:
 
 
 def to_base64(path: Path) -> str:
-    """Return a file's bytes as the base64 the alchemy endpoint's ``source_image`` takes."""
+    """Return a file's bytes as base64 for the alchemy endpoint's ``source_image`` field."""
     return base64.b64encode(path.read_bytes()).decode("ascii")
 
 
 def apply_requirements(params: dict[str, Any], requirements: dict[str, Any] | None) -> dict[str, Any]:
-    """Bring a request's parameters within what the model reference says the model accepts.
+    """Bring a request's parameters within the model's requirements in the model reference.
 
     Steps and cfg are clamped to the stated range (or pinned where one value is given). A sampler
     or scheduler outside the allowed list is replaced by the first allowed one. The clip_skip is
-    pinned. A request that does not follow these is refused by the horde or renders wrong, and a
-    promo picture rendered wrong is worse than none.
+    pinned. The horde refuses a request that breaks these requirements, or renders it badly, and
+    a badly rendered promo picture is worse than none.
 
     Args:
         params: The parameters that the specification requested.
-        requirements: The model's ``requirements`` from the reference, or None when it states none.
+        requirements: The model's ``requirements`` from the reference, or None when it has none.
 
     Returns:
-        The parameters to submit, which are the ones given when the model states no requirements.
+        The parameters to submit, unchanged when the model has no requirements.
     """
     if not requirements:
         return params
@@ -164,7 +164,7 @@ def apply_requirements(params: dict[str, Any], requirements: dict[str, Any] | No
 
 
 def pick_model(preferences: list[str], served: dict[str, int]) -> str | None:
-    """Return the first preferred model a worker is serving right now, or None when none is."""
+    """Return the first preferred model that a worker is currently serving, or None."""
     for name in preferences:
         if served.get(name, 0) > 0:
             return name
@@ -172,10 +172,10 @@ def pick_model(preferences: list[str], served: dict[str, int]) -> str | None:
 
 
 class Pending:
-    """One submitted request, and where its progress and its result are read from."""
+    """One submitted request, with the URLs for its progress and its result."""
 
     def __init__(self, label: str, request_id: str, check_url: str, status_url: str) -> None:
-        """Record the request, its two URLs, and when it went out."""
+        """Record the request, its two URLs, and when it was submitted."""
         self.label = label
         self.request_id = request_id
         self.check_url = check_url
@@ -201,9 +201,9 @@ def submit_and_collect(
         status_path: The path that a finished request's result is read from, without its id.
 
     Returns:
-        The result and the wall-clock seconds of every job that finished, keyed by label. A job the
-        horde refused or faulted is absent rather than raising, because one bad entry must not cost
-        the run the rest of the batch.
+        The result and the wall-clock seconds of every job that finished, keyed by label. A job
+        that the horde refused or faulted is left out instead of raising, so one bad entry does
+        not stop the rest of the batch.
     """
     results: dict[str, tuple[dict[str, Any], float]] = {}
     queue = list(jobs)
@@ -264,7 +264,7 @@ def submit_and_collect(
 
 @dataclass(frozen=True)
 class ImagePlan:
-    """One picture a run would submit: the model that it resolved to, and the request that it would send."""
+    """One picture that a run would submit: its resolved model and its request body."""
 
     entry_id: str
     model: str
@@ -279,7 +279,7 @@ class ImagePlan:
 
 @dataclass
 class GalleryPlan:
-    """What a run would submit, which is what a dry run prints instead of submitting."""
+    """What a run would submit. A dry run prints this instead of submitting it."""
 
     images: list[ImagePlan] = field(default_factory=list)
     kept_images: list[str] = field(default_factory=list)
@@ -318,11 +318,11 @@ def plan_images(
     """Resolve every picture to a model and a request within that model's requirements.
 
     Args:
-        horde: The session the served-model list and the model reference are read through.
+        horde: The session for reading the served-model list and the model reference.
         spec: The gallery specification.
         out: The gallery root.
         only: The entry ids to consider, or an empty set for all of them.
-        retry_censored: Whether an entry that the safety checker refused before is offered again.
+        retry_censored: Whether an entry that the safety checker refused before is submitted again.
 
     Returns:
         The plan, and the metadata already on disk for the entries that this run covers.
@@ -343,7 +343,7 @@ def plan_images(
             continue
         model = pick_model(item["models"], served) or pick_model(spec["families"][item["family"]], served)
         if model is None:
-            logger.warning("%s: no preferred model is served right now, skipped", entry_id)
+            logger.warning("%s: none of the preferred models is currently served, skipped", entry_id)
             continue
         params = dict(spec["defaults"][item["family"]])
         params.update({"n": 1, "seed": str(item["seed"])})
@@ -373,8 +373,8 @@ def run_images(
 ) -> None:
     """Render the planned pictures and apply the alchemy forms that their entries request.
 
-    A picture the safety checker refused leaves a ``censored.json`` behind rather than a result, so
-    that a later run passes over it instead of paying for the same refusal again.
+    A picture that the safety checker refused gets a ``censored.json`` instead of a result, so a
+    later run skips it instead of paying for the same refusal again.
     """
     items = {item["id"]: item for item in spec.get("images", [])}
     metas: dict[str, dict[str, Any]] = dict(kept)
@@ -384,7 +384,7 @@ def run_images(
     for entry_id in plan.kept_images:
         logger.info("%s: kept", entry_id)
     for entry_id in plan.censored_images:
-        logger.info("%s: left censored, offer it again with --retry-censored", entry_id)
+        logger.info("%s: left censored, submit it again with --retry-censored", entry_id)
 
     collected = submit_and_collect(
         horde,
@@ -442,7 +442,7 @@ def run_image_alchemy(
     metas: dict[str, dict[str, Any]],
     out: Path,
 ) -> None:
-    """Apply each entry's outstanding alchemy forms to the picture on disk, and record what came back."""
+    """Apply each entry's outstanding alchemy forms to the picture on disk, and record the results."""
     jobs: list[tuple[str, dict[str, Any]]] = []
     for label, meta in metas.items():
         forms = [form for form in items[label].get("alchemy", []) if form not in meta.get("alchemy", {})]
@@ -482,7 +482,7 @@ def run_image_alchemy(
             else:
                 url = result_value.get(form) if isinstance(result_value, dict) else None
                 if not isinstance(url, str) or not url.startswith("http"):
-                    logger.warning("%s: form %s returned no image", label, form)
+                    logger.warning("%s: form %s did not return an image", label, form)
                     continue
                 file_name = f"{form}.webp"
                 width, height = save_webp(horde.download(url), folder / file_name)
@@ -498,7 +498,7 @@ def text_body(
     stop_sequences: list[str],
     max_context_length: int,
 ) -> dict[str, Any]:
-    """Return the text request body, which is recorded verbatim beside the response it produced."""
+    """Return the text request body, which is recorded verbatim beside its response."""
     return {
         "prompt": prompt,
         "params": {
@@ -523,9 +523,9 @@ def run_texts(*, horde: GalleryHorde, spec: dict[str, Any], out: Path, only: set
         if (folder / META_NAME).is_file():
             logger.info("%s: kept", item["id"])
             continue
-        # The text endpoint is raw completion: without a frame around the instruction most models
-        # continue the instruction instead of responding to it. The frame is recorded as the entry's
-        # format, because it is part of what produced the response.
+        # The text endpoint is raw completion. Without a frame around the instruction, most models
+        # continue the instruction instead of responding to it. The frame is recorded as the
+        # entry's format, because it shapes the response.
         bodies[item["id"]] = text_body(
             prompt=TEXT_FRAME.format(instruction=item["prompt"]),
             max_length=int(item.get("max_length", 80)),
@@ -560,12 +560,12 @@ def run_texts(*, horde: GalleryHorde, spec: dict[str, Any], out: Path, only: set
 
 
 def conversation_prompt(*, text_format: str, history: list[dict[str, Any]], turn: str) -> str:
-    """Return the prompt one turn is sent as, including every turn before it.
+    """Return the prompt for one turn, including every turn before it.
 
-    An instruct thread is sent as the Alpaca frame repeated: each earlier turn as an
-    instruction followed by the reply it drew, then this turn's instruction with an empty response
-    for the model to fill. A raw thread has no frame, because it exists to show the
-    continuation that a bare completion gives, so what goes out is the text as it stands so far.
+    An instruct thread is sent as the Alpaca frame repeated: each earlier turn as an instruction
+    followed by its reply, then this turn's instruction with an empty response for the model to
+    fill. A raw thread has no frame, because it shows how a bare completion continues text, so the
+    prompt is the conversation text so far.
 
     Args:
         text_format: ``instruct`` or ``raw``.
@@ -576,10 +576,10 @@ def conversation_prompt(*, text_format: str, history: list[dict[str, Any]], turn
         The prompt to submit.
     """
     if text_format == INSTRUCT_FORMAT:
-        answered = "".join(
+        earlier_turns = "".join(
             TEXT_FRAME.format(instruction=entry["prompt"]) + entry["reply"] + "\n\n" for entry in history
         )
-        return answered + TEXT_FRAME.format(instruction=turn)
+        return earlier_turns + TEXT_FRAME.format(instruction=turn)
     return "".join(f"{entry['prompt']} {entry['reply']}\n\n" for entry in history) + turn
 
 
@@ -598,9 +598,9 @@ def run_conversations(*, horde: GalleryHorde, spec: dict[str, Any], out: Path, o
     """Run every conversation turn by turn, and write its transcript and its receipts.
 
     The turns of one conversation are strictly sequential, because each includes the replies before
-    it. The turn at the same depth in every conversation goes out together, so a set of threads
-    costs about as much waiting as the longest one of them. A conversation whose turns did not all
-    come back is left unwritten, so the next run starts it again rather than publishing half of it.
+    it. The turns at the same position in every conversation are submitted together, so a set of
+    threads takes about as long as the longest one. A conversation with a missing turn is not
+    written, so the next run starts it again instead of publishing half of it.
     """
     items = {item["id"]: item for item in _selected(spec.get("conversations", []), only)}
     histories: dict[str, list[dict[str, Any]]] = {}
@@ -657,7 +657,7 @@ def run_conversations(*, horde: GalleryHorde, spec: dict[str, Any], out: Path, o
         item = items[entry_id]
         if len(history) != len(item["turns"]):
             logger.warning(
-                "%s: %d of %d turns came back, left for the next run",
+                "%s: %d of %d turns finished, left for the next run",
                 entry_id,
                 len(history),
                 len(item["turns"]),
@@ -683,7 +683,7 @@ RECIPE_FIELDS = ("prompt", "params", "models", "nsfw")
 
 
 def _recipe(request: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Reduce a request body to the settings a reader can reproduce the picture from."""
+    """Reduce a request body to the settings needed to reproduce the picture."""
     if not request:
         return None
     return {field: request[field] for field in RECIPE_FIELDS if field in request}
@@ -692,11 +692,11 @@ def _recipe(request: dict[str, Any] | None) -> dict[str, Any] | None:
 def build_manifest(*, spec: dict[str, Any], out: Path) -> dict[str, Any]:
     """Rebuild the manifest from everything on disk, keeping the curation in the existing one.
 
-    The manifest is never assembled from the entries that one run touched: a run narrowed by
-    ``--only``, or one that skipped the texts, would then publish a manifest that omits everything
-    it did not visit. What is on disk is the gallery, and this reads all of it. ``curated`` and
-    ``note`` are written by the curation tool rather than by a run, so they are copied from the
-    manifest being replaced.
+    The manifest is not built from the entries in one run. Otherwise a run narrowed by ``--only``,
+    or one that skipped the texts, would publish a manifest without the entries that it skipped.
+    The gallery is everything on disk, and this reads all of it. ``curated`` and ``note`` are
+    written by the curation tool, not by a run, so they are copied from the manifest being
+    replaced.
 
     Args:
         spec: The gallery specification, which supplies the reading order and an entry's tags.
@@ -787,8 +787,8 @@ def build_manifest(*, spec: dict[str, Any], out: Path) -> dict[str, Any]:
 def write_manifest(*, spec: dict[str, Any], out: Path) -> Path:
     """Write gallery.json, and return its path.
 
-    Every file it names is recorded relative to the promo tree's root, which publishing and
-    the site both join their own base onto.
+    Every file path in it is relative to the promo tree's root. Publishing and the site both
+    prepend their own base to it.
     """
     path = out / MANIFEST_NAME
     _write_json(path, build_manifest(spec=spec, out=out))
@@ -807,21 +807,21 @@ def run_gallery(
     retry_censored: bool = False,
     dry_run: bool = False,
 ) -> Path | None:
-    """Make everything the specification requests that is not on disk yet, then rebuild the manifest.
+    """Make every requested entry that is not on disk yet, then rebuild the manifest.
 
     Args:
-        horde: The session everything is submitted through.
+        horde: The session for all submissions.
         spec: The gallery specification.
-        out: The gallery root, which is where the manifest is written.
+        out: The gallery root, where the manifest is written.
         only: The entry ids to work on, or None for all of them.
-        skip_alchemy: Whether the alchemy forms that entries request are left alone.
-        skip_text: Whether the single-turn texts are left alone.
-        skip_conversations: Whether the conversations are left alone.
-        retry_censored: Whether an entry that the safety checker refused before is offered again.
+        skip_alchemy: Whether to skip the alchemy forms requested by entries.
+        skip_text: Whether to skip the single-turn texts.
+        skip_conversations: Whether to skip the conversations.
+        retry_censored: Whether an entry that the safety checker refused before is submitted again.
         dry_run: Whether to print what would be submitted and stop.
 
     Returns:
-        The manifest's path, or None for a dry run, which writes nothing.
+        The manifest's path, or None for a dry run, which does not write anything.
     """
     selection = set(only or ())
     out.mkdir(parents=True, exist_ok=True)
@@ -853,18 +853,18 @@ def run_gallery(
 
 
 def _transcript(history: list[dict[str, Any]]) -> str:
-    """Return the conversation as it reads, with what was sent marked off from what came back."""
+    """Return the conversation as text, with each sent turn marked off from its reply."""
     return "\n".join(f">>> {turn['prompt']}\n\n{turn['reply']}\n" for turn in history)
 
 
 def _total_kudos(history: list[dict[str, Any]]) -> float | None:
-    """Return what a whole conversation cost, or None when no turn reported a cost."""
+    """Return what a whole conversation cost, or None when none of the turns reported a cost."""
     costs = [float(turn["kudos"]) for turn in history if turn.get("kudos") is not None]
     return round(sum(costs), 2) if costs else None
 
 
 def _ids(spec: dict[str, Any], section: str) -> list[str]:
-    """Return the ids that a section of the specification lists, which is the order a reader expects."""
+    """Return the ids listed in a section of the specification, in reading order."""
     return [item["id"] for item in spec.get(section, [])]
 
 
@@ -874,11 +874,11 @@ def _selected(items: list[dict[str, Any]], only: set[str]) -> list[dict[str, Any
 
 
 def _metas_on_disk(*, root: Path, order: list[str], section: bool) -> list[dict[str, Any]]:
-    """Return every ``meta.json`` under a root, in specification order with anything else after it.
+    """Return every ``meta.json`` under a root, in specification order with any other entries after it.
 
     Args:
         root: The directory whose immediate subdirectories hold the entries.
-        order: The ids the specification lists.
+        order: The ids listed in the specification.
         section: Whether the root is one of the text sections. The gallery root itself holds those
             sections as subdirectories, and must not read them as pictures.
 
@@ -901,13 +901,12 @@ def _metas_on_disk(*, root: Path, order: list[str], section: bool) -> list[dict[
 def _with_curation(entries: list[dict[str, Any]], existing: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Copy ``curated`` and ``note`` from the manifest being replaced.
 
-    Curation is a judgement about an entry rather than a fact about the render, so it is written
-    into the manifest by another tool, and a rebuild that dropped it would cost every run's worth
-    of that judgement.
+    Curation is a judgement about an entry, not a fact about the render. Another tool writes it
+    into the manifest, and a rebuild that dropped it would lose all of that curation.
     """
-    carried = {str(entry.get("id")): entry for entry in existing if isinstance(entry, dict)}
+    previous_entries = {str(entry.get("id")): entry for entry in existing if isinstance(entry, dict)}
     for entry in entries:
-        previous = carried.get(entry["id"], {})
+        previous = previous_entries.get(entry["id"], {})
         for key in ("curated", "note"):
             if key in previous:
                 entry[key] = previous[key]
@@ -921,5 +920,5 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    """Write a JSON object out, formatted the way every other file in the tree is."""
+    """Write a JSON object out, formatted like every other file in the tree."""
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

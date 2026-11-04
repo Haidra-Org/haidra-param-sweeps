@@ -6,7 +6,7 @@
 Only the driver handles resumption and file layout. It requests a fetch plan from the runner
 and prints it before anything is generated, skips every job that the checkpoint already
 accounts for, and writes the checkpoint and the index as it goes, so the tree on disk is a
-usable library at every point during a long run rather than only at the end.
+usable library at every point during a long run.
 
 Critical public members:
 
@@ -36,7 +36,7 @@ from param_sweeps.spec import TOOL_ROOT, ModelSpec, RenderJob, SweepParameter, S
 logger = logging.getLogger(__name__)
 
 INDEX_REWRITE_INTERVAL = 10
-"""How many images to render between index rewrites, so a long run stays consumable."""
+"""How many images to render between index rewrites, so the index stays usable during a long run."""
 
 CAPTURED_PARAMETERS = frozenset(
     {
@@ -48,12 +48,12 @@ CAPTURED_PARAMETERS = frozenset(
 """The parameters whose images do not come from a generation of their own.
 
 The two step-preview arcs are moments of one render, and the upscaler-form strip is one image
-put through alchemy, so ``step-preview`` and ``alchemy`` produce them rather than the campaign.
+put through alchemy, so the ``step-preview`` and ``alchemy`` commands produce them.
 """
 
 
 class JobFilter(BaseModel):
-    """Represents the subset of the specification a run should cover.
+    """Represents the subset of the specification that a run covers.
 
     An unset field matches everything, so the default filter runs the whole specification and a
     single strip is named by setting all three.
@@ -88,11 +88,10 @@ class CampaignResult(BaseModel):
 def select_jobs(*, spec: SweepSpec, job_filter: JobFilter) -> list[RenderJob]:
     """Return the specification's jobs that the filter selects, in specification order.
 
-    The captured parameters are never selected, whatever the filter says. The step-preview stops
-    are the steps of one render rather than renders of their own, and rendering them here would
-    fill both strips with thirty separate pictures that look like one picture arriving and are
-    not. The upscaler-form stops are not generations at all. ``step-preview`` and ``alchemy``
-    are what produce them.
+    The captured parameters are never selected, whatever the filter. The step-preview stops are
+    the steps of one render. Rendering each stop as its own job would fill both strips with thirty
+    separate pictures that look like the steps of one render but are not. The upscaler-form stops
+    are not generations. The ``step-preview`` and ``alchemy`` commands produce them.
     """
     return [job for job in spec.expand_jobs() if job.parameter not in CAPTURED_PARAMETERS and job_filter.matches(job)]
 
@@ -138,26 +137,26 @@ def image_count(jobs: Sequence[RenderJob]) -> int:
 def stage_dependent_source(*, job: RenderJob, spec: SweepSpec, output_root: Path) -> Path | None:
     """Copy the render that a dependent job starts from into the input path that it names, and return it.
 
-    A few jobs cannot render from noise: the ControlNet triptych conditions on a render that an
-    earlier job in the same batch produced. Rather than teaching the runners about the output
-    tree, the dependent job names an ordinary input path and this stages the producing job's
-    chosen image into it just before the render, which keeps a single ``local`` run able to
-    finish the batch in one pass while leaving the dependency stated in the specification.
+    A few jobs cannot start from noise. The ControlNet triptych conditions on a render produced by
+    an earlier job in the same batch. The dependent job names an ordinary input path, and this
+    copies the producing job's chosen image there just before the render. The runners then do not
+    need to know about the output tree. A single ``local`` run can still finish the batch in one
+    pass, and the specification still states the dependency.
 
     Args:
         job: The job about to be rendered.
-        spec: The specification it came from, used to find the producing job.
-        output_root: The root of the output tree the producing render was written to.
+        spec: The job's specification, used to find the producing job.
+        output_root: The root of the output tree that holds the producing render.
 
     Returns:
-        The staged input path, or None when this job depends on nothing.
+        The staged input path, or None when this job does not depend on another job.
 
     Raises:
-        RuntimeError: If the producing job names nothing this specification renders, or its image
-            is not on disk yet, which is the campaign's cue to leave this job pending.
+        RuntimeError: If no job in this specification renders the producing scene, or its image is
+            not on disk yet. The campaign then leaves this job pending.
 
     Side Effects:
-        Overwrites the input file the dependent job names.
+        Overwrites the dependent job's input file.
     """
     if job.requires_source_from is None or job.source_image is None:
         return None
@@ -209,7 +208,7 @@ def run_campaign(
     resolved_filter = job_filter if job_filter is not None else JobFilter()
     selected_jobs = select_jobs(spec=spec, job_filter=resolved_filter)
     if not selected_jobs:
-        raise ValueError("the filter selected no jobs; check the parameter, model and scene names")
+        raise ValueError("the filter did not select any jobs; check the parameter, model and scene names")
 
     checkpoint = CampaignCheckpoint(output_root=output_root)
     pending_jobs = [job for job in selected_jobs if force or not checkpoint.is_complete(job.checkpoint_key)]
@@ -254,9 +253,9 @@ def run_campaign(
 
             rejection = failed_gate_reason(job=job, images=outcome.images)
             if rejection is not None:
-                # A QR image that no scanner reads teaches nothing, so it is treated exactly like a
-                # render that failed: nothing is written, the job stays pending, and the next run
-                # (at another seed, or another control strength) gets to produce a scannable one.
+                # A QR image that scanners cannot read is useless as an example, so it is treated
+                # like a failed render. Nothing is written, the job stays pending, and the next run
+                # (at another seed or control strength) can produce a scannable one.
                 logger.error("Render rejected: job=%s reason=%s", job.relative_image_path, rejection)
                 failed_jobs.append(job.relative_image_path)
                 continue

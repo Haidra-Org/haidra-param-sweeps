@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""The contract both runners implement, so one campaign driver can drive either of them.
+"""The interface that both runners implement, so one campaign driver can run either of them.
 
-A runner turns a [`RenderJob`][param_sweeps.spec.RenderJob] into an image and says nothing
-about where the image goes: checkpointing, file naming, sidecars and the index all live in the
-driver, so the local and API paths cannot drift apart in what they produce.
+A runner turns a [`RenderJob`][param_sweeps.spec.RenderJob] into an image. Checkpointing, file
+naming, sidecars and the index all live in the driver, so the local and API runners always
+produce the same files.
 
 Critical public members:
 
@@ -60,7 +60,7 @@ class FetchPlanEntry(BaseModel):
     model_name: str
     approximate_size_gb: float
     already_present: bool | None
-    """``None`` when the runner cannot tell, which is always the case for the API runner."""
+    """``None`` when the runner cannot check, which is always the case for the API runner."""
 
     image_count: int
 

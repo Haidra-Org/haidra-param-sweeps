@@ -36,14 +36,14 @@ AVAILABLE_REPORT = [
         "loaded": False,
     },
 ]
-"""What the service reports about its detectors, in the shape it reports it."""
+"""The service's detector report, in the service's format."""
 
 
 class ScriptedService(requests.adapters.BaseAdapter):
     """Responds to the backend from a script, so the whole exchange runs without a service.
 
-    Mounted on a real session and handed to a real backend, which is what makes this a test of the
-    transport rather than of a stand-in for it.
+    It is mounted on a real session and passed to a real backend, so the test covers the real
+    transport instead of a substitute.
     """
 
     def __init__(self, *, annotate_status: int = 200, annotate_body: dict[str, Any] | None = None) -> None:
@@ -124,8 +124,8 @@ def test_the_sidecar_records_the_service_that_drew_the_map_and_the_version_it_re
     assert backend.service_version == SERVICE_VERSION
 
 
-def test_a_detector_the_service_says_it_cannot_run_is_a_gap_carrying_its_own_words() -> None:
-    """Assert an unavailable detector ends the entry rather than the run, and says why."""
+def test_a_detector_that_the_service_cannot_run_is_a_gap_with_the_service_reason() -> None:
+    """Assert an unavailable detector ends the entry instead of the run, and its reason is published."""
     backend = _backend(ScriptedService())
     backend.prepare()
 
@@ -136,8 +136,8 @@ def test_a_detector_the_service_says_it_cannot_run_is_a_gap_carrying_its_own_wor
     assert "mediapipe" in outcome.unavailable_reason
 
 
-def test_a_detector_the_service_does_not_register_is_a_gap_naming_what_it_does_register() -> None:
-    """Assert a detector the SDK names and the service has never heard of is published as a gap."""
+def test_a_detector_the_service_does_not_register_is_a_gap_that_lists_the_registered_ones() -> None:
+    """Assert a detector that is in the SDK but not registered with the service is published as a gap."""
     backend = _backend(ScriptedService())
     backend.prepare()
 
@@ -183,8 +183,8 @@ def test_a_form_that_is_not_a_control_map_is_left_to_the_backends_that_serve_it(
 def test_a_service_that_cannot_be_reached_ends_the_run_rather_than_publishing_a_gap() -> None:
     """Assert an unreachable service is an error, because it does not show what it serves.
 
-    Publishing that as a gap would put a claim about the horde's control maps into the manifest
-    that only this machine's network supports.
+    A connection failure is a problem with this machine's network, so publishing it as a gap would
+    put a false claim about the horde's control maps into the manifest.
     """
     backend = HordeImageUtilitiesBackend(service_url="http://127.0.0.1:1")
 

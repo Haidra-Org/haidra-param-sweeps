@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """The step-preview capture: what it stashes, what it puts back, and what it refuses.
 
-These tests do not render or touch an accelerator. The seams that the capture wraps are stated as
-fakes that call the wrapper the way ComfyUI calls the real one, which is what lets the arming, the
-per-pass separation and the restoration be proven rather than assumed.
+These tests do not render or use an accelerator. The seams that the capture wraps are fakes that
+call the wrapper in the same way that ComfyUI calls the real one, so the tests check the arming,
+the per-pass separation and the restoration directly.
 """
 
 from __future__ import annotations
@@ -33,10 +33,10 @@ TOTAL_STEPS = 3
 
 
 class FakeLatent:
-    """A tensor-shaped stand-in that records the copy the capture makes of it."""
+    """A tensor-shaped stand-in that records the copy that the capture makes of it."""
 
     def __init__(self, name: str) -> None:
-        """Name a latent so the arc it was stashed into can be read back."""
+        """Name a latent so the arc that it was stored in can be read back."""
         self.name = name
         self.is_nested = False
         self.was_detached = False
@@ -58,15 +58,15 @@ class FakeLatent:
         return self
 
     def clone(self) -> FakeLatent:
-        """Return the same latent: the fake shares no buffer to clone away from."""
+        """Return the same latent: the fake does not share a buffer."""
         return self
 
 
 class FakeModel:
-    """Stands in for the inner model, whose ``process_latent_out`` leaves the sampler's space."""
+    """Stands in for the inner model, whose ``process_latent_out`` converts out of the sampler's space."""
 
     def __init__(self) -> None:
-        """Open a model that has converted nothing yet."""
+        """Open a model that has not converted any latents yet."""
         self.converted: list[str] = []
 
     def process_latent_out(self, latent: FakeLatent) -> FakeLatent:
@@ -77,7 +77,7 @@ class FakeModel:
 
 
 class FakeModelPatcher:
-    """Stands in for the patcher that ``prepare_callback`` is handed, which holds the inner model."""
+    """Stands in for the patcher that ``prepare_callback`` receives, which holds the inner model."""
 
     def __init__(self) -> None:
         """Open a patcher around a fresh inner model."""
@@ -93,7 +93,7 @@ class FakeLatentPreviewModule:
         self.delegated_steps: list[int] = []
 
     def prepare_callback(self, model: Any, steps: int, x0_output_dict: Any = None) -> Any:
-        """Return a callback that records the steps it was delegated, as the real one previews them."""
+        """Return a callback that records each step that it receives, where the real one previews it."""
         self.prepared_step_counts.append(steps)
 
         def callback(step: int, x0: Any, x: Any, total_steps: int) -> None:
@@ -103,7 +103,7 @@ class FakeLatentPreviewModule:
 
 
 class FakeDecodeNode:
-    """Stands in for ComfyUI's ``VAEDecode``, whose ``decode`` the graph hands its VAE to."""
+    """Stands in for ComfyUI's ``VAEDecode``, whose ``decode`` receives the graph's VAE."""
 
     def decode(self, vae: Any, samples: Any) -> tuple[str]:
         """Return a stand-in decode result, in the one-tuple a ComfyUI node returns."""
@@ -135,7 +135,7 @@ def _targets() -> tuple[CaptureTargets, FakeLatentPreviewModule, Any]:
 
 
 def _sample(latent_preview_module: FakeLatentPreviewModule, *, steps: int, pass_name: str) -> FakeModelPatcher:
-    """Drive the wrapped seam the way ComfyUI's sampling path drives the real one."""
+    """Call the wrapped seam in the same way that ComfyUI's sampling path calls the real one."""
     model = FakeModelPatcher()
     callback = latent_preview_module.prepare_callback(model, steps)
     for step in range(steps):
@@ -167,7 +167,7 @@ def test_a_capture_stashes_both_arcs_in_step_order() -> None:
     assert capture.require_vae() == "the vae"
 
 
-def test_every_stashed_latent_leaves_the_space_the_sampler_works_in() -> None:
+def test_every_stored_latent_is_converted_out_of_the_sampling_space() -> None:
     targets, latent_preview_module, _ = _targets()
 
     with armed_step_capture(targets=targets):
@@ -183,7 +183,7 @@ def test_every_stashed_latent_leaves_the_space_the_sampler_works_in() -> None:
     ]
 
 
-def test_a_model_that_cannot_leave_its_latent_space_is_refused() -> None:
+def test_a_model_without_a_latent_conversion_is_refused() -> None:
     targets, latent_preview_module, _ = _targets()
 
     with (
@@ -272,7 +272,7 @@ def test_the_two_arcs_are_two_views_of_one_render() -> None:
     assert [job.stop_value for job in strips[LatentArc.GUESS].jobs] == list(range(1, render_job.steps + 1))
 
 
-def test_a_campaign_never_renders_the_captured_stops_itself() -> None:
+def test_a_campaign_does_not_render_the_captured_stops() -> None:
     spec = load_spec(SPEC_PATH)
 
     selected = select_jobs(spec=spec, job_filter=JobFilter(parameters=(str(SweepParameter.STEP_PREVIEW),)))
