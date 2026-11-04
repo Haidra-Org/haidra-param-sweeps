@@ -384,8 +384,7 @@ class HordeApiRunner(SweepRunner):
             if not recently_added:
                 raise
             raise RuntimeError(
-                f"{generate_error}; this job asks for {', '.join(recently_added)}, which this API"
-                " may not accept yet",
+                f"{generate_error}; this job asks for {', '.join(recently_added)}, which this API may not accept yet",
             ) from generate_error
 
         model_used = completed.model_generated_with or job.horde_model_name

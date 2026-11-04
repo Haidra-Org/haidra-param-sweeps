@@ -319,7 +319,9 @@ def test_type_over_a_pale_picture_is_outlined_and_the_picture_above_it_is_left_a
 
     width, height = card.size
     foot = card.crop((0, height // 2, width, height))
-    colours = {colour for _, colour in foot.getcolors(maxcolors=width * height)}
+    counted = foot.getcolors(maxcolors=width * height)
+    assert counted is not None
+    colours = {colour for _, colour in counted}
     # The foot shade alone never reaches the outline tone over white, so finding it means the
     # letters carry their own outline, and white beside it means their fill survived it.
     assert OVERLAY_OUTLINE in colours

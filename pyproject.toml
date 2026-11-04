@@ -138,10 +138,11 @@ module = ["pyzbar.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# horde-engine ships no stubs this tool can rely on, and is an optional dependency besides. The two
-# bare module names are the vendored ComfyUI's own: they are only importable once horde-engine has
-# initialised and put its ComfyUI directory on the path, which no type checker can be expected to do.
-module = ["hordelib.*", "latent_preview", "nodes"]
+# horde-engine and torch belong to the optional `local` extra and are absent from a development
+# environment, and horde-engine ships no stubs. The two bare module names are from the ComfyUI copy
+# bundled with horde-engine. They are only importable after horde-engine has initialised and put its
+# ComfyUI directory on the path, which a type checker cannot do.
+module = ["hordelib.*", "latent_preview", "nodes", "torch", "torch.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

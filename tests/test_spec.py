@@ -202,7 +202,9 @@ def test_the_hires_strength_strip_asks_for_the_pass_at_every_stop(spec: SweepSpe
     assert {strip.image_model.slug for strip in strips} == {"icbinp", "albedobase-xl"}
 
     for strip in strips:
-        strengths = [job.hires_fix_denoising_strength for job in strip.jobs]
+        strengths = [
+            job.hires_fix_denoising_strength for job in strip.jobs if job.hires_fix_denoising_strength is not None
+        ]
         assert all(job.hires_fix for job in strip.jobs)
         assert strengths == sorted(strengths), f"{strip.strip_id} is not in ascending order"
         assert strengths == [0.1, 0.3, 0.45, 0.55, 0.65, 0.75, 0.9, 1.0]
@@ -838,9 +840,9 @@ def test_the_hires_strength_reaches_the_resolved_job(spec: SweepSpec) -> None:
 
     for job in spec.expand_jobs():
         if job.parameter is not SweepParameter.HIRES_FIX_DENOISING_STRENGTH:
-            assert (
-                job.hires_fix_denoising_strength is None
-            ), f"{job.relative_image_path} states a hires strength it does not teach"
+            assert job.hires_fix_denoising_strength is None, (
+                f"{job.relative_image_path} states a hires strength it does not teach"
+            )
 
 
 def test_a_hires_strength_without_the_hires_pass_is_rejected() -> None:

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageStat
 
 from param_sweeps.alchemy import (
     RESULT_IMAGE_FILENAME,
@@ -188,7 +188,7 @@ def test_the_cutter_writes_the_pixel_box_the_region_names(tmp_path: Path) -> Non
         # the crop's interior came from the marked region rather than that it survived byte for
         # byte. A box off by a quarter of the frame would pull in the background instead.
         interior = cut.convert("RGB").crop((4, 4, cut.width - 4, cut.height - 4))
-        (least_red, _most_red), _green, (_least_blue, most_blue) = interior.getextrema()
+        (least_red, _most_red), _green, (_least_blue, most_blue) = ImageStat.Stat(interior).extrema
         assert least_red > 200
         assert most_blue < 60
 
@@ -308,14 +308,16 @@ def test_an_alchemy_entry_crops_both_its_source_and_its_result(tmp_path: Path) -
     """Assert the pair is cut at one region, which is what makes a before and after comparable."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
+    crop = entry.crop
+    assert crop is not None
     root = alchemy_root(tmp_path)
 
     source_path = root / published_source_name(entry)
     source_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((512, 512), region=entry.crop).save(source_path, format="WEBP")
+    marked_frame((512, 512), region=crop).save(source_path, format="WEBP")
     result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
     result_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((2048, 2048), region=entry.crop).save(result_path, format="WEBP")
+    marked_frame((2048, 2048), region=crop).save(result_path, format="WEBP")
 
     outcomes = write_alchemy_crops(spec=spec, output_root=tmp_path)
     cut_here = {outcome.relative_path for outcome in outcomes if outcome.written}
@@ -338,11 +340,13 @@ def test_an_alchemy_entry_without_a_result_carries_no_result_crop(tmp_path: Path
     """Assert an entry whose form could not run reports the gap rather than a phantom crop."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
+    crop = entry.crop
+    assert crop is not None
     root = alchemy_root(tmp_path)
 
     source_path = root / published_source_name(entry)
     source_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((512, 512), region=entry.crop).save(source_path, format="WEBP")
+    marked_frame((512, 512), region=crop).save(source_path, format="WEBP")
 
     write_alchemy_crops(spec=spec, output_root=tmp_path)
     manifest_entry = next(
@@ -358,14 +362,16 @@ def test_an_alchemy_result_over_the_bound_gets_a_bounded_copy_the_manifest_names
     """Assert the enlarge use case, whose whole point is more pixels, publishes a page-sized copy."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
+    crop = entry.crop
+    assert crop is not None
     root = alchemy_root(tmp_path)
 
     source_path = root / published_source_name(entry)
     source_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((512, 512), region=entry.crop).save(source_path, format="WEBP")
+    marked_frame((512, 512), region=crop).save(source_path, format="WEBP")
     result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
     result_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((2048, 1024), region=entry.crop).save(result_path, format="WEBP")
+    marked_frame((2048, 1024), region=crop).save(result_path, format="WEBP")
 
     (written,) = [outcome for outcome in write_alchemy_result_fits(spec=spec, output_root=tmp_path) if outcome.written]
 
@@ -384,11 +390,13 @@ def test_an_alchemy_result_within_the_bound_gets_no_copy_and_the_copy_is_written
     """Assert the skip and force rules are the sweeps' own, applied to the alchemy results."""
     spec = alchemy_spec_with_a_cropped_entry()
     entry = next(entry for entry in spec.entries if entry.crop is not None)
+    crop = entry.crop
+    assert crop is not None
     root = alchemy_root(tmp_path)
 
     result_path = root / entry.relative_directory / RESULT_IMAGE_FILENAME
     result_path.parent.mkdir(parents=True, exist_ok=True)
-    marked_frame((FIT_LONG_EDGE_PIXELS, FIT_LONG_EDGE_PIXELS), region=entry.crop).save(result_path, format="WEBP")
+    marked_frame((FIT_LONG_EDGE_PIXELS, FIT_LONG_EDGE_PIXELS), region=crop).save(result_path, format="WEBP")
 
     (within,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path)
 
@@ -399,7 +407,7 @@ def test_an_alchemy_result_within_the_bound_gets_no_copy_and_the_copy_is_written
     )
     assert manifest_entry.result_fit is None
 
-    marked_frame((2048, 2048), region=entry.crop).save(result_path, format="WEBP")
+    marked_frame((2048, 2048), region=crop).save(result_path, format="WEBP")
     write_alchemy_result_fits(spec=spec, output_root=tmp_path)
     (reused,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path)
     (forced,) = write_alchemy_result_fits(spec=spec, output_root=tmp_path, force=True)
