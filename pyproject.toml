@@ -4,7 +4,20 @@ version = "1.0.0"
 description = "Render the AI Horde parameter-sweep illustration library from a declarative specification."
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "AGPL-3.0-or-later" }
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Tazlin" }]
+keywords = ["ai-horde", "stable-diffusion", "image-generation", "parameter-sweep"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+]
 dependencies = [
     "pillow>=10.0",
     "horde_sdk>=0.29.3",
@@ -30,19 +43,32 @@ cu130 = ["torch==2.12.1", "torchvision"]
 cu132 = ["torch==2.12.1", "torchvision"]
 cpu = ["torch==2.12.1", "torchvision"]
 
+[project.urls]
+Homepage = "https://github.com/Haidra-Org/haidra-param-sweeps"
+Repository = "https://github.com/Haidra-Org/haidra-param-sweeps"
+Issues = "https://github.com/Haidra-Org/haidra-param-sweeps/issues"
+
 [project.scripts]
 param-sweeps = "param_sweeps.cli:main"
 
 [dependency-groups]
 dev = [
-    "black>=24.4",
-    "boto3-stubs[s3]>=1.34",
-    "mypy>=1.10",
-    "pytest>=8.2",
+    # The publish extra is part of the development environment so a plain `uv sync` runs the
+    # publishing tests, which skip themselves when boto3 is absent.
+    "haidra-param-sweeps[publish]",
+    "boto3-stubs[s3]>=1.43.123",
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    # horde-engine, installed by the local extra, pins qrcode==7.4.2. uv resolves every extra into one
+    # lock file, so a higher floor here makes the lock unsatisfiable.
     "qrcode>=7.4.2",
-    "ruff>=0.5",
+    "ruff>=0.17.3",
     "types-qrcode>=8.2.0.20260518",
-    "types-requests>=2.31",
+    "types-requests>=2.33.0.20261030",
+]
+docs = [
+    "zensical>=0.0.74",
 ]
 
 [tool.uv]
@@ -99,10 +125,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["param_sweeps"]
-
-[tool.black]
-line-length = 119
-target-version = ["py312"]
 
 [tool.ruff]
 line-length = 119

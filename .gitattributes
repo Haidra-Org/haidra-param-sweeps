@@ -1,0 +1,11 @@
+# Store text with LF line endings in the repository and check it out the same way on every platform,
+# so ruff format and the end-of-file hooks report the same result on Windows and Linux.
+* text=auto eol=lf
+
+# Source images used as render inputs. Line-ending conversion would corrupt them.
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
