@@ -49,10 +49,12 @@ from horde_sdk.ai_horde_api.consts import GENERATION_STATE
 from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
 
+from param_sweeps.spec import TOOL_ROOT
+
 logger = logging.getLogger(__name__)
 
 API_KEY_VARIABLE = "AIHORDE_DEV_KEY"
-"""The name of the key, both in the frontpage ``.env`` and in the environment."""
+"""The name of the key, both in a ``.env`` file and in the environment."""
 
 ENV_FILE_VARIABLE = "PARAM_SWEEPS_ENV_FILE"
 """Environment variable naming the ``.env`` to read the key from."""
@@ -60,7 +62,7 @@ ENV_FILE_VARIABLE = "PARAM_SWEEPS_ENV_FILE"
 DEFAULT_API_BASE_URL = "https://aihorde.net/api/v2"
 """The public AI Horde API."""
 
-CLIENT_AGENT = "haidra-param-sweeps:1.0.0:https://github.com/Haidra-Org/haidra-assets"
+CLIENT_AGENT = "haidra-param-sweeps:1.0.0:https://github.com/Haidra-Org/haidra-param-sweeps"
 """Identifies this tool to the horde, as the API asks every client to do."""
 
 ENV_ASSIGNMENT_PATTERN = re.compile(r"^\s*(?:export\s+)?(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.*?)\s*$")
@@ -278,19 +280,18 @@ def read_api_key(*, env_file: Path | None) -> str:
 
 
 def default_env_file() -> Path | None:
-    """Return the ``.env`` to read by default: the environment's, else the frontpage repository's.
+    """Return the ``.env`` to read by default, or None when there is none.
 
-    This tool lives in the ``haidra-assets`` submodule of the frontpage repository, whose ``.env``
-    holds the development key. That relative position is the default and nothing more: any other
-    location is given with the flag or the environment variable.
+    The file named by ``PARAM_SWEEPS_ENV_FILE`` comes first. Otherwise the ``.env`` at the root of
+    this repository is used if it exists. A file anywhere else is given with ``--env-file`` or the
+    environment variable.
     """
     from_environment = os.environ.get(ENV_FILE_VARIABLE, "").strip()
     if from_environment:
         return Path(from_environment)
 
-    assets_repository_root = Path(__file__).resolve().parents[3]
-    frontpage_env = assets_repository_root.parent.parent / ".env"
-    return frontpage_env if frontpage_env.is_file() else None
+    repository_env = TOOL_ROOT / ".env"
+    return repository_env if repository_env.is_file() else None
 
 
 def read_env_value(*, env_file: Path, variable_name: str) -> str:

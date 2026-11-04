@@ -1,0 +1,3150 @@
+{
+  "$comment": "Promo pictures, texts and conversations made through the live horde. Every entry records seconds and kudos; the worker is never recorded. Tags drive the resolver's queries (whimsy, everyday, photo, art, flux, alchemy). Seeds are fixed so a re-run reproduces the set.",
+  "api": "https://aihorde.net/api/v2",
+  "client_agent": "haidra-param-sweeps-gallery:1.0.0:https://github.com/Haidra-Org/haidra-param-sweeps",
+  "defaults": {
+    "sdxl": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 25,
+      "cfg_scale": 5,
+      "sampler_name": "k_dpmpp_2m",
+      "karras": true
+    },
+    "sd15": {
+      "width": 512,
+      "height": 768,
+      "steps": 25,
+      "cfg_scale": 7,
+      "sampler_name": "k_euler_a",
+      "karras": true
+    },
+    "flux": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 4,
+      "cfg_scale": 1,
+      "sampler_name": "k_euler",
+      "karras": true
+    },
+    "lightning": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 5,
+      "cfg_scale": 2,
+      "sampler_name": "k_dpmpp_sde",
+      "karras": true
+    },
+    "cascade": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 24,
+      "cfg_scale": 4,
+      "sampler_name": "k_euler_a",
+      "karras": false
+    }
+  },
+  "families": {
+    "sdxl": [
+      "AlbedoBase XL 3.1",
+      "AlbedoBase XL (SDXL)",
+      "Juggernaut XL",
+      "Cheyenne",
+      "Fustercluck",
+      "Unstable Diffusers XL",
+      "ICBINP XL",
+      "SDXL 1.0"
+    ],
+    "sd15": [
+      "ICBINP - I Can't Believe It's Not Photography",
+      "Realistic Vision",
+      "Deliberate 3.0",
+      "AbsoluteReality",
+      "Rev Animated",
+      "Comic-Diffusion",
+      "stable_diffusion"
+    ],
+    "flux": [
+      "Flux.1-Schnell fp8 (Compact)"
+    ],
+    "lightning": [
+      "DreamShaper XL"
+    ],
+    "cascade": [
+      "Stable Cascade 1.0"
+    ]
+  },
+  "images": [
+    {
+      "id": "fox-snow",
+      "prompt": "a red fox curled up asleep in fresh snow, early morning light, wildlife photograph, telephoto",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography"
+      ],
+      "seed": 41001,
+      "alchemy": [
+        "caption",
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "lighthouse-storm",
+      "prompt": "a lighthouse on a sea cliff in a thunderstorm, lightning behind it, dramatic oil painting, thick brushwork",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41002,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "bookshop-isometric",
+      "prompt": "isometric cutaway of a cosy bookshop with tiny people reading, soft pastel colours, clean 3d render",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41003,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "dewdrop-macro",
+      "prompt": "macro photograph of a dew drop on a spider web reflecting a sunrise, bokeh, sharp focus",
+      "family": "sd15",
+      "models": [
+        "ICBINP - I Can't Believe It's Not Photography",
+        "Realistic Vision"
+      ],
+      "seed": 41004,
+      "alchemy": [
+        "RealESRGAN_x4plus"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "night-market",
+      "prompt": "a street food market at night in the rain, neon signs reflected in puddles, steam rising, cinematic photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 41005,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "paper-whale",
+      "prompt": "a paper-cut illustration of a whale swimming through clouds, layered paper art, soft shadows",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41006,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "railway-poster",
+      "prompt": "vintage travel poster of a mountain railway crossing a stone viaduct, flat colours, 1930s lithograph style",
+      "family": "sd15",
+      "models": [
+        "Comic-Diffusion",
+        "Deliberate 3.0"
+      ],
+      "seed": 41007,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "cat-teapot",
+      "prompt": "a ceramic teapot shaped like a sleeping cat on a wooden table, product photograph, soft window light",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "AbsoluteReality"
+      ],
+      "seed": 41008,
+      "alchemy": [
+        "strip_background",
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "mars-greenhouse",
+      "prompt": "an astronaut tending tomato plants inside a greenhouse on Mars, warm light, red dust outside the glass",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 41009,
+      "tags": [
+        "everyday"
+      ]
+    },
+    {
+      "id": "canal-watercolour",
+      "prompt": "watercolour of a canal town at dusk with paper lanterns, loose brushwork, wet on wet",
+      "family": "sd15",
+      "models": [
+        "Deliberate 3.0",
+        "Rev Animated"
+      ],
+      "seed": 41010,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "pancakes",
+      "prompt": "a stack of pancakes with blueberries and maple syrup, food photography, shallow depth of field, morning light",
+      "family": "sd15",
+      "models": [
+        "ICBINP - I Can't Believe It's Not Photography",
+        "Realistic Vision"
+      ],
+      "seed": 41011,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "stained-glass",
+      "prompt": "stained glass window depicting a fox and a crow under a tree, art nouveau, lead lines, sunlight through",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41012,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "robot-nest",
+      "prompt": "a tiny round robot carefully repairing a bird's nest, children's book illustration, gentle colours",
+      "family": "sd15",
+      "models": [
+        "Rev Animated",
+        "Deliberate 3.0"
+      ],
+      "seed": 41013,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "rice-terraces",
+      "prompt": "aerial view of terraced rice fields at golden hour, drone photograph, winding paths",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography"
+      ],
+      "seed": 41014,
+      "alchemy": [
+        "RealESRGAN_x4plus"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "pixel-sweater",
+      "prompt": "a knitted wool sweater with a pixel-art space invaders pattern, flat lay photograph on linen",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "Juggernaut XL"
+      ],
+      "seed": 41015,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "owl-librarian",
+      "prompt": "an owl librarian wearing round spectacles among towering bookshelves, digital painting, warm lamplight",
+      "family": "sd15",
+      "models": [
+        "Deliberate 3.0",
+        "Rev Animated"
+      ],
+      "seed": 41016,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "lowpoly-van",
+      "prompt": "low-poly 3d render of a camper van on a coastal road at sunset, isometric, pastel palette",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41017,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "jazz-trio",
+      "prompt": "a jazz trio playing in a smoky club, black and white photograph, film grain, 1950s",
+      "family": "sd15",
+      "models": [
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 41018,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "terrarium",
+      "prompt": "a glass terrarium containing a miniature forest with a tiny waterfall, studio photograph, black background",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 41019,
+      "alchemy": [
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "fuji-train",
+      "prompt": "ukiyo-e woodblock print of a bullet train passing Mount Fuji in spring, cherry blossoms, flat colour",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 41020,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "fisherman-portrait",
+      "prompt": "portrait of an elderly fisherman with a weathered face and kind eyes, natural light, 85mm photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography"
+      ],
+      "seed": 41021,
+      "alchemy": [
+        "GFPGAN",
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "otter-river",
+      "prompt": "a sea otter floating on its back holding a clam, morning mist, wildlife photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42001,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "hot-air-balloons",
+      "prompt": "dozens of hot air balloons over a valley at sunrise, long shadows, aerial photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42002,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "ramen-bowl",
+      "prompt": "a steaming bowl of ramen with a soft egg and nori, overhead food photograph, dark slate",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42003,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "lighthouse-keeper-cat",
+      "prompt": "a cat asleep on a pile of nautical charts in a lighthouse room, warm lamplight, painting",
+      "family": "sd15",
+      "models": [
+        "Deliberate 3.0",
+        "Rev Animated",
+        "Comic-Diffusion"
+      ],
+      "seed": 42004,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "glass-frog",
+      "prompt": "macro photograph of a glass frog on a wet leaf, translucent skin, rainforest",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42005,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "art-deco-cinema",
+      "prompt": "art deco cinema facade at night with a glowing marquee, wet street, film photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42006,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "moss-cottage",
+      "prompt": "a stone cottage with a moss roof in a misty forest, morning light, fantasy illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42007,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "tram-snow",
+      "prompt": "a vintage yellow tram in a snowy city street at dusk, warm windows, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42008,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "beetle-macro",
+      "prompt": "iridescent jewel beetle on a fern, macro photograph, dew",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42009,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "paper-lantern-festival",
+      "prompt": "paper lanterns rising over a river at night, crowds on the bank, cinematic",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42010,
+      "tags": [
+        "everyday"
+      ]
+    },
+    {
+      "id": "origami-fox",
+      "prompt": "an origami fox made of orange paper on a wooden desk, soft studio light",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42011,
+      "alchemy": [
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "desert-observatory",
+      "prompt": "a white observatory dome on a desert ridge under the milky way, long exposure",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42012,
+      "tags": [
+        "everyday"
+      ]
+    },
+    {
+      "id": "fruit-stall",
+      "prompt": "a market fruit stall piled with oranges, figs and pomegranates, morning sun",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42013,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "bicycle-canal",
+      "prompt": "a red bicycle leaning on a canal bridge with tulips, spring afternoon, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42014,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "clockwork-owl",
+      "prompt": "a clockwork owl of brass and glass, gears visible, studio product photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42015,
+      "alchemy": [
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "ink-heron",
+      "prompt": "sumi-e ink painting of a heron standing in still water, minimal brush strokes",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42016,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "lava-lamp-city",
+      "prompt": "a city skyline reflected in a puddle of neon rain, cyberpunk illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42017,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "bread-loaves",
+      "prompt": "rustic sourdough loaves on a floured board, scored crusts, bakery window light",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42018,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "submarine-garden",
+      "prompt": "a glass-domed submarine passing a coral garden, sunbeams through water, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42019,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "wool-mittens",
+      "prompt": "hand-knitted mittens with a snowflake pattern resting on a wooden sled, snow",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42020,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "goat-mountain",
+      "prompt": "a mountain goat standing on a sheer cliff edge above clouds, telephoto photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42021,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "teacup-storm",
+      "prompt": "a tiny sailing ship in a teacup during a storm, whimsical illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42022,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "neon-diner",
+      "prompt": "a roadside diner at night with a pink neon sign, one car parked, film photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42023,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "bonsai-window",
+      "prompt": "a bonsai pine on a windowsill with rain on the glass, soft grey light",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42024,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "hedgehog-leaves",
+      "prompt": "a hedgehog peeking out of autumn leaves, shallow depth of field, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42025,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "viking-longship",
+      "prompt": "a viking longship in a fjord at dawn, mist, oil painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42026,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "skate-park",
+      "prompt": "a skateboarder mid-air over a concrete bowl, golden hour, sports photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42027,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "gingerbread-house",
+      "prompt": "a detailed gingerbread house with icing snow, studio photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42028,
+      "alchemy": [
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "kelp-forest",
+      "prompt": "a diver drifting through a kelp forest, sun rays, underwater photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42029,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "typewriter-desk",
+      "prompt": "an old typewriter on a desk with a cup of coffee and scattered pages, window light",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42030,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "wind-farm",
+      "prompt": "wind turbines on rolling hills at sunset, wheat field, wide photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42031,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "dragon-library",
+      "prompt": "a small dragon curled asleep on library books, cosy fantasy illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42032,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "chess-rain",
+      "prompt": "two old men playing chess in a park in the rain under one umbrella, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42033,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "iceberg-arch",
+      "prompt": "an iceberg with a natural arch, kayak passing through, arctic photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42034,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "moth-lamp",
+      "prompt": "a luna moth resting on a lit lantern at night, macro photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42035,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "pottery-wheel",
+      "prompt": "hands shaping clay on a pottery wheel, workshop light, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42036,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "castle-clouds",
+      "prompt": "a castle on a floating island above the clouds, waterfalls falling off the edge, fantasy painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42037,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "hummingbird",
+      "prompt": "a hummingbird hovering at a red flower, wings frozen, high-speed photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42038,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "subway-mosaic",
+      "prompt": "a mosaic mural of a fox in a subway station, tiled wall, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42039,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "sushi-platter",
+      "prompt": "an assorted sushi platter on black slate, overhead food photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42040,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "robot-barista",
+      "prompt": "a friendly robot barista pouring latte art, cafe interior, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42041,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "thatched-village",
+      "prompt": "a thatched village by a river in summer, children fishing, watercolour",
+      "family": "sd15",
+      "models": [
+        "Deliberate 3.0",
+        "Rev Animated",
+        "Comic-Diffusion"
+      ],
+      "seed": 42042,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "comet-sky",
+      "prompt": "a comet over a mountain lake at night, reflection, astrophotograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42043,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "puffin-cliff",
+      "prompt": "a puffin with fish in its beak on a grassy cliff, wildlife photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42044,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "harbour-dawn",
+      "prompt": "fishing boats in a harbour at dawn, calm water, pastel sky, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42045,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "mech-hangar",
+      "prompt": "a giant mech being repaired in a hangar by tiny engineers, sci-fi concept art",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42046,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "cherry-stall",
+      "prompt": "a wooden crate of cherries at a farm stand, chalk price sign, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42047,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "fog-bridge",
+      "prompt": "a suspension bridge disappearing into fog, one cyclist, black and white photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42048,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "crystal-cave",
+      "prompt": "a cave of giant crystals lit by a torch, explorer silhouette, painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42049,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "cat-window-rain",
+      "prompt": "a tabby cat watching rain from a windowsill, warm room, illustration",
+      "family": "sd15",
+      "models": [
+        "Deliberate 3.0",
+        "Rev Animated",
+        "Comic-Diffusion"
+      ],
+      "seed": 42050,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "art",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "desert-caravan",
+      "prompt": "a camel caravan crossing dunes at golden hour, long shadows, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42051,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "vinyl-shop",
+      "prompt": "a record shop interior with crates of vinyl and a listening booth, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42052,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "frozen-bubble",
+      "prompt": "a frozen soap bubble with ice crystals on snow, macro photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42053,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "koi-pond",
+      "prompt": "koi fish under lily pads, seen from above, dappled light, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42054,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "space-elevator",
+      "prompt": "a space elevator cable rising from a tropical island into orbit, concept art",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42055,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "beekeeper",
+      "prompt": "a beekeeper in a veil lifting a honeycomb frame, sunny garden, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42056,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "tin-toy-robot",
+      "prompt": "a vintage tin toy robot on a shelf, chipped paint, product photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42057,
+      "alchemy": [
+        "strip_background"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "aurora-cabin",
+      "prompt": "a log cabin under the northern lights, snow, warm window, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42058,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "street-musician",
+      "prompt": "a street musician playing accordion in a cobbled alley, evening, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42059,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "mushroom-village",
+      "prompt": "a village of houses built into giant mushrooms, glowing windows, fantasy illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42060,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "sailboat-race",
+      "prompt": "sailboats racing with colourful spinnakers, bright day, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42061,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "lego-bridge",
+      "prompt": "a bridge built from toy bricks over a real stream, playful photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42062,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "wolf-snowfall",
+      "prompt": "a grey wolf in falling snow, close portrait, wildlife photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42063,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "rooftop-garden",
+      "prompt": "a rooftop garden with tomatoes and a city skyline behind, evening, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42064,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "old-map",
+      "prompt": "an antique hand-drawn map of an imaginary island with sea monsters, parchment",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42065,
+      "tags": [
+        "everyday"
+      ]
+    },
+    {
+      "id": "pier-storm",
+      "prompt": "waves crashing over a pier lighthouse, dramatic storm, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42066,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "carousel-night",
+      "prompt": "a carousel lit up at night in an empty fairground, long exposure",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42067,
+      "tags": [
+        "everyday"
+      ]
+    },
+    {
+      "id": "fennec-fox",
+      "prompt": "a fennec fox with huge ears in desert sand, evening light, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42068,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "tea-ceremony",
+      "prompt": "a tea ceremony set on tatami, morning light through shoji, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42069,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "steampunk-airship",
+      "prompt": "a steampunk airship docking at a clock tower, brass and steam, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42070,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "blue-door",
+      "prompt": "a blue wooden door in a whitewashed wall with bougainvillea, Greek island, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42071,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "penguin-parade",
+      "prompt": "emperor penguins walking in a line across ice, low sun, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42072,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "neon-koi",
+      "prompt": "a koi fish made of neon light swimming through a dark city, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42073,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "library-ladder",
+      "prompt": "a rolling ladder in a grand old library, dust in sunbeams, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42074,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "apple-orchard",
+      "prompt": "an apple orchard in autumn with baskets of red apples, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42075,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "ice-hotel",
+      "prompt": "a hotel room carved from ice, blue light, fur blankets, photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42076,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "bakery-cat",
+      "prompt": "a cat asleep in a bakery window among loaves, morning, photograph",
+      "family": "sd15",
+      "models": [
+        "Realistic Vision",
+        "ICBINP - I Can't Believe It's Not Photography",
+        "AbsoluteReality"
+      ],
+      "seed": 42077,
+      "alchemy": [
+        "caption"
+      ],
+      "tags": [
+        "everyday",
+        "photo",
+        "alchemy"
+      ]
+    },
+    {
+      "id": "drone-forest",
+      "prompt": "a river winding through an autumn forest, drone photograph straight down",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)",
+        "Juggernaut XL"
+      ],
+      "seed": 42078,
+      "tags": [
+        "everyday",
+        "photo"
+      ]
+    },
+    {
+      "id": "tram-anime",
+      "prompt": "a girl waiting at a rainy tram stop, reflections, anime illustration",
+      "family": "sdxl",
+      "models": [
+        "Nova Anime XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 42079,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "shrine-fox-anime",
+      "prompt": "a fox spirit at a mountain shrine in autumn, anime illustration",
+      "family": "sdxl",
+      "models": [
+        "Nova Anime XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 42080,
+      "tags": [
+        "everyday",
+        "art"
+      ]
+    },
+    {
+      "id": "octopus-barber",
+      "prompt": "an octopus barber giving a walrus a haircut, eight arms each holding a different tool, 1950s barbershop, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43001,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "snail-cathedral",
+      "prompt": "a snail whose shell is a gothic cathedral with lit stained-glass windows, crawling through a garden at dusk",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43002,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "cloud-shepherd",
+      "prompt": "a shepherd herding a flock of small clouds across a hillside with a crook, golden hour, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43003,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "teacup-pool",
+      "prompt": "tiny swimmers doing laps in a teacup on a kitchen table, lifeguard on the saucer, macro photograph",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43004,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "whale-library",
+      "prompt": "the inside of a whale as a public library, bookshelves along the ribs, readers in armchairs, warm lamplight",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43005,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "moon-laundry",
+      "prompt": "an astronaut hanging laundry on a line strung between two craters, Earth rising behind, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43006,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "giraffe-lighthouse",
+      "prompt": "a giraffe wearing a lighthouse lamp on its head, guiding ships at night on a stormy coast, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43007,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "piano-forest",
+      "prompt": "a grand piano growing out of a forest floor like a tree, roots and moss, a fox playing it",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43008,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "toast-sunrise",
+      "prompt": "a slice of toast rising over the sea like the sun, butter clouds, seagulls, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43009,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "submarine-desert",
+      "prompt": "a yellow submarine surfacing through sand dunes, camels watching, midday, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43010,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "frog-king-court",
+      "prompt": "a frog king holding court on a lily pad throne, dragonfly guards, beetle courtiers, oil painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43011,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "umbrella-jellyfish",
+      "prompt": "jellyfish made of open umbrellas drifting through a rainy city street at night, neon reflections",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43012,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "cat-air-traffic",
+      "prompt": "a cat in a control tower directing paper airplanes with glowing batons, night, cinematic",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43013,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "mountain-teapot",
+      "prompt": "a mountain range where the tallest peak is a steaming porcelain teapot, hikers on the spout, matte painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43014,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "bicycle-fish",
+      "prompt": "a school of fish riding tiny bicycles along the seabed, coral traffic lights, underwater photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43015,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "tram-on-rainbow",
+      "prompt": "a vintage tram running along a rainbow over a valley, passengers waving, painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43016,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "origami-wolf-pack",
+      "prompt": "a pack of origami wolves howling at a paper moon in a folded-paper forest, studio light",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43017,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "tortoise-city",
+      "prompt": "a giant tortoise with a walled medieval city on its shell, crossing a river at dawn, matte painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43018,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "bear-cafe",
+      "prompt": "a brown bear in an apron serving espresso to squirrels at a tiny forest cafe, morning light, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43019,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "chess-giants",
+      "prompt": "two giants playing chess with castles and windmills as pieces on a patchwork of farmland, aerial view",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43020,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "balloon-house-city",
+      "prompt": "a whole street of houses floating under bunches of balloons, people watering hanging gardens, painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43021,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "raccoon-astronomer",
+      "prompt": "a raccoon in a velvet robe at a brass telescope on a rooftop, star charts, candlelight, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43022,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "sock-dragon",
+      "prompt": "a dragon made of mismatched knitted socks curled around a laundry basket, breathing steam, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43023,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "clock-melting-cafe",
+      "prompt": "a cafe where the clocks are soft and dripping off the tables, customers unbothered, surreal painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43024,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "owl-tram-driver",
+      "prompt": "an owl in a conductor's cap driving a night tram through a snowy town, warm windows, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43025,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "iceberg-penthouse",
+      "prompt": "a penthouse apartment with floor-to-ceiling windows built into the top of an iceberg, penguins on the balcony",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43026,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "dog-walking-humans",
+      "prompt": "a dog in a tweed coat walking three humans on leashes through a park, morning, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43027,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "hedgehog-cactus",
+      "prompt": "a hedgehog sitting among cacti in a desert, indistinguishable, midday, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43028,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "cloud-cats",
+      "prompt": "clouds shaped exactly like sleeping cats over a wheat field at sunset, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43029,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "volcano-cake",
+      "prompt": "a volcano erupting frosting and sprinkles, villagers with plates, whimsical painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43030,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "elephant-tightrope",
+      "prompt": "an elephant on a tightrope between two skyscrapers carrying a parasol, crowds below, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43031,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "bath-ocean",
+      "prompt": "a bathtub floating in the open ocean with a man reading the newspaper in it, whale in the distance",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43032,
+      "tags": [
+        "whimsy",
+        "flux"
+      ]
+    },
+    {
+      "id": "mushroom-umbrella-rain",
+      "prompt": "mice sheltering from rain under a giant mushroom, each with a tiny lantern, macro illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43033,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "train-in-the-sky",
+      "prompt": "a steam train puffing along tracks laid across the clouds, sunset, travellers leaning out of windows",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43034,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "goldfish-in-lightbulb",
+      "prompt": "a goldfish swimming inside a lit lightbulb hanging in a dark workshop, macro photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43035,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "bookshelf-canyon",
+      "prompt": "hikers walking through a canyon whose walls are towering bookshelves, shafts of light, matte painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43036,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "flamingo-ballet",
+      "prompt": "flamingos in tutus performing a ballet on a frozen lake, spotlights, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43037,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "pancake-planet",
+      "prompt": "a planet made of stacked pancakes with a syrup ocean, a tiny rocket landing, digital painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43038,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "crab-conductor",
+      "prompt": "a crab conducting an orchestra of seashells on the beach at sunset, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43039,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "wardrobe-jungle",
+      "prompt": "a wardrobe opening onto a jungle with a tiger stepping out, bedroom in the foreground, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43040,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "robot-gardener-moon",
+      "prompt": "a rusty robot tending a rose garden on the moon under a glass dome, Earth overhead",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43041,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "fox-fishing-stars",
+      "prompt": "a fox fishing for stars from a wooden boat on a lake that reflects the night sky, illustration",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43042,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "upside-down-village",
+      "prompt": "a village built upside down on the underside of a floating rock, chimney smoke falling, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43043,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "bee-airport",
+      "prompt": "bees landing on a flower shaped like an airport runway with tiny lights and a control tower, macro",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43044,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "lion-librarian",
+      "prompt": "a lion in reading glasses stamping books at a library desk, children queueing, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43045,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "staircase-to-clouds",
+      "prompt": "a spiral stone staircase rising from a meadow into the clouds, a child climbing with a kite",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43046,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "snowman-beach",
+      "prompt": "a snowman sunbathing on a tropical beach with sunglasses and a coconut drink, slightly melting",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43047,
+      "tags": [
+        "whimsy",
+        "flux"
+      ]
+    },
+    {
+      "id": "koala-barista",
+      "prompt": "a koala making latte art in a eucalyptus-leaf shaped cup, cafe counter, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43048,
+      "tags": [
+        "whimsy",
+        "photo",
+        "art"
+      ]
+    },
+    {
+      "id": "ship-in-bottle-sea",
+      "prompt": "a full-size sailing ship sealed in a giant glass bottle floating on a real sea, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43049,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "cactus-orchestra",
+      "prompt": "cacti playing violins and cellos in a desert concert hall at dusk, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43050,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "hot-air-balloon-whale",
+      "prompt": "a whale lifted over a city by hundreds of hot air balloons tied to it, morning haze",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43051,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "penguin-tailor",
+      "prompt": "a penguin tailor measuring a walrus for a suit in a Victorian shop, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43052,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "paper-boat-ocean",
+      "prompt": "a paper boat the size of a real ship crossing the ocean with a crew of mice, storm light",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43053,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "lantern-fish-city",
+      "prompt": "a city at night lit entirely by giant floating lantern-fish, people walking under them",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43054,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "rabbit-clockmaker",
+      "prompt": "a rabbit clockmaker with a jeweller's loupe repairing a pocket watch, workshop full of clocks",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43055,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "island-on-turtle-teacup",
+      "prompt": "a tiny island with a palm tree on the back of a turtle swimming in a teacup, macro",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43056,
+      "tags": [
+        "whimsy",
+        "flux"
+      ]
+    },
+    {
+      "id": "wolf-postman",
+      "prompt": "a wolf in a postman's uniform delivering letters to birdhouses on a snowy street, illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43057,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "cloud-factory",
+      "prompt": "a factory on a hill whose chimneys produce perfectly shaped sheep-like clouds, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43058,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "dinosaur-commute",
+      "prompt": "a dinosaur in a suit reading a newspaper on a crowded subway train, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43059,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "fish-hot-air-balloon",
+      "prompt": "a goldfish bowl as the basket of a hot air balloon, the fish looking out over mountains",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43060,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "owl-post-office-sorting",
+      "prompt": "owls sorting letters in a night post office lit by candles, wooden pigeonholes, illustration",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43061,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "moon-cafe",
+      "prompt": "a cafe on the moon with astronauts drinking coffee through straws, Earth in the window, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43062,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "hedgehog-hot-air",
+      "prompt": "a hedgehog piloting a dandelion seed like a hot air balloon over a meadow, macro illustration",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43063,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "giant-cat-city",
+      "prompt": "a giant cat asleep across a city skyline, its tail curled around a bridge, dusk, matte painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43064,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "ice-cream-mountain",
+      "prompt": "mountaineers climbing a mountain of ice cream scoops with a cherry summit, painting",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43065,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "fox-in-lantern-boat",
+      "prompt": "a fox rowing a boat made of a paper lantern down a canal at night, glowing, illustration",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43066,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "keyboard-piano-city",
+      "prompt": "a city where the streets are piano keys and the buildings are sheet music, aerial painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43067,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "bear-astronaut-picnic",
+      "prompt": "a bear in a spacesuit having a picnic on a comet, sandwiches floating, photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43068,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "snail-race-city",
+      "prompt": "snails with racing numbers speeding past a cheering crowd of beetles, motion blur, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43069,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "bridge-of-books",
+      "prompt": "a bridge made of open books spanning a river, a scholar crossing with a lantern, painting",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43070,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "submarine-treehouse",
+      "prompt": "a submarine wedged in the branches of an oak tree as a treehouse, kids on the conning tower",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43071,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "cheetah-tortoise-race",
+      "prompt": "a tortoise crossing a finish line ahead of a cheetah, stadium crowd, sports photograph",
+      "family": "flux",
+      "models": [
+        "Flux.1-Schnell fp8 (Compact)"
+      ],
+      "seed": 43072,
+      "tags": [
+        "whimsy",
+        "flux",
+        "photo"
+      ]
+    },
+    {
+      "id": "waterfall-upwards",
+      "prompt": "a waterfall flowing upwards into the sky from a lake, hikers watching, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43073,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "cat-in-teacup-storm",
+      "prompt": "a kitten sailing a teacup through a bathtub storm, rubber duck lighthouse, macro",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43074,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "glass-forest",
+      "prompt": "a forest of glass trees ringing in the wind, sunlight refracting rainbows on the snow",
+      "family": "sdxl",
+      "models": [
+        "Cheyenne",
+        "Fustercluck",
+        "Unstable Diffusers XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43075,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "dragon-bakery",
+      "prompt": "a small dragon warming bread ovens in a village bakery, bakers unconcerned, warm light",
+      "family": "sdxl",
+      "models": [
+        "AlbedoBase XL 3.1",
+        "AlbedoBase XL (SDXL)"
+      ],
+      "seed": 43076,
+      "tags": [
+        "whimsy"
+      ]
+    },
+    {
+      "id": "robot-knitting",
+      "prompt": "a hulking industrial robot gently knitting a tiny sweater for a kitten, workshop, photograph",
+      "family": "sdxl",
+      "models": [
+        "Juggernaut XL",
+        "AlbedoBase XL 3.1"
+      ],
+      "seed": 43077,
+      "tags": [
+        "whimsy",
+        "photo"
+      ]
+    },
+    {
+      "id": "floating-market-sky",
+      "prompt": "a floating market of boats drifting through the sky between clouds, lanterns, painting",
+      "family": "cascade",
+      "models": [
+        "Stable Cascade 1.0"
+      ],
+      "seed": 43078,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "piano-whale",
+      "prompt": "a whale surfacing with a grand piano on its back, a penguin playing, dawn, painting",
+      "family": "lightning",
+      "models": [
+        "DreamShaper XL"
+      ],
+      "seed": 43079,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "umbrella-forest-rain",
+      "prompt": "a forest where the trees are open umbrellas, a child walking a duck, rain, illustration",
+      "family": "cascade",
+      "models": [
+        "Stable Cascade 1.0"
+      ],
+      "seed": 43080,
+      "tags": [
+        "whimsy",
+        "art"
+      ]
+    },
+    {
+      "id": "lighthouse-in-teacup",
+      "prompt": "a working lighthouse standing in a teacup on a windowsill, beam sweeping the room, night",
+      "family": "lightning",
+      "models": [
+        "DreamShaper XL"
+      ],
+      "seed": 43081,
+      "tags": [
+        "whimsy"
+      ]
+    }
+  ],
+  "texts": [
+    {
+      "id": "lighthouse-poem",
+      "prompt": "Write a four-line poem about a lighthouse keeper who reads by lamplight. Only the poem, no title.",
+      "max_length": 80
+    },
+    {
+      "id": "fox-tail",
+      "prompt": "In two plain sentences, why is a fox's tail so bushy?",
+      "max_length": 80
+    },
+    {
+      "id": "cat-bakery",
+      "prompt": "Give three names for a bakery run by cats, one per line, nothing else.",
+      "max_length": 60
+    },
+    {
+      "id": "rain-smell",
+      "prompt": "Describe the smell of rain on hot pavement in one sentence.",
+      "max_length": 60
+    },
+    {
+      "id": "owl-facts",
+      "prompt": "In two plain sentences, why can owls turn their heads so far?",
+      "max_length": 70
+    },
+    {
+      "id": "bread-rise",
+      "prompt": "In two sentences, why does bread dough rise?",
+      "max_length": 70
+    },
+    {
+      "id": "moon-tides",
+      "prompt": "Explain in two sentences how the moon causes tides.",
+      "max_length": 70
+    },
+    {
+      "id": "haiku-rain",
+      "prompt": "Write a haiku about rain on a tin roof. Only the haiku.",
+      "max_length": 40
+    },
+    {
+      "id": "haiku-fox",
+      "prompt": "Write a haiku about a fox in snow. Only the haiku.",
+      "max_length": 40
+    },
+    {
+      "id": "haiku-lighthouse",
+      "prompt": "Write a haiku about a lighthouse in fog. Only the haiku.",
+      "max_length": 40
+    },
+    {
+      "id": "cafe-names",
+      "prompt": "Give three names for a cafe on a lighthouse, one per line, nothing else.",
+      "max_length": 50
+    },
+    {
+      "id": "boat-names",
+      "prompt": "Give three names for a small fishing boat, one per line, nothing else.",
+      "max_length": 50
+    },
+    {
+      "id": "robot-names",
+      "prompt": "Give three names for a friendly gardening robot, one per line, nothing else.",
+      "max_length": 50
+    },
+    {
+      "id": "why-sky-blue",
+      "prompt": "In two plain sentences, why is the sky blue?",
+      "max_length": 70
+    },
+    {
+      "id": "why-leaves-red",
+      "prompt": "In two plain sentences, why do leaves turn red in autumn?",
+      "max_length": 70
+    },
+    {
+      "id": "why-cats-purr",
+      "prompt": "In two plain sentences, why do cats purr?",
+      "max_length": 70
+    },
+    {
+      "id": "micro-story-key",
+      "prompt": "Write a three-sentence story about a key that opens the wrong door.",
+      "max_length": 90
+    },
+    {
+      "id": "micro-story-tram",
+      "prompt": "Write a three-sentence story about the last tram of the night.",
+      "max_length": 90
+    },
+    {
+      "id": "micro-story-comet",
+      "prompt": "Write a three-sentence story about a child who names a comet.",
+      "max_length": 90
+    },
+    {
+      "id": "toast-recipe",
+      "prompt": "In three short steps, how do you make cinnamon toast?",
+      "max_length": 80
+    },
+    {
+      "id": "tea-steep",
+      "prompt": "In one sentence, how long should green tea steep?",
+      "max_length": 40
+    },
+    {
+      "id": "compost-tip",
+      "prompt": "Give one plain tip for starting a compost heap, in one sentence.",
+      "max_length": 50
+    },
+    {
+      "id": "bike-chain",
+      "prompt": "In two sentences, how do you know a bicycle chain needs oil?",
+      "max_length": 70
+    },
+    {
+      "id": "star-count",
+      "prompt": "In one sentence, roughly how many stars can you see with the naked eye on a dark night?",
+      "max_length": 50
+    },
+    {
+      "id": "ocean-salt",
+      "prompt": "In two sentences, why is the sea salty?",
+      "max_length": 70
+    },
+    {
+      "id": "penguin-warm",
+      "prompt": "In two sentences, how do emperor penguins stay warm?",
+      "max_length": 70
+    },
+    {
+      "id": "bee-dance",
+      "prompt": "In two sentences, what is the waggle dance of bees?",
+      "max_length": 70
+    },
+    {
+      "id": "limerick-teapot",
+      "prompt": "Write a limerick about a teapot shaped like a cat. Only the limerick.",
+      "max_length": 80
+    },
+    {
+      "id": "limerick-robot",
+      "prompt": "Write a limerick about a robot that bakes bread. Only the limerick.",
+      "max_length": 80
+    },
+    {
+      "id": "riddle-shadow",
+      "prompt": "Write a short riddle whose answer is a shadow. Only the riddle.",
+      "max_length": 50
+    },
+    {
+      "id": "riddle-echo",
+      "prompt": "Write a short riddle whose answer is an echo. Only the riddle.",
+      "max_length": 50
+    },
+    {
+      "id": "motto-library",
+      "prompt": "Write a one-line motto for a village library.",
+      "max_length": 30
+    },
+    {
+      "id": "motto-garden",
+      "prompt": "Write a one-line motto for a community garden.",
+      "max_length": 30
+    },
+    {
+      "id": "motto-horde",
+      "prompt": "Write a one-line motto for a network of volunteers who lend their computers to strangers.",
+      "max_length": 30
+    },
+    {
+      "id": "thank-you-note",
+      "prompt": "Write a two-sentence thank-you note to a neighbour who watered your plants.",
+      "max_length": 70
+    },
+    {
+      "id": "postcard-mountains",
+      "prompt": "Write a two-sentence postcard from a mountain village.",
+      "max_length": 70
+    },
+    {
+      "id": "postcard-harbour",
+      "prompt": "Write a two-sentence postcard from a fishing harbour.",
+      "max_length": 70
+    },
+    {
+      "id": "describe-fog",
+      "prompt": "Describe morning fog over a lake in one sentence.",
+      "max_length": 50
+    },
+    {
+      "id": "describe-bakery",
+      "prompt": "Describe the inside of a bakery at dawn in one sentence.",
+      "max_length": 50
+    },
+    {
+      "id": "describe-thunder",
+      "prompt": "Describe distant thunder in one sentence.",
+      "max_length": 50
+    },
+    {
+      "id": "describe-snowfall",
+      "prompt": "Describe the first snowfall of winter in one sentence.",
+      "max_length": 50
+    },
+    {
+      "id": "advice-first-day",
+      "prompt": "Give one sentence of advice for a first day at a new job.",
+      "max_length": 40
+    },
+    {
+      "id": "advice-plants",
+      "prompt": "Give one sentence of advice for keeping a houseplant alive.",
+      "max_length": 40
+    },
+    {
+      "id": "advice-sleep",
+      "prompt": "Give one sentence of advice for falling asleep faster.",
+      "max_length": 40
+    },
+    {
+      "id": "fact-octopus",
+      "prompt": "In one sentence, one surprising fact about octopuses.",
+      "max_length": 50
+    },
+    {
+      "id": "fact-honey",
+      "prompt": "In one sentence, one surprising fact about honey.",
+      "max_length": 50
+    },
+    {
+      "id": "fact-trees",
+      "prompt": "In one sentence, one surprising fact about trees.",
+      "max_length": 50
+    },
+    {
+      "id": "poem-kettle",
+      "prompt": "Write a four-line poem about a kettle coming to the boil. Only the poem.",
+      "max_length": 70
+    },
+    {
+      "id": "poem-bicycle",
+      "prompt": "Write a four-line poem about a bicycle in the rain. Only the poem.",
+      "max_length": 70
+    },
+    {
+      "id": "poem-volunteers",
+      "prompt": "Write a four-line poem about strangers lending their computers so others can make pictures. Only the poem.",
+      "max_length": 70
+    }
+  ],
+  "conversations": [
+    {
+      "id": "story-lighthouse",
+      "format": "raw",
+      "turns": [
+        "The lighthouse keeper had not seen a ship in forty days, and so when the bell rang at midnight she assumed"
+      ],
+      "max_length": 120
+    },
+    {
+      "id": "story-market",
+      "format": "raw",
+      "turns": [
+        "Every stall in the night market sold something impossible. The first sold bottled thunderstorms; the second"
+      ],
+      "max_length": 120
+    },
+    {
+      "id": "help-titles",
+      "format": "instruct",
+      "turns": [
+        "Give me three titles for a short story about a robot that learns to garden. One per line, nothing else."
+      ],
+      "max_length": 60
+    },
+    {
+      "id": "help-shorten",
+      "format": "instruct",
+      "turns": [
+        "Shorten this to one sentence: The AI Horde is a network of volunteers who lend the spare power of their graphics cards so that anyone, anywhere, can generate images and text without paying, and it is run by a non-profit that cannot profit from it."
+      ],
+      "max_length": 80
+    },
+    {
+      "id": "help-rewrite",
+      "format": "instruct",
+      "turns": [
+        "Rewrite this in plain words: Utilise the provided interface to instantiate a generation request."
+      ],
+      "max_length": 60
+    },
+    {
+      "id": "thread-fox",
+      "format": "instruct",
+      "turns": [
+        "I want to write a children's story about a fox who runs a bakery. Give me the fox's name and one sentence about the bakery.",
+        "Good. What is the first problem the fox runs into on opening day? One sentence.",
+        "How does the fox solve it, in two sentences?",
+        "Write the last line of the story."
+      ],
+      "max_length": 90
+    },
+    {
+      "id": "thread-trip",
+      "format": "instruct",
+      "turns": [
+        "I have one free afternoon in a city I do not know. Suggest one thing to do, in one sentence.",
+        "I do not like museums. Another idea, one sentence.",
+        "Perfect. What should I bring?"
+      ],
+      "max_length": 70
+    },
+    {
+      "id": "qa-tides",
+      "format": "instruct",
+      "turns": [
+        "In two plain sentences, why does the sea have tides?"
+      ],
+      "max_length": 70
+    }
+  ]
+}

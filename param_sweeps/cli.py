@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import re
 import sys
 from pathlib import Path
@@ -56,6 +57,7 @@ from param_sweeps.derivatives import (
     write_sweep_derivatives,
 )
 from param_sweeps.flows import (
+    TUTORIALS_DIRECTORY_NAME,
     FlowResult,
     FlowsSpec,
     FlowStatus,
@@ -71,7 +73,7 @@ from param_sweeps.horde_runner import HordeApiRunner, MissingApiKeyError, defaul
 from param_sweeps.image_utilities import DEFAULT_SERVICE_URL, HordeImageUtilitiesBackend, resolve_service_url
 from param_sweeps.local_runner import GpuBackend, LocalRunner, resolve_gpu_backend
 from param_sweeps.outputs import write_index
-from param_sweeps.promo import PROMO_DIRECTORY_NAME, load_promo_spec, write_cards
+from param_sweeps.promo import GALLERY_DIRECTORY_NAME, PROMO_DIRECTORY_NAME, load_promo_spec, write_cards
 from param_sweeps.publish import (
     DEFAULT_TREE_PREFIXES,
     IncompleteLibraryError,
@@ -111,30 +113,31 @@ from param_sweeps.step_preview import run_step_preview
 logger = logging.getLogger(__name__)
 
 DEFAULT_SPEC_PATH = TOOL_ROOT / "sweep_spec.json"
-DEFAULT_OUTPUT_ROOT = TOOL_ROOT.parents[1] / "assets" / "param-sweeps"
-"""``<haidra-assets>/assets/param-sweeps``: the library's home in this repository."""
+OUTPUT_ROOT_VARIABLE = "PARAM_SWEEPS_OUTPUT_ROOT"
+"""Environment variable naming the library's output root when ``--output-root`` is not given."""
 
-DEFAULT_PROMO_OUTPUT_ROOT = TOOL_ROOT.parents[1] / "assets" / PROMO_DIRECTORY_NAME
-"""``<haidra-assets>/assets/promo``: the share cards, beside the library rather than inside it."""
+PROMO_OUTPUT_ROOT_VARIABLE = "PARAM_SWEEPS_PROMO_OUTPUT_ROOT"
+"""Environment variable naming the promo tree's root when its flag is not given."""
 
-DEFAULT_SAMPLER_COST_SPEC_PATH = TOOL_ROOT / "signoff_solver_knobs_spec.json"
+DEFAULT_OUTPUT_ROOT = TOOL_ROOT / "output" / "param-sweeps"
+"""``<repository>/output/param-sweeps``: the library's root when neither the flag nor the variable is set."""
+
+DEFAULT_PROMO_OUTPUT_ROOT = TOOL_ROOT / "output" / PROMO_DIRECTORY_NAME
+"""``<repository>/output/promo``: the share cards and gallery, beside the library rather than inside it."""
+
+DEFAULT_SAMPLER_COST_SPEC_PATH = TOOL_ROOT / "sweep_spec.json"
 """The specification the sampler measurement takes its models, geometry, seed and cfg scale from."""
 
-DEFAULT_SAMPLER_COST_MODEL_SLUGS = ("deliberate", "sdxl-1-0")
-"""One SD1.5 model and one SDXL model, the pair the sampler sign-off batch was rendered with."""
+DEFAULT_SAMPLER_COST_MODEL_SLUGS = ("deliberate", "albedobase-xl")
+"""One SD1.5 model and one SDXL model from the sweep specification."""
 
 DEFAULT_ALCHEMY_SPEC_PATH = TOOL_ROOT / "alchemy_spec.json"
 """The specification placing every alchemy form the shared vocabulary names into a use case."""
 
-DEFAULT_GALLERY_SPEC_PATH = TOOL_ROOT.parents[3] / "promo" / "spec" / "gallery.json"
-"""The frontpage's gallery specification: the pictures, texts and conversations it wants made."""
-
-DEFAULT_GALLERY_OUTPUT_ROOT = DEFAULT_PROMO_OUTPUT_ROOT / "gallery"
-"""``<haidra-assets>/assets/promo/gallery``: the gallery beside the share cards."""
+DEFAULT_GALLERY_SPEC_PATH = TOOL_ROOT / "gallery_spec.json"
+"""The gallery specification: the promo pictures, texts and conversations to make."""
 
 DEFAULT_FLOWS_SPEC_PATH = TOOL_ROOT / "flows_spec.json"
-DEFAULT_FLOWS_OUTPUT_ROOT = DEFAULT_OUTPUT_ROOT / "tutorials"
-"""The evidence library's tutorial tree, which is the consumer of the flows this tool generates."""
 
 PUBLISHING_COMMANDS = frozenset({"manifest", "upload", "verify"})
 """The subcommands that work from the rendered library and never read the specification."""
@@ -159,8 +162,30 @@ class AlchemyBackendChoice(StrEnum):
     IMAGE_UTILITIES = "hiu"
 
 
+def resolve_output_root() -> Path:
+    """Return the library's output root: ``PARAM_SWEEPS_OUTPUT_ROOT`` if set, else the repository default."""
+    return _root_from_environment(variable_name=OUTPUT_ROOT_VARIABLE, fallback=DEFAULT_OUTPUT_ROOT)
+
+
+def resolve_promo_output_root() -> Path:
+    """Return the promo tree's root: ``PARAM_SWEEPS_PROMO_OUTPUT_ROOT`` if set, else the repository default."""
+    return _root_from_environment(variable_name=PROMO_OUTPUT_ROOT_VARIABLE, fallback=DEFAULT_PROMO_OUTPUT_ROOT)
+
+
+def _root_from_environment(*, variable_name: str, fallback: Path) -> Path:
+    """Return the directory an environment variable names, or the fallback when it is unset or blank."""
+    from_environment = os.environ.get(variable_name, "").strip()
+    return Path(from_environment) if from_environment else fallback
+
+
 def build_parser() -> argparse.ArgumentParser:
-    """Create the argument parser for every subcommand."""
+    """Create the argument parser for every subcommand.
+
+    The output roots are read from the environment here, once, so every subcommand defaults to the
+    same roots and a flag given on the command line still takes precedence over both.
+    """
+    output_root = resolve_output_root()
+    promo_output_root = resolve_promo_output_root()
     parser = argparse.ArgumentParser(
         prog="param-sweeps",
         description="Render the parameter-sweep illustration library from its specification.",
@@ -168,20 +193,20 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     plan_parser = subparsers.add_parser("plan", help="print the fetch plan and image count, and generate nothing")
-    _add_common_arguments(plan_parser)
+    _add_common_arguments(plan_parser, output_root=output_root)
     _add_local_arguments(plan_parser)
 
     local_parser = subparsers.add_parser("local", help="render through horde-engine on this machine's GPU")
-    _add_common_arguments(local_parser)
+    _add_common_arguments(local_parser, output_root=output_root)
     _add_local_arguments(local_parser)
 
     horde_parser = subparsers.add_parser("horde", help="render through the public AI Horde API")
-    _add_common_arguments(horde_parser)
+    _add_common_arguments(horde_parser, output_root=output_root)
     horde_parser.add_argument(
         "--env-file",
         type=Path,
         default=None,
-        help="the .env holding AIHORDE_DEV_KEY (default: the frontpage repository's, if present)",
+        help="the .env holding AIHORDE_DEV_KEY (default: PARAM_SWEEPS_ENV_FILE or the repository .env)",
     )
     horde_parser.add_argument("--api-url", default=None, help="the API root to use instead of the public horde")
 
@@ -198,7 +223,7 @@ def build_parser() -> argparse.ArgumentParser:
     sampler_cost_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the output tree's root; the artifact lands in its measurements directory",
     )
     sampler_cost_parser.add_argument(
@@ -255,7 +280,7 @@ def build_parser() -> argparse.ArgumentParser:
     step_preview_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the output tree's root",
     )
     _add_local_arguments(step_preview_parser)
@@ -280,7 +305,7 @@ def build_parser() -> argparse.ArgumentParser:
     alchemy_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the output tree's root; the evidence lands in its alchemy directory",
     )
     alchemy_parser.add_argument(
@@ -348,7 +373,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--env-file",
         type=Path,
         default=None,
-        help="the .env holding AIHORDE_DEV_KEY, for --backend api (default: the frontpage repository's)",
+        help=(
+            "the .env holding AIHORDE_DEV_KEY, for --backend api"
+            " (default: PARAM_SWEEPS_ENV_FILE or the repository .env)"
+        ),
     )
     alchemy_parser.add_argument("--api-url", default=None, help="the API root to use instead of the public horde")
     alchemy_parser.add_argument("--verbose", action="store_true", help="log at debug level")
@@ -366,15 +394,15 @@ def build_parser() -> argparse.ArgumentParser:
     flows_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_FLOWS_OUTPUT_ROOT,
-        help="the tutorial asset tree to write into (default: the frontpage's)",
+        default=output_root / TUTORIALS_DIRECTORY_NAME,
+        help="the tutorial asset tree to write into (default: tutorials/ under the library's output root)",
     )
     flows_parser.add_argument("--flow", action="append", default=[], help="restrict the run to this flow id")
     flows_parser.add_argument(
         "--env-file",
         type=Path,
         default=None,
-        help="the .env holding AIHORDE_DEV_KEY (default: the frontpage repository's, if present)",
+        help="the .env holding AIHORDE_DEV_KEY (default: PARAM_SWEEPS_ENV_FILE or the repository .env)",
     )
     flows_parser.add_argument("--api-url", default=None, help="the API root to use instead of the public horde")
     flows_parser.add_argument(
@@ -408,11 +436,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     review_parser = subparsers.add_parser(
         "review",
-        help="write a static contact sheet of what a batch produced, for visual sign-off",
+        help="write a static contact sheet of what a batch produced, for visual review",
     )
     review_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
-    review_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
-    review_parser.add_argument("--title", default="Sign-off contact sheet", help="the heading the sheet carries")
+    review_parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
+    review_parser.add_argument("--title", default="Review contact sheet", help="the heading the sheet carries")
     review_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
     choose_parser = subparsers.add_parser(
@@ -421,8 +449,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     choose_parser.add_argument("choices", type=Path, help="the file the sheet's Save choices button downloaded")
     choose_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the specification to update")
-    choose_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
-    choose_parser.add_argument("--title", default="Sign-off contact sheet", help="the refreshed sheet's heading")
+    choose_parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
+    choose_parser.add_argument("--title", default="Review contact sheet", help="the refreshed sheet's heading")
     choose_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
     control_maps_parser = subparsers.add_parser(
@@ -438,7 +466,7 @@ def build_parser() -> argparse.ArgumentParser:
     control_maps_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the output tree's root; each map lands beside the render it guided",
     )
     control_maps_parser.add_argument(
@@ -483,7 +511,7 @@ def build_parser() -> argparse.ArgumentParser:
     derivatives_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the output tree's root; every file lands beside the frame it came from",
     )
     derivatives_parser.add_argument(
@@ -513,13 +541,13 @@ def build_parser() -> argparse.ArgumentParser:
     promo_parser.add_argument(
         "--output-root",
         type=Path,
-        default=DEFAULT_OUTPUT_ROOT,
+        default=output_root,
         help="the library's root, which the frames are read from",
     )
     promo_parser.add_argument(
         "--promo-root",
         type=Path,
-        default=DEFAULT_PROMO_OUTPUT_ROOT,
+        default=promo_output_root,
         help="where the cards and their manifest are written",
     )
     promo_parser.add_argument(
@@ -539,19 +567,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--spec",
         type=Path,
         default=DEFAULT_GALLERY_SPEC_PATH,
-        help="the gallery specification to read (default: the frontpage's)",
+        help="the gallery specification to read",
     )
     gallery_parser.add_argument(
         "--out",
         type=Path,
-        default=DEFAULT_GALLERY_OUTPUT_ROOT,
+        default=promo_output_root / GALLERY_DIRECTORY_NAME,
         help="the gallery root, which is where gallery.json lands",
     )
     gallery_parser.add_argument(
         "--env-file",
         type=Path,
         default=None,
-        help="the .env holding AIHORDE_DEV_KEY (default: the frontpage repository's, if present)",
+        help="the .env holding AIHORDE_DEV_KEY (default: PARAM_SWEEPS_ENV_FILE or the repository .env)",
     )
     gallery_parser.add_argument("--only", default="", help="restrict the run to these entry ids, comma-separated")
     gallery_parser.add_argument(
@@ -575,7 +603,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     index_parser = subparsers.add_parser("index", help="rebuild index.json from the images already on disk")
     index_parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
-    index_parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
+    index_parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
     index_parser.add_argument("--verbose", action="store_true", help="log at debug level")
 
     qr_check_parser = subparsers.add_parser(
@@ -618,10 +646,10 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _add_common_arguments(parser: argparse.ArgumentParser) -> None:
+def _add_common_arguments(parser: argparse.ArgumentParser, *, output_root: Path) -> None:
     """Add the specification, output and filter arguments every rendering subcommand shares."""
     parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC_PATH, help="the sweep specification to read")
-    parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT, help="the output tree's root")
+    parser.add_argument("--output-root", type=Path, default=output_root, help="the output tree's root")
     parser.add_argument(
         "--parameter",
         action="append",
@@ -667,7 +695,7 @@ def _add_bucket_arguments(parser: argparse.ArgumentParser) -> None:
         "--env-file",
         type=Path,
         default=None,
-        help="the .env holding the PARAM_SWEEPS_S3_* variables (default: the frontpage repository's)",
+        help="the .env with the PARAM_SWEEPS_S3_* variables (default: PARAM_SWEEPS_ENV_FILE or the repository .env)",
     )
     parser.add_argument(
         "--prefix",
@@ -807,9 +835,9 @@ def _evaluations_label(evaluations_per_step: int | None) -> str:
 def _run_sampler_cost(arguments: argparse.Namespace, *, spec: SweepSpec, output_root: Path) -> int:
     """Measure sampler cost, write the artifact and print the summary, returning the exit code.
 
-    Everything held constant comes from the specification, so the measurement is anchored to the
-    same seed and cfg scale the sampler sign-off was rendered at rather than to numbers stated
-    twice. The sampler vocabulary and the schedule pairings come from the shared constraints table.
+    Everything held constant comes from the specification, so the seed and cfg scale are stated
+    once, in the specification, and recorded in the report. The sampler vocabulary and the schedule
+    pairings come from the shared constraints table.
     """
     try:
         models = _sampler_cost_models(spec=spec, requested_slugs=tuple(arguments.model))
@@ -1216,7 +1244,8 @@ def _run_qr_check(arguments: argparse.Namespace) -> int:
     published one candidate at a time and a human's pick is the last thing that decides which
     image a reader points a phone at.
     """
-    report = check_library(output_root=arguments.output_root)
+    _, output_root = _publish_tree(arguments)
+    report = check_library(output_root=output_root)
 
     for check in report.checks:
         verdict = "scans" if check.scans else f"FAILED (read {check.decoded!r})"
@@ -1272,7 +1301,7 @@ def _run_publishing_command(arguments: argparse.Namespace) -> int:
 def _publish_tree(arguments: argparse.Namespace) -> tuple[PublishTree, Path]:
     """Return the tree a publishing command works on and its root, defaulted by the tree."""
     tree = PublishTree(arguments.tree)
-    default_root = DEFAULT_PROMO_OUTPUT_ROOT if tree is PublishTree.PROMO else DEFAULT_OUTPUT_ROOT
+    default_root = resolve_promo_output_root() if tree is PublishTree.PROMO else resolve_output_root()
     root: Path = arguments.output_root if arguments.output_root is not None else default_root
     return tree, root
 

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Render a contact sheet of what a batch produced, for a human to sign off before anything ships.
+"""Render a contact sheet of what a batch produced, for a person to review before anything ships.
 
 The sheet is one static HTML file written into the output tree, so every image reference is the
 path the index already states and opening the file in a browser needs no server, no build step
@@ -57,7 +57,7 @@ CONTACT_SHEET_FILENAME = "review.html"
 CHOICES_SCHEMA_VERSION = 1
 """The choices-file layout this module writes from the sheet and reads back into the spec."""
 
-CHOICES_FILENAME = "signoff_choices.json"
+CHOICES_FILENAME = "choices.json"
 """What the sheet's save button names its download, and what ``choose`` expects to be handed."""
 
 SECTION_TITLES: dict[BatchSection, str] = {
@@ -65,7 +65,7 @@ SECTION_TITLES: dict[BatchSection, str] = {
     BatchSection.DIALECT_COMPARISON: "B. Dialect comparison",
     BatchSection.FEATURE_PROBES: "C. Feature feasibility probes",
     BatchSection.SUSPECT_CLAIMS: "D. Claims awaiting a visual ruling",
-    BatchSection.MINTED_GOLDENS: "E. Reference images minted this wave",
+    BatchSection.REFERENCE_IMAGES: "E. Reference images",
     BatchSection.RAW_BACKEND: "F. Raw-backend renders (no coercion in the path)",
 }
 """What each batch section is called on the sheet, in the order the batch was written in."""
@@ -171,7 +171,7 @@ figcaption dd { margin: 0; overflow-wrap: anywhere; }
 CHOICES_SCRIPT = """
 (() => {
   "use strict";
-  const STORAGE_KEY = "param-sweeps-signoff-choices";
+  const STORAGE_KEY = "param-sweeps-review-choices";
   const cells = Array.from(document.querySelectorAll(".candidate[data-choice-key]"));
   if (cells.length === 0) return;
 
@@ -252,7 +252,7 @@ CHOICES_SCRIPT = """
     const blob = new Blob([JSON.stringify(payload, null, 2) + "\\n"], { type: "application/json" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "signoff_choices.json";
+    link.download = "choices.json";
     link.click();
     URL.revokeObjectURL(link.href);
   });

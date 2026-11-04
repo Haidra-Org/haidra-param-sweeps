@@ -13,11 +13,14 @@ from typing import override
 import pytest
 from PIL import Image
 
+from param_sweeps import horde_client
 from param_sweeps.campaign import JobFilter, run_campaign
+from param_sweeps.horde_client import ENV_FILE_VARIABLE
 from param_sweeps.horde_runner import (
     API_KEY_VARIABLE,
     HordeGenerationRequest,
     MissingApiKeyError,
+    default_env_file,
     read_api_key,
 )
 from param_sweeps.local_runner import GpuBackend, HordelibPayload, resolve_gpu_backend
@@ -367,6 +370,35 @@ def test_a_missing_api_key_names_only_the_location(tmp_path: Path, monkeypatch: 
         read_api_key(env_file=env_file)
 
     assert str(env_file) in str(raised.value)
+
+
+def test_the_env_file_variable_wins_over_the_repository_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    repository_root = tmp_path / "repository"
+    repository_root.mkdir()
+    (repository_root / ".env").write_text("SOMETHING=1\n", encoding="utf-8")
+    named_file = tmp_path / "elsewhere.env"
+    monkeypatch.setattr(horde_client, "TOOL_ROOT", repository_root)
+    monkeypatch.setenv(ENV_FILE_VARIABLE, str(named_file))
+
+    assert default_env_file() == named_file
+
+
+def test_the_repository_env_is_used_when_present(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / ".env").write_text("SOMETHING=1\n", encoding="utf-8")
+    monkeypatch.setattr(horde_client, "TOOL_ROOT", tmp_path)
+    monkeypatch.setenv(ENV_FILE_VARIABLE, "  ")
+
+    assert default_env_file() == tmp_path / ".env"
+
+
+def test_there_is_no_default_env_file_without_the_variable_or_a_repository_env(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(horde_client, "TOOL_ROOT", tmp_path)
+    monkeypatch.delenv(ENV_FILE_VARIABLE, raising=False)
+
+    assert default_env_file() is None
 
 
 def test_the_index_carries_the_pair_a_collapsed_card_previews(spec: SweepSpec, tmp_path: Path) -> None:

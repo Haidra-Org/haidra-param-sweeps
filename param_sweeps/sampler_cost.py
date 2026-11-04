@@ -75,7 +75,7 @@ MEASUREMENT_PROMPT = (
     " taut rigging, a sea of clouds below, photograph, 35mm, natural light, sharp focus, highly"
     " detailed, realistic skin texture"
 )
-"""The prompt every timed render uses, carried over from the sampler sign-off batch.
+"""The prompt every timed render uses.
 
 Held identical across the whole measurement. What it depicts does not matter to a timing; that it
 never changes does, because prompt length moves the conditioning cost that lands in the intercept.

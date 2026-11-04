@@ -59,7 +59,7 @@ MODEL = ModelSpec(
     native_height=512,
     anchor_clip_skip=1,
     approximate_download_size_gb=2.1,
-    note="the SD1.5 model the sampler sign-off used",
+    note="an SD1.5 model to measure on",
 )
 
 

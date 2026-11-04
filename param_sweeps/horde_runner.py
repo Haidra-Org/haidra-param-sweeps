@@ -9,7 +9,7 @@ re-rendered from anywhere. The queueing, polling, retrying and downloading all l
 is left here is the one thing that is specific to sweeps, which is turning a
 [`RenderJob`][param_sweeps.spec.RenderJob] into a request body.
 
-The API key is read from the frontpage repository's ``.env`` (or the environment) and is never
+The API key is read from the environment or a ``.env`` file, and is never
 printed, logged, or written to any output.
 
 Critical public members:

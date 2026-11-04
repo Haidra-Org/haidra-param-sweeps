@@ -15,7 +15,7 @@ Unlike the other tools in this directory, this one is not standard-library-only:
 ## What it produces
 
 ```text
-assets/param-sweeps/
+output/param-sweeps/
   index.json                                  everything a web app needs to draw every strip
   steps/icbinp/person/001_4.webp              the image
   steps/icbinp/person/001_4.json              its sidecar: full params, model, seed, runner, timings
@@ -208,7 +208,7 @@ made scans is the failure this whole section exists to prevent.
 ## Setup
 
 ```sh
-cd docs/haidra-assets/tools/param_sweeps
+cd haidra-param-sweeps
 
 # The tool, its tests and its linters. No GPU stack.
 uv sync --group dev
@@ -268,9 +268,9 @@ export AIWORKER_CACHE_HOME=/path/to/your/worker/cache
 
 ### The horde runner and its key
 
-The runner reads `AIHORDE_DEV_KEY` from the environment, and failing that from the frontpage
-repository's `.env` (`../../../../.env` from this directory), which is the default. Point it
-somewhere else with `--env-file` or `PARAM_SWEEPS_ENV_FILE`. The key is only ever put in a request
+The runner reads `AIHORDE_DEV_KEY` from the environment, and failing that from a `.env` file:
+the one named by `PARAM_SWEEPS_ENV_FILE`, else the `.env` at the root of this repository if it
+exists. Point it somewhere else with `--env-file`. The key is only ever put in a request
 header: it is never printed, logged or written into any output.
 
 ## Running
@@ -299,8 +299,8 @@ uv run param-sweeps upload --dry-run
 Both runners print the fetch plan (models, approximate download size, whether each is already on
 disk, image counts) and the total image count before they generate anything.
 
-By default the library is written to `assets/param-sweeps/` at the root of this repository. Send it
-elsewhere with `--output-root`.
+By default the library is written to `output/param-sweeps/` at the root of this repository. Send it
+elsewhere with `--output-root` or `PARAM_SWEEPS_OUTPUT_ROOT`. The flag wins over the variable.
 
 ## Signing off a batch
 
@@ -308,15 +308,15 @@ A specification with `batches` is reviewed from a contact sheet before anything 
 
 ```sh
 # Write review.html at the root of the output tree
-uv run param-sweeps review --spec signoff_batch_spec.json
+uv run param-sweeps review --spec path/to/batch_spec.json
 
 # Write the picks saved from the sheet back into the specification, and refresh the sheet
-uv run param-sweeps choose --spec signoff_batch_spec.json path/to/signoff_choices.json
+uv run param-sweeps choose --spec path/to/batch_spec.json path/to/choices.json
 ```
 
 Open `review.html` straight from disk. A job that rendered several candidates shows all of them
 with the current pick outlined; click (or focus and press Enter) a candidate to pick it instead,
-then use **Save choices** to download `signoff_choices.json`. Picks are kept in the browser's
+then use **Save choices** to download `choices.json`. Picks are kept in the browser's
 local storage until saved, so a review can span sittings. The `choose` subcommand validates the
 file against the specification, updates only the `chosen` fields, and rewrites the sheet so its
 outlines match. The sheet renders fully without JavaScript; picking by hand in the specification
@@ -338,8 +338,8 @@ box, so an answer the option set does not cover is still recorded as an answer.
 ```jsonc
 "rulings": [
   {
-    "ruling_set_id": "signoff-solver-knobs",   // what saved answers are keyed by
-    "title": "Rulings this wave needs",
+    "ruling_set_id": "schedule-review",        // what saved answers are keyed by
+    "title": "Rulings this review needs",
     "items": [
       {
         "ruling_id": "dpmpp-3m-sde-normal",
@@ -373,14 +373,14 @@ the page:
 ```jsonc
 {
   "schema_version": 1,
-  "ruling_set_id": "signoff-solver-knobs",
+  "ruling_set_id": "schedule-review",
   "exported_at": "2026-08-03T19:11:43.333Z",
   "answered_count": 4,
   "total_count": 11,
   "unanswered": ["karras-at-low-steps"],
   "rulings": {
     "dpmpp-3m-sde-normal": { "control": "radio", "answer": "confirmed", "comment": "" },
-    "minted-golden-correctness": { "control": "checkbox-set", "selected": ["seeds_2"], "comment": "" },
+    "golden-approvals": { "control": "checkbox-set", "selected": ["seeds_2"], "comment": "" },
     "schedule-character-claims": { "control": "row-select", "rows": { "beta": "accurate" }, "comment": "" }
   }
 }
@@ -582,7 +582,7 @@ once at the root of the tree and every entry points at one of them:
 | `fix_faces` | the degraded portrait from hordelib's face fix tests, the kind of picture blind face restoration was built for |
 | `cut_out` | the robot gardener, whose silhouette is clean enough to see where the cut fell |
 
-`assets/param-sweeps/alchemy/manifest.json` lists every placed form whether or not it produced
+`output/param-sweeps/alchemy/manifest.json` lists every placed form whether or not it produced
 anything. An entry with no result is the honest report that the form could not be run here, and its
 notes say why; leaving it out would tell a reader the form does not exist. Two things make that a
 routine state rather than a failure:
@@ -622,7 +622,7 @@ stay disclosed through their manifest entries, which is the surface built to adm
 `flows_spec.json` holds the tutorial worked examples the Learn area's technique pages and studio
 walkthroughs read: one committed request per technique, in each of the three worlds where the
 technique can be drawn, with a `--w2` / `--w3` suffix on the world variants. `flows` renders them
-and writes `assets/param-sweeps/tutorials/<flow>/` (the result, the source and mask where there is
+and writes `output/param-sweeps/tutorials/<flow>/` (the result, the source and mask where there is
 one, `reference-N.webp` for each extra image a remix blended in, the published request with its
 image fields as placeholders, and `meta.json`) and then rebuilds `tutorials/manifest.json` from
 whatever is on disk.
@@ -708,7 +708,7 @@ Two kinds of work:
   outline and glow, and its subtitle may run to two lines before it is cut.
 
 Cards are promotional material cut from the evidence rather than evidence, so they never go into the
-library. They land in `assets/promo/` beside it (`--promo-root`), with `cards.json` at the root naming
+library. They land in `output/promo/` beside it (`--promo-root` or `PARAM_SWEEPS_PROMO_OUTPUT_ROOT`), with `cards.json` at the root naming
 every card by key, and publish as their own tree under their own prefix: see the runbook below.
 
 ## The promo gallery
@@ -726,15 +726,15 @@ uv run param-sweeps gallery --skip-text --skip-conversations
 uv run param-sweeps gallery --retry-censored   # offer the entries the safety checker refused again
 ```
 
-The specification belongs to the consumer, like the promo cards' does: the frontpage keeps its own
-at `promo/spec/gallery.json`, which is the default. It carries the API root and client agent, the
+The default specification is `gallery_spec.json` at the root of this repository. Pass another
+with `--spec`. It carries the API root and client agent, the
 default parameters and the preferred models of each family, then three lists. An **image** entry has
 an id, a prompt, a family, its preferred models, a fixed seed, the alchemy forms to apply to it, and
 its `tags`, which are what the site queries the gallery by. A **text** entry is one instruction with
 a `max_length`. A **conversation** entry is an id, a `format` of `instruct` or `raw`, a list of
 `turns` and a `max_length`.
 
-Results land under `assets/promo/gallery` (`--out`): a picture and its `meta.json` per image entry,
+Results land under `gallery/` in the promo root (`--out`): a picture and its `meta.json` per image entry,
 `text/<id>/` for the single-turn texts, `conversations/<id>/` for the threads, and `gallery.json` at
 the root naming all of it. The key is read from `AIHORDE_DEV_KEY` exactly as `flows` does.
 
@@ -770,7 +770,7 @@ as what the horde can do rather than as what a first-time visitor should expect.
 
 ## Publishing
 
-The library is around 70 MiB across 1400 files, so it is not committed: `assets/param-sweeps/` is
+The library is around 70 MiB across 1400 files, so it is not committed: `output/` is
 gitignored, and the published copy lives in S3-compatible object storage. The intended host is
 Cloudflare R2, which is a plain S3 API behind an account endpoint URL; nothing in the tool is
 specific to it, and an AWS bucket or MinIO works the same way with a different endpoint.
@@ -826,10 +826,11 @@ qualification.
 
 ### Configuration
 
-Every setting is an environment variable, read from the process environment first and from a `.env`
-second (by default the frontpage repository's, the same file the API key lives in, which is
-gitignored; point elsewhere with `--env-file`). The secret is only ever handed to the S3 client: it
-is never logged, printed or written into any output.
+Every publishing setting is an environment variable, read from the process environment first and
+from a `.env` second. That file is the one named by `PARAM_SWEEPS_ENV_FILE`, else the `.env` at the
+root of this repository, which also holds the API key and is gitignored. Point elsewhere with
+`--env-file`. The secret is only ever handed to the S3 client: it is never logged, printed or
+written into any output.
 
 | Variable | Required | Meaning |
 | --- | --- | --- |
@@ -839,6 +840,14 @@ is never logged, printed or written into any output.
 | `PARAM_SWEEPS_S3_SECRET_ACCESS_KEY` | yes | That token's secret. |
 | `PARAM_SWEEPS_S3_PREFIX` | no | A key prefix, so one bucket can hold more than one thing. Defaults to the bucket root. Overridden by `--prefix`. |
 | `PARAM_SWEEPS_S3_REGION` | no | Defaults to `auto`, which is what R2 wants. An AWS bucket wants its real region. |
+
+Two more variables set where output goes on disk. They are read from the process environment only,
+not from a `.env`, and a flag on the command line wins over either one.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PARAM_SWEEPS_OUTPUT_ROOT` | `output/param-sweeps` in this repository | The library's root, for every subcommand with `--output-root`. The tutorial flows write to `tutorials/` under it. |
+| `PARAM_SWEEPS_PROMO_OUTPUT_ROOT` | `output/promo` in this repository | The promo tree's root: the share cards (`--promo-root`), the gallery (`gallery/` under it, `--out`) and `--tree promo`. |
 
 ### Runbook
 
@@ -914,15 +923,15 @@ starts from, so they are held for five minutes and no longer.
 
 `manifest`, `upload` and `verify` take `--tree sweeps` (the default: the library, from `index.json`
 and the two manifests) or `--tree promo` (the share cards, from `cards.json`). The promo tree
-defaults to `assets/promo/` on disk and to the key prefix `promo` on the bucket, so the library's
+defaults to `output/promo/` on disk (or `PARAM_SWEEPS_PROMO_OUTPUT_ROOT`) and to the key prefix `promo` on the bucket, so the library's
 prefix holds only what a page cites as evidence; `--prefix` still overrides it. The runbook is the
 same shape:
 
 ```sh
 uv run param-sweeps verify --tree promo --local
-uv run param-sweeps upload --tree promo --env-file ../../.env --dry-run
-uv run param-sweeps upload --tree promo --env-file ../../.env
-uv run param-sweeps verify --tree promo --env-file ../../.env
+uv run param-sweeps upload --tree promo --dry-run
+uv run param-sweeps upload --tree promo
+uv run param-sweeps verify --tree promo
 ```
 
 ## Checks

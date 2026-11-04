@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "seed": 100000,
+  "anchor": {
+    "sampler_name": "k_euler_a",
+    "cfg_scale": 7,
+    "steps": 30,
+    "karras": true,
+    "denoising_strength": 1,
+    "hires_fix": false,
+    "tiling": false
+  },
+  "models": [
+    {
+      "slug": "deliberate",
+      "horde_name": "Deliberate",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 2.1,
+      "note": "An SD1.5 model."
+    },
+    {
+      "slug": "albedobase-xl",
+      "horde_name": "AlbedoBase XL (SDXL)",
+      "baseline": "stable_diffusion_xl",
+      "native_width": 1024,
+      "native_height": 1024,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 6.8,
+      "note": "An SDXL model."
+    },
+    {
+      "slug": "flux-schnell",
+      "horde_name": "Flux.1-Schnell fp8 (Compact)",
+      "baseline": "flux_1",
+      "native_width": 1024,
+      "native_height": 1024,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 17.2,
+      "note": "A Flux model."
+    }
+  ],
+  "batches": [
+    {
+      "section": "a-world-scenes",
+      "title": "Scenes",
+      "rationale": "A curated scene that a later job uses as its source.",
+      "holds": {
+        "n": 2
+      },
+      "jobs": [
+        {
+          "job_id": "a-harbor-albedobase",
+          "model_slug": "albedobase-xl",
+          "caption": "A harbor at morning",
+          "seed": 100001,
+          "prompt": "a small harbor at morning, fishing boats, calm water",
+          "negative_prompt": "lowres, blurry, watermark",
+          "chosen": 1
+        }
+      ]
+    },
+    {
+      "section": "b-dialects",
+      "title": "Dialect comparison",
+      "rationale": "One seed, two phrasings.",
+      "holds": {
+        "seed": 100002,
+        "n": 1
+      },
+      "jobs": [
+        {
+          "job_id": "b-deck-tags",
+          "model_slug": "deliberate",
+          "caption": "Tags on an SD1.5 model",
+          "prompt": "deck, airship, sunset, clouds",
+          "negative_prompt": "lowres, blurry"
+        },
+        {
+          "job_id": "b-deck-prose",
+          "model_slug": "flux-schnell",
+          "caption": "Prose on Flux",
+          "sampler_name": "k_euler",
+          "steps": 4,
+          "cfg_scale": 1,
+          "prompt": "The deck of an airship at sunset, above a sea of clouds."
+        }
+      ]
+    },
+    {
+      "section": "c-feature-probes",
+      "title": "Feature probes",
+      "rationale": "One job per feature field.",
+      "jobs": [
+        {
+          "job_id": "c-canny-map",
+          "model_slug": "deliberate",
+          "caption": "The canny edge map of the harbor",
+          "seed": 100003,
+          "prompt": "a small harbor at morning",
+          "source_image": "inputs/staged-fixture-harbor.webp",
+          "requires_source_from": "a-harbor-albedobase",
+          "control_type": "canny",
+          "return_control_map": true,
+          "source_processing": "img2img"
+        },
+        {
+          "job_id": "c-qr-forest",
+          "model_slug": "albedobase-xl",
+          "caption": "QR candidates",
+          "seed": 100004,
+          "width": 1024,
+          "height": 1024,
+          "sampler_name": "k_euler",
+          "cfg_scale": 4,
+          "steps": 25,
+          "n": 8,
+          "prompt": "aerial view of a dense autumn forest",
+          "negative_prompt": "low contrast",
+          "workflow": "qr_code",
+          "extra_texts": [
+            {
+              "text": "https://aihorde.net",
+              "reference": "qr_code"
+            }
+          ],
+          "karras": false,
+          "control_strength": 1.2,
+          "chosen": 3
+        },
+        {
+          "job_id": "c-transparent-fox",
+          "model_slug": "albedobase-xl",
+          "caption": "Transparent cutout of a fox",
+          "seed": 100005,
+          "n": 4,
+          "prompt": "a fox mid-leap, isolated on a plain background",
+          "negative_prompt": "background, scenery",
+          "transparent": true,
+          "chosen": 2
+        },
+        {
+          "job_id": "c-transparent-lantern",
+          "model_slug": "albedobase-xl",
+          "caption": "Transparent cutout of a lantern",
+          "seed": 100006,
+          "n": 4,
+          "prompt": "a paper lantern, isolated on a plain background",
+          "negative_prompt": "background, scenery",
+          "transparent": true,
+          "chosen": 2
+        }
+      ]
+    }
+  ]
+}

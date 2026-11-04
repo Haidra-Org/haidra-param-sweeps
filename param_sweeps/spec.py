@@ -800,8 +800,8 @@ class BatchSection(StrEnum):
     SUSPECT_CLAIMS = "d-suspect-claims"
     """Renders that exist to be ruled on: each one answers a claim nobody has confirmed by eye."""
 
-    MINTED_GOLDENS = "e-minted-goldens"
-    """The reference images this wave minted, re-rendered from their own parameters for review."""
+    REFERENCE_IMAGES = "e-reference-images"
+    """New reference images, re-rendered from their own parameters for review."""
 
     RAW_BACKEND = "f-raw-backend"
     """Images produced by driving the backend directly, for claims the rendering path itself alters."""

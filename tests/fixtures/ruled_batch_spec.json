@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "seed": 100000,
+  "anchor": {
+    "sampler_name": "k_euler",
+    "cfg_scale": 7,
+    "steps": 25,
+    "karras": true,
+    "denoising_strength": 1,
+    "hires_fix": false,
+    "tiling": false
+  },
+  "models": [
+    {
+      "slug": "deliberate",
+      "horde_name": "Deliberate",
+      "baseline": "stable_diffusion_1",
+      "native_width": 512,
+      "native_height": 512,
+      "anchor_clip_skip": 1,
+      "approximate_download_size_gb": 2.1,
+      "note": "An SD1.5 model."
+    }
+  ],
+  "batches": [
+    {
+      "section": "d-suspect-claims",
+      "title": "Claims to check",
+      "rationale": "Two renders that differ only in the schedule.",
+      "holds": {
+        "seed": 100010,
+        "n": 1
+      },
+      "jobs": [
+        {
+          "job_id": "schedule-normal",
+          "model_slug": "deliberate",
+          "caption": "The normal schedule",
+          "scheduler": "normal",
+          "prompt": "a lighthouse on a cliff"
+        },
+        {
+          "job_id": "schedule-karras",
+          "model_slug": "deliberate",
+          "caption": "The karras schedule",
+          "scheduler": "karras",
+          "prompt": "a lighthouse on a cliff"
+        }
+      ]
+    }
+  ],
+  "rulings": [
+    {
+      "ruling_set_id": "first-review",
+      "title": "Questions for the first review",
+      "items": [
+        {
+          "ruling_id": "single-answer",
+          "title": "A claim to affirm or reject",
+          "question": "Does the render show what the claim says it shows?",
+          "control": "radio",
+          "evidence_sections": ["d-suspect-claims"],
+          "evidence_job_ids": ["schedule-normal"],
+          "options": [
+            {"choice_id": "affirm", "label": "Affirm"},
+            {"choice_id": "reject", "label": "Reject"}
+          ]
+        },
+        {
+          "ruling_id": "approvals",
+          "title": "Images to approve one by one",
+          "question": "Which of these are correct?",
+          "control": "checkbox-set",
+          "master_toggle_label": "Approve all listed",
+          "options": [
+            {"choice_id": "normal", "label": "normal", "evidence_job_id": "schedule-normal"},
+            {"choice_id": "karras", "label": "karras", "evidence_job_id": "schedule-karras"}
+          ]
+        },
+        {
+          "ruling_id": "per-row",
+          "title": "One answer per row",
+          "question": "Is each description accurate?",
+          "control": "row-select",
+          "options": [
+            {"choice_id": "accurate", "label": "Accurate"},
+            {"choice_id": "inaccurate", "label": "Inaccurate"}
+          ],
+          "rows": [
+            {"row_id": "shared", "label": "answered from the shared set", "evidence_job_id": "schedule-karras"},
+            {
+              "row_id": "its_own",
+              "label": "answered from its own set",
+              "options": [{"choice_id": "authorised", "label": "Authorised"}]
+            }
+          ]
+        },
+        {
+          "ruling_id": "written-out",
+          "title": "An answer with no options at all",
+          "question": "What should the caption say?",
+          "control": "text"
+        }
+      ]
+    },
+    {
+      "ruling_set_id": "follow-up-review",
+      "title": "Questions the first review left open",
+      "items": [
+        {
+          "ruling_id": "karras-at-low-steps",
+          "title": "A follow-up claim",
+          "question": "Does the karras render hold up?",
+          "control": "radio",
+          "evidence_job_ids": ["schedule-karras"],
+          "options": [
+            {"choice_id": "accurate", "label": "Accurate"},
+            {"choice_id": "inaccurate", "label": "Inaccurate"}
+          ]
+        }
+      ]
+    }
+  ]
+}

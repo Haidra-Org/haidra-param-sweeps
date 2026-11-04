@@ -460,6 +460,7 @@ def test_the_subcommand_is_wired_with_its_defaults() -> None:
     assert arguments.dry_run is True
     assert arguments.only == "fox-snow"
     assert arguments.retry_censored is True
-    assert arguments.spec.name == "gallery.json"
+    assert arguments.spec.name == "gallery_spec.json"
+    assert arguments.spec.is_file(), "the default gallery specification is tracked in this repository"
     assert arguments.out.name == "gallery"
     assert (arguments.skip_alchemy, arguments.skip_text, arguments.skip_conversations) == (False, False, False)

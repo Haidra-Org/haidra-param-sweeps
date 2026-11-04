@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Tazlin
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check the review batch: its feature fields, its curation batches, and the sheet it is signed off from."""
+"""Check review batches: their feature fields, their curation batches, their rulings and the contact sheet."""
 
 from __future__ import annotations
 
@@ -44,23 +44,12 @@ from param_sweeps.spec import (
     load_spec,
 )
 
-BATCH_SPEC_PATH = Path(__file__).resolve().parents[1] / "signoff_batch_spec.json"
+FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"
+BATCH_SPEC_PATH = FIXTURES_ROOT / "batch_spec.json"
+"""A small review batch with one job for each feature and curation case these tests exercise."""
 
-WORLD_DESCRIPTOR_BLOCKS = {
-    "w1": (
-        "a woman in her 30s with a sleek silver bob haircut, round copper goggles resting up in her silver hair,"
-        " a patched teal canvas coat, a small brass compass on a cord around her neck"
-    ),
-    "w2": (
-        "1girl, shrine keeper, white haori, red hakama, long black hair, single hairpin,"
-        " (silver fox:1.2) sitting at her side, fox, amber eyes"
-    ),
-    "w3": (
-        "a small rounded gardening robot with weathered orange paint, a single round blue lens for a head,"
-        " a hand-painted daisy decal on its chest plate, young ivy curling around its left arm"
-    ),
-}
-"""The descriptor blocks the batch promises are byte-identical everywhere a world's subject appears."""
+RULED_BATCH_SPEC_PATH = FIXTURES_ROOT / "ruled_batch_spec.json"
+"""A small review batch with two ruling sets, one of which uses every ruling control."""
 
 
 class SolidColourRunner(SweepRunner):
@@ -102,103 +91,6 @@ class SolidColourRunner(SweepRunner):
 @pytest.fixture(scope="module")
 def batch_spec() -> SweepSpec:
     return load_spec(BATCH_SPEC_PATH)
-
-
-def _batch_jobs(spec: SweepSpec) -> list[RenderJob]:
-    return [job for job in spec.expand_jobs() if job.parameter is SweepParameter.BATCH]
-
-
-def test_the_batch_expands_to_the_jobs_and_images_it_promises(batch_spec: SweepSpec) -> None:
-    jobs = batch_spec.expand_jobs()
-    batch_jobs = _batch_jobs(batch_spec)
-
-    assert len(batch_jobs) == 35
-    assert len(jobs) == 40, "the five denoising-strength stops are part of the batch's sign-off too"
-    assert sum(job.batch_size for job in jobs) == 122
-
-    sections = {strip.batch_section for strip in batch_spec.expand_strips() if strip.batch_section is not None}
-    assert sections == {
-        BatchSection.WORLD_SCENES,
-        BatchSection.DIALECT_COMPARISON,
-        BatchSection.FEATURE_PROBES,
-    }, "this batch covers the three sections it was written for; later batches carry the rest"
-
-
-def test_every_world_descriptor_block_is_byte_identical_wherever_its_subject_appears(batch_spec: SweepSpec) -> None:
-    """Assert a world's subject is described with the same bytes in every scene that shows it.
-
-    Two images of a world are only comparable if the subject is described identically; a single
-    reworded adjective is enough to make a reader think the model drifted when the prompt did.
-    """
-    for world, descriptor_block in WORLD_DESCRIPTOR_BLOCKS.items():
-        opening = descriptor_block[:40]
-        carrying_prompts = [job.prompt for job in _batch_jobs(batch_spec) if opening in job.prompt]
-
-        assert carrying_prompts, f"no job carries the {world} descriptor block"
-        for prompt in carrying_prompts:
-            assert descriptor_block in prompt, f"the {world} descriptor block was reworded in: {prompt[:80]}"
-
-
-def test_flux_jobs_obey_the_schedule_its_model_reference_requires(batch_spec: SweepSpec) -> None:
-    """Assert every Flux job runs the sampler, step count and guidance the model can actually take."""
-    flux_jobs = [job for job in batch_spec.expand_jobs() if job.model_slug == "flux-schnell"]
-    assert flux_jobs
-
-    for job in flux_jobs:
-        assert job.sampler_name == "k_euler"
-        # The sampler binding passes denoising strength straight through for
-        # every family, so a value below 1 on a text-to-image job silently
-        # truncates the schedule: thirty-step SD merely loses steps, but
-        # four-step flux comes out as a washed, static-flecked sketch.
-        # Verified by a controlled probe: karras on/off is indistinguishable
-        # on this model, denoise 0.75 vs 1.0 is the whole failure.
-        assert job.denoising_strength == 1.0
-        assert job.steps == 4
-        assert job.cfg_scale == 1.0
-        assert job.negative_prompt == "", "Flux takes no negative prompt"
-
-
-def test_the_models_that_require_clip_skip_two_get_it(batch_spec: SweepSpec) -> None:
-    for job in batch_spec.expand_jobs():
-        if job.model_slug in {"nova-anime-xl", "cyberrealistic-pony"}:
-            assert job.clip_skip == 2
-
-
-def test_the_dialect_comparison_holds_one_seed_and_one_composition(batch_spec: SweepSpec) -> None:
-    dialect_jobs = [
-        job
-        for strip in batch_spec.expand_strips()
-        if strip.batch_section is BatchSection.DIALECT_COMPARISON
-        for job in strip.jobs
-    ]
-
-    assert len(dialect_jobs) == 4
-    assert len({job.seed for job in dialect_jobs}) == 1
-    assert len({job.model_slug for job in dialect_jobs}) == 4
-    assert all(job.batch_size == 1 for job in dialect_jobs), "a comparison must not be curated"
-
-
-def test_the_qr_probe_carries_the_payload_and_the_offsets(batch_spec: SweepSpec) -> None:
-    qr_job = next(job for job in batch_spec.expand_jobs() if job.workflow is WorkflowName.QR_CODE)
-
-    references = {extra_text.reference: extra_text.text for extra_text in qr_job.extra_texts}
-    assert references["qr_code"] == "https://aihorde.net"
-    # The SD1.5 QR path never produced a code a scanner would read (its layer
-    # strengths are fixed inside the graph); the SDXL path decodes reliably at
-    # this strength, verified against a real decoder. The code sits centered:
-    # offsets are omitted on purpose.
-    assert qr_job.model_slug == "albedobase-xl"
-    assert qr_job.control_strength == 1.2
-    assert (qr_job.width, qr_job.height) == (1024, 1024)
-    assert qr_job.batch_size == 8
-
-
-def test_the_canny_probes_declare_where_their_source_comes_from(batch_spec: SweepSpec) -> None:
-    canny_jobs = [job for job in batch_spec.expand_jobs() if job.control_type == "canny"]
-
-    assert len(canny_jobs) == 3
-    assert all(job.requires_source_from == "w1-panorama-albedobase" for job in canny_jobs)
-    assert sum(1 for job in canny_jobs if job.return_control_map) == 1
 
 
 def test_a_qr_workflow_without_its_payload_text_is_rejected() -> None:
@@ -243,23 +135,23 @@ def test_a_curation_batch_writes_every_candidate_and_indexes_the_chosen_one(
         spec=batch_spec,
         runner=runner,
         output_root=tmp_path,
-        job_filter=JobFilter(scene_ids=("c-transparent-albedobase",)),
+        job_filter=JobFilter(scene_ids=("c-transparent-fox",)),
     )
 
     assert result.rendered_count == 1
     directory = tmp_path / "batch/c-feature-probes/albedobase-xl"
     written = sorted(path.name for path in directory.glob("*.webp"))
     assert written == [
-        "005_c-transparent-albedobase_01.webp",
-        "005_c-transparent-albedobase_02.webp",
-        "005_c-transparent-albedobase_03.webp",
-        "005_c-transparent-albedobase_04.webp",
+        "003_c-transparent-fox_01.webp",
+        "003_c-transparent-fox_02.webp",
+        "003_c-transparent-fox_03.webp",
+        "003_c-transparent-fox_04.webp",
     ]
 
     index = SweepIndex.model_validate_json((tmp_path / INDEX_FILENAME).read_text(encoding="utf-8"))
     stop = index.strips[0].stops[0]
     assert stop.batch_size == 4
-    job = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-albedobase")
+    job = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-fox")
     assert stop.file.endswith(f"_{job.chosen_candidate_number:02d}.webp"), "the recorded choice is what publishes"
     assert index.strips[0].features is not None
     assert index.strips[0].features.transparent is True
@@ -375,7 +267,7 @@ def test_the_contact_sheet_groups_the_batch_by_section_and_states_the_payload(
 
     assert "B. Dialect comparison" in sheet
     assert "C. Feature feasibility probes" in sheet
-    assert "batch/b-dialects/flux-schnell/004_b-deck-prose.webp" in sheet
+    assert "batch/b-dialects/flux-schnell/002_b-deck-prose.webp" in sheet
     assert "workflow qr_code" in sheet
     assert "not rendered" in sheet, "a job with no image yet is shown as missing rather than broken"
 
@@ -400,7 +292,7 @@ def test_the_contact_sheet_makes_every_curation_candidate_pickable(batch_spec: S
 def test_apply_choices_writes_the_picks_back_into_the_specification(batch_spec: SweepSpec, tmp_path: Path) -> None:
     spec_copy = tmp_path / "spec.json"
     spec_copy.write_text(BATCH_SPEC_PATH.read_text(encoding="utf-8"), encoding="utf-8")
-    target = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-nova")
+    target = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-lantern")
     choices_path = tmp_path / "choices.json"
     choices_path.write_text(
         json.dumps({"schema_version": 1, "choices": {target.checkpoint_key: 3}}),
@@ -409,7 +301,7 @@ def test_apply_choices_writes_the_picks_back_into_the_specification(batch_spec: 
 
     assert apply_choices(spec_path=spec_copy, choices_path=choices_path) == 1
 
-    updated = next(job for job in load_spec(spec_copy).expand_jobs() if job.scene_id == "c-transparent-nova")
+    updated = next(job for job in load_spec(spec_copy).expand_jobs() if job.scene_id == "c-transparent-lantern")
     assert updated.chosen_candidate == 3
     assert apply_choices(spec_path=spec_copy, choices_path=choices_path) == 0, "the same picks twice change nothing"
 
@@ -417,7 +309,7 @@ def test_apply_choices_writes_the_picks_back_into_the_specification(batch_spec: 
 def test_apply_choices_rejects_a_pick_the_batch_cannot_honour(batch_spec: SweepSpec, tmp_path: Path) -> None:
     spec_copy = tmp_path / "spec.json"
     spec_copy.write_text(BATCH_SPEC_PATH.read_text(encoding="utf-8"), encoding="utf-8")
-    target = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-nova")
+    target = next(job for job in batch_spec.expand_jobs() if job.scene_id == "c-transparent-lantern")
     before = spec_copy.read_text(encoding="utf-8")
 
     out_of_range = tmp_path / "out_of_range.json"
@@ -442,7 +334,7 @@ def test_apply_choices_rejects_a_pick_the_batch_cannot_honour(batch_spec: SweepS
 def _probe_ruling_set() -> RulingSet:
     """Return a ruling set exercising every control the sheet can render.
 
-    Its evidence names jobs the checked-in batch really renders, so a link that goes nowhere is a
+    Its evidence names jobs the fixture batch really renders, so a link that goes nowhere is a
     test failure rather than something a reviewer discovers by clicking it.
     """
     return RulingSet(
@@ -697,6 +589,48 @@ def test_a_ruling_citing_evidence_the_batch_does_not_render_is_rejected() -> Non
 
     with pytest.raises(ValidationError, match="cites jobs no batch renders"):
         SweepSpec.model_validate(raw)
+
+
+def test_a_specification_file_holds_several_ruling_sets_in_order() -> None:
+    """Assert ruling sets load from a file in the order they are written, each found by its id."""
+    ruled_spec_from_file = load_spec(RULED_BATCH_SPEC_PATH)
+
+    assert [ruling_set.ruling_set_id for ruling_set in ruled_spec_from_file.rulings] == [
+        "first-review",
+        "follow-up-review",
+    ]
+    follow_up = ruled_spec_from_file.ruling_set_for_id("follow-up-review")
+    assert [item.ruling_id for item in follow_up.items] == ["karras-at-low-steps"]
+    with pytest.raises(KeyError, match="no ruling set"):
+        ruled_spec_from_file.ruling_set_for_id("missing-review")
+
+
+def test_every_ruling_that_picks_from_a_set_presents_the_escape() -> None:
+    """Assert every ruling and every row offers the escape option, and a free-text ruling offers no options."""
+    ruled_spec_from_file = load_spec(RULED_BATCH_SPEC_PATH)
+
+    for item in (item for ruling_set in ruled_spec_from_file.rulings for item in ruling_set.items):
+        if item.control is RulingControl.TEXT:
+            assert item.presented_options() == []
+        elif item.control is RulingControl.ROW_SELECT:
+            for row in item.rows:
+                offered = [option.choice_id for option in item.presented_options(row=row)]
+                assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id}/{row.row_id} offers no escape"
+        else:
+            offered = [option.choice_id for option in item.presented_options()]
+            assert offered[-1] == RULING_OTHER_OPTION_ID, f"{item.ruling_id} offers no escape"
+
+    per_row = next(item for item in ruled_spec_from_file.rulings[0].items if item.ruling_id == "per-row")
+    shared_row, own_row = per_row.rows
+    assert [option.choice_id for option in per_row.presented_options(row=shared_row)] == [
+        "accurate",
+        "inaccurate",
+        RULING_OTHER_OPTION_ID,
+    ]
+    assert [option.choice_id for option in per_row.presented_options(row=own_row)] == [
+        "authorised",
+        RULING_OTHER_OPTION_ID,
+    ]
 
 
 def _minimal_job_fields() -> dict[str, object]:
