@@ -6,11 +6,15 @@ summary: "Routes to the explanation, reference and how-to documents for the para
 # haidra-param-sweeps
 
 `param-sweeps` renders the AI Horde parameter-sweep illustration library from a declarative specification, through
-the public horde or on a local GPU.
+the public horde or on a local GPU, and publishes it to S3-compatible object storage.
 
-> The documents below are not written yet. The repository
-> [README](https://github.com/Haidra-Org/haidra-param-sweeps/blob/main/README.md) holds the current documentation.
+- [Explanation](explanation/README.md): the design of the library and the reasons for it. Why each strip varies one
+  parameter, how QR codes are made to scan, how the alchemy evidence and the sampler cost measurement are built, and
+  how publishing and caching work.
+- [Reference](reference/README.md): exact contracts. The specification formats, every subcommand and flag, the
+  environment variables, the output tree and the publishing contract.
+- [How-to](how-to/README.md): procedures. Setting up each runner, rendering and regenerating strips, reviewing a
+  batch, the alchemy, tutorial, share card and gallery campaigns, measuring sampler cost, and publishing.
 
-- [Explanation](explanation/README.md): how the specification, the runners and the output tree fit together.
-- [Reference](reference/README.md): the specification format, the command line and the output layout.
-- [How-to](how-to/README.md): procedures for rendering, resuming, signing off a batch and publishing.
+The repository [README](https://github.com/Haidra-Org/haidra-param-sweeps/blob/main/README.md) covers installation
+and a first run.

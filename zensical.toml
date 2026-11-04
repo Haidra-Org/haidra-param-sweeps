@@ -10,12 +10,32 @@ nav = [
     { "Home" = "README.md" },
     { "Explanation" = [
         { "Overview" = "explanation/README.md" },
+        { "One parameter per strip" = "explanation/one-parameter-per-strip.md" },
+        { "QR codes that scan" = "explanation/qr-codes.md" },
+        { "Alchemy evidence" = "explanation/alchemy-evidence.md" },
+        { "Sampler cost measurement" = "explanation/sampler-cost-measurement.md" },
+        { "Publishing and caching" = "explanation/publishing-and-caching.md" },
     ] },
     { "Reference" = [
         { "Overview" = "reference/README.md" },
+        { "Sweep specification" = "reference/sweep-specification.md" },
+        { "Campaign specifications" = "reference/campaign-specifications.md" },
+        { "Review sheet" = "reference/review-sheet.md" },
+        { "Command line" = "reference/cli.md" },
+        { "Environment variables" = "reference/environment.md" },
+        { "Output tree" = "reference/output-tree.md" },
+        { "Publishing contract" = "reference/publishing.md" },
     ] },
     { "How-to" = [
         { "Overview" = "how-to/README.md" },
+        { "Set up the runners" = "how-to/set-up-runners.md" },
+        { "Render the library" = "how-to/render-library.md" },
+        { "Review a batch" = "how-to/review-batch.md" },
+        { "Run the alchemy campaign" = "how-to/run-alchemy.md" },
+        { "Render the tutorial examples" = "how-to/render-tutorial-flows.md" },
+        { "Make share cards and the promo gallery" = "how-to/make-promo-material.md" },
+        { "Measure sampler cost" = "how-to/measure-sampler-cost.md" },
+        { "Publish the library" = "how-to/publish.md" },
     ] },
 ]
 
